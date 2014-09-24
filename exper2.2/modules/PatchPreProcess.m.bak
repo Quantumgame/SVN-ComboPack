@@ -1,0 +1,192 @@
+function varargout = PatchPreProcess( varargin )
+
+% Scale the incoming data from the AxoPatch 200B.
+%backup saved 04-01-08 mw
+
+global exper pref
+
+varargout{1} = lower(mfilename);
+if nargin > 0
+	action = lower(varargin{1});
+else
+	action = lower(get(gcbo,'tag'));
+end
+
+switch action
+	
+case 'init'
+	ModuleNeeds(me,{'ao','ai'});
+	SetParam(me,'priority','value',GetParam('ai','priority')+1);
+	fig = ModuleFigure(me,'visible','off');	
+	% GUI positioning factors
+	hs = 60;
+	h = 5;
+	vs = 20;
+	n = 0;
+    modechannel=GetChannel('ai','modechannel');
+    InitParam(me,'modechannel','value',[modechannel.number]);
+    gainchannel=GetChannel('ai','gainchannel');
+	InitParam(me,'gainchannel','value',[gainchannel.number]);
+    commandchannel=GetChannel('ao','commandchannel');
+	InitParam(me,'commandchannel','value',[commandchannel.number]);
+    datachannel=GetChannel('ai','datachannel-patch');
+    InitParam(me,'datachannel','value',[datachannel.number]);
+
+    % message box
+	uicontrol(fig,'tag','message','style','edit',...
+		'enable','inact','horiz','left','units','normal','pos',[0.02 0.82 0.96 0.16]); n = n+1;
+	
+	% Data parameters
+    [mode, gain]=GetModeAndGain;
+	InitParam(me,'mode','value',mode);
+	InitParam(me,'gain','value',gain);
+	
+	% Resize
+	set(fig,'pos',[163 646 128 n*vs]);
+	% Make figure visible again.
+	set(fig,'visible','on');
+
+case {'getready','reset'}
+    [Mode, Gain]=GetModeAndGain;
+    
+    SetParam(me,'gain','value',Gain);
+    SetParam(me,'mode','value',Mode);
+	
+	% Get the channel to have its ranges modified.
+	dataChannels=GetParam(me,'datachannel');
+    % modify the range of channels
+    for channel=1:length(Gain)  % mode and gain have the same length, and Mode can be just a string
+        % get the channel
+	    DataCh=daqfind(exper.ai.daq,'HwChannel',dataChannels(channel));
+	    DataCh=DataCh{1}.Index;
+        % set scaling
+        daqrange=[-10 10];
+        exper.ai.daq.Channel(DataCh).InputRange=daqrange;
+        exper.ai.daq.Channel(DataCh).UnitsRange=daqrange;
+        exper.ai.daq.Channel(DataCh).SensorRange=daqrange*Gain(channel)/1000;
+        % and set also the units
+        switch Mode{channel}
+        case {'Track','V-Clamp'}
+            exper.ai.daq.Channel(DataCh).Units='pA';
+        case {'I=0','I-Clamp Normal','I-Clamp Fast'}
+            exper.ai.daq.Channel(DataCh).Units='mV';
+        end
+    end
+    
+case 'getmode'
+    varargout{1}=GetParam(me,'Mode');
+    
+case 'getgain'
+    varargout{1}=GetParam(me,'Gain');    
+    
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function Mode=AxonMode( Readings )
+% Discover the operating mode of the Axon 200B.
+    % Modes
+    % 1		Track
+    % 2		V-Clamp
+    % 3		I=0
+    % 4		I-Clamp Normal
+    % 6		I-Clamp Fast
+
+    % Preserve input matrix size for output later.
+    sizeout=size(Readings);
+    PossibleReadings=[1 2 3 4 6];
+    PossibleModes={'I-Clamp Fast','I-Clamp Normal','I=0','Track','V-Clamp'};
+    % To get look up indices, make ndgrid of readings and possible readings.
+    % The find minimum differences and use them to index the possible gains.
+    [Readings,PossibleReadings]=ndgrid(Readings,PossibleReadings);
+    [dum,inds]=min(abs(Readings-PossibleReadings),[],2);
+    % If all modes/indices were the same, return a single string.
+    if (prod(size(unique(inds)))==1)
+    	Mode=PossibleModes(inds(1));
+    	Mode=Mode{1};
+    else
+    	% Otherwise, reshape to match the input matrix shape.
+    	Mode=PossibleModes(inds);
+    	Mode=reshape(Mode,sizeout);
+    end
+%function Mode = AxonMode( Readings )
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function Gain=AxonGain(Readings)
+% Discover the gain setting of the Axon 200B.
+
+    %	Telegraph Reading (V):		0.5		1	1.5	2.0	2.5	3.0	3.5	4.0	4.5	5.0	5.5	6.0	6.5
+    %	Gain (mV/mV) or (mV/pA):	0.05	0.1	0.2	0.5	1	2	5	10	20	50	100	200	500
+
+    % Preserve input matrix size for output later.
+    sizeout=size(Readings);
+    % Make matrices of the possible telegraph readings and corresponding gains.
+    PossibleReadings=[0.5:0.5:6.5];
+    PossibleGains=[0.05 0.1 0.2 0.5 1 2 5 10 20 50 100 200 500];
+    % To get look up indices, make ndgrid of readings and possible readings.
+    % The find minimum differences and use them to index the possible gains.
+    [Readings,PossibleReadings]=ndgrid(Readings,PossibleReadings);
+    [dum,inds]=min(abs(Readings-PossibleReadings),[],2);
+    Gain=PossibleGains(inds);
+    % Reshape to match the input matrix shape.
+    Gain=reshape(Gain,sizeout);
+%function Gain=AxonGain(Readings)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [Mode, Gain]=GetModeAndGain
+    % Get the gain for scaling.
+    % to find out the gain we need to create an ai object and read a value
+    % from the gainchannel and mode channel
+    daqrange=[-10 10];
+    
+    gainChannels=GetParam(me,'gainchannel');
+    modeChannels=GetParam(me,'modechannel');
+    nChannels=length(gainChannels);
+    Gain=zeros(1,nChannels);
+    Mode={};
+    
+    for channel=1:nChannels
+    boardn=daqhwinfo('nidaq', 'BoardNames');
+    switch boardn{1} %mw 04.18.06
+            case 'PCI-6052E'
+                ai=analoginput('nidaq',1);
+            case 'PCI-6289'
+                ai=analoginput('nidaq','Dev1'); %mw 12.16.05
+        end
+%
+      	% NOTE: originally patchpreprocess used differential inputs for nidaq, which,
+      	% in our case meant up to 8 channels. With single ended inputs, as in
+      	% case of AI, we can use 16 channels
+        %get the type of input types the board likes
+	%if its possible to set the InputType to SingleEnded, then do it
+    % 2004/11/10 - foma - I talked to Mike Wehr, and decided to switch to
+    % differential
+    % We're going to use differential inputs
+    % see also open_ai above        
+%     	inputs=propinfo(ai,'InputType');
+%     	%if its possible to set the InputType to SingleEnded, then do it
+%     	if ~isempty(find(strcmpi(inputs.ConstraintValue, 'SingleEnded')))
+%     		ai.InputType='SingleEnded';
+%     	end
+        
+        addchannel(ai,[gainChannels(channel) modeChannels(channel)]);
+        set(ai.Channel,'UnitsRange',daqrange)
+        set(ai.Channel,'InputRange',daqrange);
+        set(ai.Channel,'SensorRange',daqrange);
+        status_sample=getsample(ai);
+        delete(ai);
+        clear('ai');
+        % get the gain and mode
+	    CurrentGain=AxonGain(status_sample(1));
+	    CurrentMode=AxonMode(status_sample(2));
+
+        Gain(channel)=CurrentGain;
+        Mode={Mode{:} CurrentMode};
+    end
+%function [Mode, Gain]=SetModeAndGain
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Return the name of this file/module.
+function out=me
+out=lower(mfilename);

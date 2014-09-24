@@ -1,0 +1,356 @@
+function out=PPASound(varargin)
+
+% simple module that initializes, loads, and plays sounds using PsychoPhysicsToolbox PortAudio (PTB) routines
+%
+%
+% SoundLoadSM('load','file',some_COMPLETE_file_name) : Just try to pass the
+% COMPLETE (ie with the full path) file name. Partial file name is usually
+% sufficient, but you just cannot assume it would ALWAYS work
+%
+% SoundLoadSM('load','var',variable) : The variable is a vector at some
+% sampling rate.
+%
+% fs=SoundLoadSM('samplerate'); : Returns samplerate. ALL MODULES
+% using SoundLoadSM should check this and use it!
+%??? rp2=SoundLoadSM('rp2object'); : Returns an RP2 object used by SoundLoad.
+%
+%??? SoundLoadSM('sethwtrigger'): enables hardware trigger
+%
+
+global exper pref
+
+if nargin > 0
+    action = lower(varargin{1});
+else
+    action = lower(get(gcbo,'tag'));
+end
+
+switch action
+    case 'init'
+        % ModuleNeeds(me,{'rp2control'}); % needs RP2Control to find out how to talk to RP2
+        SetParam(me,'priority',GetParam('stimulusprotocol','priority')+1);
+        InitializeGUI;                  % show the gui = message box:-)
+        InitPPA;                        % Initialize soundmachine
+
+    case 'reset'
+        % Stop playback:
+        PPAhandle=GetParam(me,'PPAhandle');
+        PsychPortAudio('Stop', PPAhandle);
+        PsychPortAudio('Close', PPAhandle);
+        InitPPA;
+
+    case 'esealteston'
+        %PPASound('reset');
+
+    case 'estimulusprotocolchanged'
+        %PPASound('reset');
+
+    case 'load'
+        if nargin<3
+            return;
+        end
+        try
+            if nargin==4
+                LoadPPA(varargin{2},varargin{3},varargin{4});
+            else
+                param.channel=1;
+                LoadPPA(varargin{2},varargin{3},param); % first channel is the default channel
+            end
+        catch
+            message(me,'Cannot load sound');
+        end
+
+    case 'samplerate'
+        out=GetParam(me,'SoundFs');
+
+    case 'PPAhandle'
+        out=GetParam(me,'PPAhandle');
+
+    case 'playsound'
+        PlaySound;
+        
+        
+    case 'playsoundloop'
+        PlaySoundLoop;
+        
+    case 'playsoundloop2'
+        PlaySoundLoop2(varargin{2},varargin{3},varargin{4});
+
+    case 'sethwtrigger'
+        %     sm=GetParam(me,'SM');
+        %     if nargin>1
+        %         channel=varargin{2};   % channel should be the second argument
+        %     end
+        %     if isempty(channel)             % if no channel is specified, set up all
+        %         invoke(rp2,'SoftTrg',1);    % channel 1
+        %         invoke(rp2,'SoftTrg',2);    % channel 2
+        %     else
+        %         invoke(rp2,'SoftTrg',channel);  % start specific channel
+        %     end
+
+    case 'setchannel'
+        %     sm=GetParam(me,'SM');
+        %     channel=[];
+        %     if nargin>1
+        %         channel=str2num(varargin{2});   % channel should be the second argument
+        %     end
+        %     if isempty(channel)
+        %         channel=1;                      % if there are no arguments, or the second argument is not a number, let's make it 1
+        %     end
+        %     invoke(rp2,'SetTagVal','channel',channel); % set the output channel
+        %     message(me,['Channel set: ' num2str(channel)]);
+
+    case 'stop'
+        % Stop playback:
+        PPAhandle=GetParam(me,'PPAhandle');
+        PsychPortAudio('Stop',PPAhandle,0);
+
+    case 'close'
+        try
+            % Stop playback:
+            PPAhandle=GetParam(me,'PPAhandle');
+            PsychPortAudio('Stop',PPAhandle);
+
+            % Done, close driver and display:
+            % Priority(0);
+
+            PsychPortAudio('Close');
+        catch
+            message(me, 'failed to close device')
+            pause(.2)
+        end
+end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function InitPPA
+global exper pref
+if ExistParam(me,'PPAhandle') % take the existing ActiveX control
+    PPAhandle=GetParam(me,'PPAhandle');
+    try
+        PsychPortAudio('Stop',PPAhandle );
+        % Done, close driver and display:
+        Priority(0);
+        PsychPortAudio('Close');
+    catch
+        message(me, 'InitPPA: failed to close device')
+        pause(.2)
+    end
+end
+% Initialize driver, request low-latency preinit:
+InitializePsychSound(1);
+PsychPortAudio('Verbosity', 1); %nm 09.09.08 turn off all text feedback from PPA
+
+%because it is machine dependent, we now set deviceid in Prefs.m
+%use printdevices.m to figure out which device id to use for your soundcard
+deviceid = pref.soundcarddeviceID; %32; %11;
+
+numChan = pref.num_soundcard_outputchannels; %set in Prefs.m
+reqlatencyclass = pref.reqlatencyclass;
+%because it is machine dependent, we now set reqlatencyclass in Prefs.m
+%on rig1 use 4; %on rig2, set to 1 (the default) to avoid dropouts mw 051809
+%on rig1, 1 seems to cause dropouts but 2/3/4 seem better
+% class 2 empirically the best, 3 & 4 == 2
+% 'reqlatencyclass' Allows to select how aggressive PsychPortAudio should be about
+% minimizing sound latency and getting good deterministic timing, i.e. how to
+% trade off latency vs. system load and playing nicely with other sound
+% applications on the system. Level 0 means: Don't care about latency, this mode
+% works always and with all settings, plays nicely with other sound applications.
+% Level 1 (the default) means: Try to get the lowest latency that is possible
+% under the constraint of reliable playback, freedom of choice for all parameters
+% and interoperability with other applications. Level 2 means: Take full control
+% over the audio device, even if this causes other sound applications to fail or
+% shutdown. Level 3 means: As level 2, but request the most aggressive settings
+% for the given device. Level 4: Same as 3, but fail if device can't meet the
+% strictest requirements.
+
+SoundFs = 96e3;        % Must set this. 96khz, 48khz, 44.1khz.
+buffSize = 64;           % Low latency: 64 or 128. High latency: 512>=
+% nm 05.07.09 changed to 64, should fix dropouts.  If not, open LynxMixer.exe
+% (in C:\lynx) and Settings->Buffer Size->64
+% If Lynx seems not to change buffer size then type "CloseAllSoundDevices" into Matlab.
+% You can monitor for dropouts using the LynxMixer as well.
+buffPos = 0;
+
+% Open audio device for low-latency output:
+PPAhandle = PsychPortAudio('Open', deviceid, [], reqlatencyclass, SoundFs, numChan, buffSize);
+
+% Unknown system: Assume zero bias. User can override with measured
+% values:
+%latbias = 0.0013;
+
+% Tell driver about hardwares inherent latency, determined via calibration
+% once:
+%prelat = PsychPortAudio('LatencyBias', PPAhandle, latbias);
+%postlat = PsychPortAudio('LatencyBias', PPAhandle);
+
+if isempty(PPAhandle)
+    message(me,'Can''t create PsychPortAudio object...');
+    return;
+end
+InitParam(me,'PPAhandle','value',PPAhandle); %param to hold the PsychPortAudio object
+InitParam(me,'numChan','value',numChan); %param to hold number of output channels with which we initialized card (num rows of samples must match this)
+InitParam(me,'SoundFs','value',SoundFs); %param to hold the sampling rate
+InitParam(me,'Samples','value',[]); %param to hold the samples, used only for looping
+InitParam(me,'buffPos','value',buffPos); %param to hold the position of buffer
+message(me, sprintf('Initialized PsychPortAudio with device %d', deviceid));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function LoadPPA(type,where,param)
+% loads data to soundmachine. type can be either 'file' or 'var'
+switch type
+    case 'file'
+        try
+            load(where,'samples');
+            str=[where ' loaded'];  % string to be displayed in the message box
+        catch
+            message(sprintf('Cannot load %s', where));
+            return;
+        end
+    case 'var'
+        samples=where;
+        str='vector loaded'; % string to be displayed in the message box
+    otherwise
+        return;
+end
+
+% if isfield(param,'channel')
+%     channel=param.channel(1);
+% else
+%     channel=1;  % default channel
+% end
+
+%grab PPAhandle object from param
+PPAhandle=GetParam(me,'PPAhandle');
+SoundFs=GetParam(me,'SoundFs'); %sampling rate
+
+%not sure if 'if exist' statement is necessary may need to be removed.
+% if exist('PPAhandle')
+%     PsychPortAudio('Stop', PPAhandle, 1); %stop after waiting for completion playback
+% end
+
+numChan=getparam(me, 'numChan'); %number of output channels we initialized the soundcard with
+nstimchans=min(size(samples)); %number of channels of requested stimulus (i.e. mono or stereo)
+samples=reshape(samples, nstimchans, length(samples)); %ensure samples are a row vector
+silence=zeros(numChan, length(samples));
+silence(1:nstimchans,:)=samples;
+
+%last channel serves as trigger
+pad=zeros(numChan,64); %one buffer's worth of zeros at end to avoid a click from any buffer underrun
+trigsamples=zeros(1, length(samples));
+triglength=SoundFs/1000; %1 ms trigger
+trigsamples(1:triglength)=.8*ones(size(1:triglength));
+%trigsamples(end-triglength+1:end)=-.5*ones(size(1:triglength));
+samples(numChan,:)=trigsamples;
+
+samples=[samples pad];
+
+SetParam(me,'samples', samples); %store samples for re-buffering if we're looping (used only for looping)
+
+PsychPortAudio('FillBuffer', PPAhandle, samples);
+% PsychPortAudio('Start', PPAhandle, 1, inf, 0);
+message(me, str);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function PlaySound
+PPAhandle=GetParam(me,'PPAhandle');
+loop_flg=GetParam('StimulusCzar', 'loop_flg');
+loop_flg_t=GetParam('TonePlayer', 'loop_flg');
+
+if loop_flg==1 
+    PsychPortAudio('Start', PPAhandle, 0, 0, 0);
+else %loop_flg==0
+    PsychPortAudio('Start', PPAhandle, 1, 0, 0);
+end
+
+% PsychPortAudio('RescheduleStart', PPAhandle, 0, 0);
+
+%status = PsychPortAudio('GetStatus', PPAhandle);
+%disp(status);
+%PsychPortAudio('Stop', PPAhandle, 1); %stop after waiting for completion playback
+%[startTime endPositionSecs xruns] =PsychPortAudio('Stop', PPAhandle, 1); %stop
+%after waiting for completion playback
+%fprintf('\nstartTime:%g endPositionSecs:%g xruns:%d', startTime,
+%endPositionSecs, xruns)
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function PlaySoundLoop
+PPAhandle=GetParam(me,'PPAhandle');
+samples=GetParam(me,'Samples');
+
+PsychPortAudio('Stop', PPAhandle); %stop after waiting for completion playback
+PsychPortAudio('Start', PPAhandle, 1, 0, 0);
+pause(.05)
+% buffPos=1;
+% SetParam(me,'buffPos', buffPos); %store buffer position
+
+
+% buffPos=GetParam(me, 'buffPos');
+% i=1:buffSize;
+% samples(i) = samples(mod(buffPos+i-1,length(samples))+1);
+% buffPos=mod(buffPos,length(samples))+buffSize;
+% % SetParam(me,'buffPos', buffPos); %store buffer position
+
+PsychPortAudio('Start', PPAhandle, 0);
+
+samples(2,:)=0.*samples(2,:); %erase trigger since we don't need it
+SetParam(me,'samples', samples); %store samples for streaming if we're looping
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%dont need this anymore, remove when done with looping logic for playsound
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function PlaySoundLoop2 %(type,where,param)
+% PPASound('LoadPPA'); %load sound
+% samples=GetParam(me,'samples'); %sampling rate
+% buffLength=(32/96e3);  %buffer length in seconds
+% 
+% samples=[samples;0]; % no trig on refill
+% bufferhandle = PsychPortAudio('CreateBuffer', PPAhandle, samples);
+% 
+% PsychPortAudio('RefillBuffer', PPAhandle, bufferhandle, samples, 0); %streaming refill of buffer
+% 
+% % status = PsychPortAudio('GetStatus', PPAhandle);
+% % disp(status);
+% % buffPos=GetParam(me, 'buffPos');
+% % i=1:buffSize;
+% % samples(i) = samples(mod(buffPos+i-1,length(samples))+1);
+% % buffPos=mod(buffPos,length(samples))+buffSize;
+% % % SetParam(me,'buffPos', buffPos); %store buffer position
+% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function InitializeGUI
+fig = ModuleFigure(me);
+set(fig,'doublebuffer','on','visible','off');
+
+hs = 120;
+h = 5;
+vs = 50;
+n = 1;
+% message box
+uicontrol('parent',fig,'tag','message','style','text',...
+    'enable','inact','horiz','left','pos',[h n*vs hs vs]); n=n+1;
+screensize=get(0,'screensize');
+
+set(fig,'pos', [screensize(3)-128 screensize(4)-n*vs-100 128 n*vs] ,'visible','on');
+
+Message(me, 'Initialized GUI');
+pause(.2)
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function out=me
+% Simple function for getting the name of this m-file.
+out=lower(mfilename);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

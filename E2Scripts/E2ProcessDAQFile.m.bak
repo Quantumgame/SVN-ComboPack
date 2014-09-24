@@ -1,0 +1,180 @@
+function expLogData=E2ProcessDAQFile(daqfilename, expType, saveit, outputdir, spikeMethod)
+
+% Processes a single (E2) DAQ file and extracts triggers, timestamp, responses, etc.,
+% and saves everything into corresponding mat files
+
+% Input:
+%       daqfilename     -   daq file to process
+%       expType         -   type of experiment (lfp, cell-attached,
+%                           whole-cell,etc.). Determines what will be done.
+%
+%       spikeMethod     -   'auto' default: extract spikes automagically
+%                       -   'manual': extract spikes manually:-)
+
+
+expLogData=[];
+
+if nargin<4 | isempty(spikeMethod)
+    spikeMethod='auto';
+end
+
+if nargin<4 | isempty(outputdir) | strcmp(outputdir,'.')
+    outputdir=pwd;
+end
+
+if nargin<3 | isempty(saveit)
+    saveit=0;
+end
+saveit=saveit>0;            % make sure it's 0 or 1
+
+if nargin<2 | isempty(expType)
+    expType='lfp';
+end
+
+if nargin<1 | isempty(daqfilename)
+    return;
+end
+
+if ~exist(daqfilename,'file')
+    disp(['Can''t find ' daqfilename '!']);
+    return;
+end
+
+try
+  daqinfo=daqread(daqfilename,'info');
+catch
+  disp(['Can''t read ' daqfilename '!']);
+  return;
+end
+
+channels=daqinfo.ObjInfo.Channel;	% structure containing information about the channels
+channelnames={channels.ChannelName};
+% find out the channel numbers
+triggerchannel=find(strcmpi(channelnames,'Triggers'));	    % find the Triggers channel
+timestampchannel=find(strcmpi(channelnames,'Timestamp'));	% find the Timestamp channel
+
+% somehow I have to come up with a better method of obtaining the channel
+% info
+datachannel(1).number=1;
+datachannel(1).name='AxopatchData1';
+datachannel(2).number=2;
+datachannel(2).name='AxopatchData2';
+% datachannel=find(strcmpi(channelnames,'Axopatch Data'));	% find the Data channel
+% eegchannel=find(strcmpi(channelnames,'Cyberamp Data'));
+
+daqsamplerate=daqinfo.ObjInfo.SampleRate;           % sampling rate
+
+% get the Exper structure
+[daqpath,daqname,ext,ver]=fileparts(daqfilename);
+experfile=fullfile(daqpath,daqname);
+
+% now process the file: For now we're extracting only the Axopatch Data channel
+% First, get the timestamp from the timestamp channel
+if ~isempty(timestampchannel)
+    daqdata=daqread(daqfilename,'Channel',timestampchannel,'DataFormat','native'); %int16 makes the file CONSIDERABLY smaller
+    expLogTimestamp=E2GetTimeStamp(daqdata); % returns a structure with timestamp events
+    % daqTimestampName=fullfile(outputdir,[daqname '-timestamp']);
+    daqTimestampName=[daqname '-timestamp'];
+else
+    daqTimestampName='';
+end
+    
+% Second, get the triggers from the trigger channel
+daqdata=daqread(daqfilename,'Channel',triggerchannel,'DataFormat','native');
+triggerPos=E2GetTriggers(daqdata);
+
+% Third, get the data itself
+daqdata=daqread(daqfilename,'Channel',[datachannel.number],'DataFormat','native');
+if isempty(daqdata) return; end %mw 052306
+nativeScalingAll=[daqinfo.ObjInfo.Channel([datachannel.number]).NativeScaling];   % conversion factors for the conversion from int16 to double
+nativeOffsetAll=[daqinfo.ObjInfo.Channel([datachannel.number]).NativeOffset];
+
+% Also, get the stimuli (mw 100206)
+%daqdata=daqread(daqfilename,'Channel',[datachannel.number],'DataFormat','native');
+%if isempty(daqdata) return; end %mw 052306
+%nativeScalingAll=[daqinfo.ObjInfo.Channel([datachannel.number]).NativeScaling];   % conversion factors for the conversion from int16 to double
+%nativeOffsetAll=[daqinfo.ObjInfo.Channel([datachannel.number]).NativeOffset];
+
+% prepare the log entries
+expLogData.Type='trace';
+expLogData.Label={};
+expLogData.Trace={};
+expLogData.SpikeTrace={};   % this is sort of redundant, think about it more!!!
+expLogData.Events={};
+expLogData.Timestamp=daqTimestampName;
+expLogData.Samplerate=daqsamplerate;
+
+
+% and then process the data
+for traceNum=1:length(datachannel)
+    channel=datachannel(traceNum);
+    daqTraceName=[daqname '-' channel.name '-trace'];
+    % daqTraceName=fullfile(outputdir,[daqname '-trace']);
+
+    % determine whether we need to extract the spikes
+    if strcmpi(expType,'cell-attached') | strcmpi(expType,'whole-cell')
+        switch spikeMethod
+            case 'auto'
+                spikePos=E2GetSpikes(daqdata(:,traceNum),nativeScalingAll(traceNum),nativeOffsetAll(traceNum));
+                getspikes=1;
+                daqSpikesName=[daqname '-' channel.name '-spike_trace'];
+                %     daqSpikesName=fullfile(outputdir,[daqname '-spike_trace']);
+            case 'manual'
+                spikePos=E2GetSpikesManual(daqdata(:,traceNum),nativeScalingAll(traceNum),nativeOffsetAll(traceNum));
+                getspikes=1;
+                daqSpikesName=[daqname '-' channel.name '-spike_trace'];
+                %     daqSpikesName=fullfile(outputdir,[daqname '-spike_trace']);
+            otherwise
+                spikePos=[];
+                getspikes=0;
+                daqSpikesName=[];
+        end
+    else
+        spikePos=[];
+        getspikes=0;
+        daqSpikesName=[];
+    end
+
+    % Finally, get all the events (spikes, stimuli, etc., except timestamp)
+    expLogEvents=E2GetEvents(experfile,triggerPos,spikePos);
+    daqEventsName=[daqname '-' channel.name '-events'];
+    % daqEventsName=fullfile(outputdir,[daqname '-events']);
+
+    % and then finish the log
+%     expLogData.Type='trace';
+    expLogData.Label={expLogData.Label{:} channel.name};
+    expLogData.Trace={expLogData.Trace{:} daqTraceName};
+    expLogData.SpikeTrace={expLogData.SpikeTrace{:} daqSpikesName};   % this is sort of redundant, think about it more!!!
+    expLogData.Events={expLogData.Events{:} daqEventsName};
+%     expLogData.Timestamp=daqTimestampName;
+%     expLogData.Samplerate=daqsamplerate;
+
+    if saveit
+        current=pwd;
+        if ~isdir(outputdir)
+           pos=find(outputdir==filesep);
+           root=outputdir(1:pos(1));
+           cd(root);
+           mkdir(outputdir(pos(1)+1:end));
+    %        cd(current);
+        end
+       cd(outputdir); 
+       % save the raw data trace (int16 format plus the scaling factors)
+       trace=daqdata(:,traceNum);
+       nativeScaling=nativeScalingAll(traceNum);
+       nativeOffset=nativeOffsetAll(traceNum);
+       save(daqTraceName,'trace','nativeScaling','nativeOffset');
+       if getspikes % if requested, save the spikes as well
+           spike_trace=spikePos;
+           save(daqSpikesName,'spike_trace');
+       end
+       if ~isempty(daqTimestampName)
+            event=expLogTimestamp;
+            save(daqTimestampName,'event');
+       end
+       event=expLogEvents;
+       save(daqEventsName,'event');
+       cd(current);
+    end
+    
+end % for traceNum=1:length(datachannel)
