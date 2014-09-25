@@ -168,6 +168,44 @@ end
 ylabel('Attenuation (dB)')
 hold off
 
+%sample of raw data
+scaledtrace=out.scaledtrace;
+lostat=out.lostat;
+samprate=out.samprate;
+figure; hold on
+if lostat~=length(scaledtrace);
+L=lostat;
+else 
+     L=length(scaledtrace);
+ end
+t1=1:L;
+t2=1:length(scaledtrace);
+L1=length(scaledtrace);
+winsize=1e4;
+region=1:winsize;
+scaledtracefixed=scaledtrace(t1);
+if lostat~=length(scaledtrace);
+for i=1:10*winsize:L1
+    try region=i:i+winsize;
+plot(t2(region)-.88*i, scaledtrace(region),'r')
+plot(t1(region)-.88*i, scaledtracefixed(region),'b')
+    end
+end
+else
+    for i=1:10*winsize:L1
+    try region=i:i+winsize;
+    plot(t2(region)-.88*i, scaledtrace(region),'b')
+    end
+    end
+end
+if lostat~=length(scaledtrace);
+legend('lost trace due to poor quality','remaining trace')
+else
+    legend('membrane potential trace')
+end
+title(sprintf('raw trace for %s-%s-%s (%.1fs segments throughout recording)',expdate,session, filenum, winsize/samprate))
+
+
 %plots each trial separately to find most consistent responses, added by
 %ira 10/16/13
 % for nindex=1:nreps

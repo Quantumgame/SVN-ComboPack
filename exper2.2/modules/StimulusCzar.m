@@ -19,8 +19,8 @@ global exper pref shared calibrationmethod
 % calibrationmethod can be 'look-up' or 'inversefilter'
 % this determines whether sound level calibration uses the
 % standard look-up-table for tones and noise, or the new inverse adaptive filtering approach 
-calibrationmethod='inversefilter'; 
-
+%calibrationmethod='inversefilter'; 
+calibrationmethod='look-up';
 
 if nargin > 0
     action = lower(varargin{1});
@@ -555,7 +555,9 @@ if ~isempty(cal) %it will be empty if Init failed to load calibration
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function samples=InverseFilter(sample, samplerate, stimparams{stimidx});
+function samples=InverseFilter(samples, samplerate, stimparams);
+%stuff will go here eventually
+%mw 09-25-2014
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -71,7 +71,7 @@ try godatadir(expdate,session)
         load(outfilename)
         outfile_exists=1;
     else
-        ProcessTC_psth(expdate,session,filenum)
+        ProcessTC_psth(expdate,session,filenum,nstd,xlimits,ylimits,binwidth,monitor)
         outfile_exists=0;
     end
 catch
@@ -79,17 +79,18 @@ catch
 end
 if outfile_exists
     if length(nstd)==2
-        if out.thresh~=nstd(end)
+        if out_psth.thresh~=nstd(end)
             outfile_exists=0;
         end
     else
-        if out.nstd~=nstd(end)
+
+      if out_psth.nstd~=nstd(end)
             outfile_exists=0;
         end
     end
-    if ~isfield(out,'xlimits')
+    if ~isfield(out_psth,'xlimits')
         outfile_exists=0;
-    elseif sum(out.xlimits==xlimits)~=2
+    elseif sum(out_psth.xlimits==xlimits)~=2
         outfile_exists=0;
     end
 end
@@ -99,7 +100,7 @@ try load(lostatfilename);catch; lostat=-1;end %#ok
 
 % Also need to check xlimits & binwidth! --AKH
 if outfile_exists
-    if out.xlimits(2)~=xlimits(2) || out.binwidth~=binwidth || out.xlimits(1)~=xlimits(1)
+    if out_psth.xlimits(2)~=xlimits(2) || out_psth.binwidth~=binwidth || out_psth.xlimits(1)~=xlimits(1)
         outfile_exists=0;
     end
 end
@@ -116,7 +117,7 @@ if ~outfile_exists
     if lostat==-1; lostat=length(scaledtrace);end
 else
     try
-    lostat=out.lostat;
+    lostat=out_psth.lostat;
     catch
         fprintf('\nNo lostat time to load...\n')
     end
@@ -219,16 +220,16 @@ if ~outfile_exists
     
     nreps=zeros(numfreqs, numamps, numdurs);
 else
-    freqs=out.freqs;
-    amps=out.amps;
-    durs=out.durs;
+    freqs=out_psth.freqs;
+    amps=out_psth.amps;
+    durs=out_psth.durs;
     numfreqs=length(freqs);
     numamps=length(amps);
     numdurs=length(durs);
-    nreps=out.nreps;
-    M1=out.M1;
-    M1stim=out.M1stim;
-    mM1stim=out.mM1stim;
+    nreps=out_psth.nreps;
+    M1=out_psth.M1;
+    M1stim=out_psth.M1stim;
+    mM1stim=out_psth.mM1stim;
 end
 
 %extract the traces into a big matrix M
@@ -307,7 +308,7 @@ if ~outfile_exists
         end
     end
 else
-    mM1=out.mM1;
+    mM1=out_psth.mM1;
 end
 
 dindex=1;
@@ -326,7 +327,7 @@ if ylimits==-1
         end
     end
 end
-outfilename=sprintf('out%s-%s-%s.mat', expdate, session, filenum);
+outfilename=sprintf('out_psth%s-%s-%s.mat', expdate, session, filenum);
 % fprintf('\nOutfile name: %s', outfilename)
 % fprintf('\nmin/max reps: %d/%d', min(min(min(nreps))), max(max(max(nreps))))
 % fprintf('\ntotal num spikes: %d', length(dspikes))

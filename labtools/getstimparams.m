@@ -45,6 +45,8 @@ allfilter_operations={};
 allcenter_frequencies=[];
 alllower_frequencies=[];
 allupper_frequencies=[];
+alldescriptions=[];
+allfiles=[];
 allfields={};
 
 for i=1:length(event)
@@ -103,6 +105,14 @@ for i=1:length(event)
         if isfield(event(i).Param, 'next')
             allISIs=[allISIs event(i).Param.next];
         end
+        if isfield(event(i).Param, 'description')
+            
+            alldescriptions{i}=event(i).Param.description;
+        end
+        if isfield(event(i).Param, 'file')
+            allfiles{i}= event(i).Param.file;
+        end
+        
     end
 end
 
@@ -125,5 +135,7 @@ stimparams.center_frequencies=unique(allcenter_frequencies);
 stimparams.lower_frequencies=unique(alllower_frequencies);
 stimparams.upper_frequencies=unique(allupper_frequencies);
 stimparams.allfields=unique(allfields);
+%stimparams.descriptions=unique(alldescriptions);
+%stimparams.files=unique(allfiles);
 
 

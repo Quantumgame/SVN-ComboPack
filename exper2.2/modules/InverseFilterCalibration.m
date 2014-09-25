@@ -107,7 +107,7 @@ function InverseFilterCalibration(varargin)
 
 global  pref
 persistent ax1 ax2 ai2 ao2 dio2 DataCh fig
-persistent RunningH
+persistent LearnH TestH
 
 % global exper pref
 % persistent ax1 ax2 ai2 ao2 dio2 DataCh GainCh ModeCh ph pw samples fig curaxes curline curpoint
@@ -129,7 +129,7 @@ else
 end
 
 % fprintf('\n%s', action)
-set(fig, 'name', ['CalibrateSpeaker: ', action])
+set(fig, 'name', ['InverseFilterCalibration: ', action])
 
 
 switch action
@@ -197,17 +197,18 @@ switch action
         
         %number of times to iterate at a time
         lpnum = 1;
-        InitParam(me,'loop_num','value',lpnum,...
+%         InitParam(me,'loop_num','value',lpnum,...
+%             'ui','edit','units','normal','pos',[0.85 0.25 0.08 0.04]);
+
+                InitParam(me,'order','value',100,...
             'ui','edit','units','normal','pos',[0.85 0.25 0.08 0.04]);
+
         
         minfreq=1000;
-        if strcmp(pref.username,'mak')
-            maxfreq=16000;
-            numfreqs=21;
-        else
+    
             maxfreq=32000;
             numfreqs=11;
-        end
+        
         InitParam(me,'minfreq','value',minfreq,...
             'ui','edit','units','normal','pos',[0.1 0.2 0.08 0.04]);
         InitParam(me,'maxfreq','value',maxfreq,...
@@ -230,6 +231,8 @@ switch action
         InitParam(me,'DB','value',[]);
         InitParam(me, 'Rmic_applied_during_Run','value', 0);
         InitParam(me, 'Lmic_applied_during_Run','value', 0);
+
+        InitParam(me,'inverse_filter','value',0);
 
         try
             cd(pref.experhome)
@@ -302,10 +305,15 @@ switch action
         
         % create the run button
         
-        RunningH = uicontrol('style','togglebutton','string','Run',...
-            'callback',[me ';'],'tag','run','fontname','Arial',...
+        LearnH = uicontrol('style','togglebutton','string','Learn',...
+            'callback',[me ';'],'tag','learn','fontname','Arial',...
             'fontsize',14,'fontweight','bold','backgroundcolor',[0 1 0],...
-            'units','normal','pos',[0.1 0.02 0.35 0.123]);
+            'units','normal','pos',[0.1 0.02 0.15 0.123]);
+        
+          TestH = uicontrol('style','togglebutton','string','Test','value', 0,...
+            'callback',[me ';'],'tag','test','fontname','Arial',...
+            'fontsize',14,'fontweight','bold','backgroundcolor',[0 1 0],...
+            'units','normal','pos',[0.27 0.02 0.15 0.123]);
         
         Message(me, sprintf('pref.maxSPL is %d',pref.maxSPL ), 'append')
         
@@ -422,7 +430,90 @@ switch action
         
         % Now for its own modes.
         
-    case 'run'
+    case 'learn'
+        Message(me, 'learn')
+                        set(LearnH,'backgroundcolor',[1 0 0]);
+                SendEvent('esealteston',[],me,'all');
+                %         if ~isempty(gcbo) & (gcbo==RunningH) ...
+                % This run is the first one. Set up some parameters.
+                set(LearnH,'string','learning...');
+
+        % Stop other modules.
+                ai('pause');
+                
+                ai2.Channel(:).InputRange=[-10 10];
+                ai2.Channel(:).SensorRange=[-10 10];
+                ai2.Channel(:).UnitsRange=[-10 10];
+                set(ai2,'TriggerType','HwDigital');
+                % Copy the sample rate from the other module.
+                set(ai2,'SampleRate',GetParam(me,'aisamprate'));
+                ai2SampleRate=ai2.SampleRate/1000;
+                
+                % Do not let ai use interrupts if DMA is possible.
+                % Get possible transfer modes.
+                possibs=set(ai2,'TransferMode');
+                % Set transfer mode to DualDMA if possible and SingleDMA as alternate.
+                if sum(strcmp(possibs,'DualDMA'))
+                    set(ai2,'TransferMode','DualDMA');
+                elseif sum(strcmp(possibs,'SingleDMA'))
+                    set(ai2,'TransferMode','SingleDMA');
+                end
+                % Call this file at the end.
+                set(ai2,'StopFcn',me);
+                set(ai2,'TriggerType','HwDigital');
+                
+                dataChannels=GetParam(me,'DataChannels');
+                nChannels=GetParam(me,'nChannels');
+                
+                DataCh=zeros(1,nChannels);
+                
+                for channel=1:nChannels
+                    DCh=daqfind(ai2,'HwChannel',dataChannels(channel));
+                    DataCh(channel)=DCh{1}.Index;
+                end
+                sampleLength=500;   % sample length in ms
+                set(ai2,'SamplesPerTrigger',ceil(sampleLength*ai2SampleRate));
+                tonedur=sampleLength;
+                
+                    Message(me, sprintf('playing WN'), 'append')
+                    %start playing tone
+                    samples=PlayCalibrationTone(-1, tonedur, 0);
+                    
+                    % Trigger.
+                    start(ai2);
+                    % Flip dio bit to trigger.
+                    putvalue(dio2,1);
+                    putvalue(dio2,0);
+                    
+                    wait(ai2,sampleLength/1000+100);
+                    %getData
+                    if (ai2.SamplesAvailable>0) % we might have some data available
+                        wait(ai2,1);
+                        
+                        [data,time]=getdata(ai2);
+                        activeChannel=1;
+                        
+                        % Scale data.
+                        RawData=data(:,DataCh(activeChannel));
+                        ScaledData=detrend(RawData, 'constant'); %in volts
+                        
+                        GetInverseFilter(ScaledData, samples, ai2.SampleRate)
+                        Message(me, 'learned inverse filter', 'append')
+                    end
+                       set(LearnH,'backgroundcolor',[0 1 0]);
+                       set(LearnH, 'value', 0)
+                SendEvent('esealtestoff',[],me,'all');
+                set(LearnH,'string','Learn');
+                
+                if exist('ao2','var') && ~isempty(ao2)
+                    stop(ao2);
+                end
+                if exist('ai2','var') && ~isempty(ai2)
+                    stop(ai2);
+                end
+                ai('reset');
+    case 'test'
+        Message(me, 'test')
         % Set the button to red or green to indicate whether running.
         %     RunningH=findobj('type','uicontrol','tag','run');
         %         safety check:
@@ -435,14 +526,15 @@ switch action
         cla(ax1)
         cla(ax2)
         Message(me, 'Running...')
-        Running=get(RunningH,'value');
-        for lp = 1:GetParam(me, 'loop_num')
-            if Running
-                set(RunningH,'backgroundcolor',[1 0 0]);
+        Testing=get(TestH,'value');
+%         for lp = 1:GetParam(me, 'loop_num')
+        for lp = 1
+            if Testing
+                set(TestH,'backgroundcolor',[1 0 0]);
                 SendEvent('esealteston',[],me,'all');
                 %         if ~isempty(gcbo) & (gcbo==RunningH) ...
                 % This run is the first one. Set up some parameters.
-                set(RunningH,'string','Running...');
+                set(TestH,'string','Testing...');
                 % Stop other modules.
                 ai('pause');
                 
@@ -479,6 +571,7 @@ switch action
                 sampleLength=500;   % sample length in ms
                 set(ai2,'SamplesPerTrigger',ceil(sampleLength*ai2SampleRate));
                 tonedur=sampleLength+200;
+                
                 %logspacedfreqs=GetParam(me, 'logspacedfreqs');
                 numfreqs=GetParam(me, 'numfreqs');
                 maxfreq=GetParam(me, 'maxfreq');
@@ -497,7 +590,9 @@ switch action
                     Message(me, sprintf('playing tone %d/%d',i, numfreqs+1), 'append')
                     tonefreq=logspacedfreqs(i);
                     %start playing tone
-                    samples=PlayCalibrationTone(tonefreq, tonedur);
+                    
+
+                    samples=PlayCalibrationTone(tonefreq, tonedur, 1);
                     
                     % Trigger.
                     start(ai2);
@@ -518,7 +613,7 @@ switch action
                         RawData=data(:,DataCh(activeChannel));
                         ScaledData=detrend(RawData, 'constant'); %in volts
                         
-                        GetInverseFilter(ScaledData, samples)
+%                         GetInverseFilter(ScaledData, samples, ai2.SampleRate)
                         
                         %high pass filter a little bit to remove rumble
                         %for display purposes only
@@ -556,6 +651,7 @@ switch action
                             db=dBSPL(Vrms, GetParam(me, 'mic_sensitivity'));
                             Message(me, sprintf('estimated tone amp: %.2f', db), 'append');
                             
+                           % GetInverseFilter(ScaledData, samples)
                             
                         else
                             %estimate amplitude -- Pxx method
@@ -568,7 +664,7 @@ switch action
                         FMAX(i)=fmax;
                         DB(i)=db;
                         
-                        waitbar(((lp-1)*(numfreqs+1)+i)/(GetParam(me, 'loop_num')*(numfreqs+1)), wb)
+                        waitbar(i/(numfreqs+1), wb)
                         
                     else
                         Message(me, 'did not AnalyzeData')
@@ -699,10 +795,10 @@ switch action
               
                 StdDB(lp)=std(DB);
                 %stop and turn off Run button
-                set(RunningH,'value', 0);
-                set(RunningH,'enable','off');
-                set(RunningH,'string','Run');
-                set(RunningH,'backgroundcolor',[0 1 0]);
+                set(TestH,'value', 0);
+                set(TestH,'enable','off');
+                set(TestH,'string','Test');
+                set(TestH,'backgroundcolor',[0 1 0]);
                 
                 if exist('ao2','var') && ~isempty(ao2)
                     stop(ao2);
@@ -716,7 +812,7 @@ switch action
                 SendEvent('esealtestoff',[],me,'all');
                 % 20041124 - foma
                 %         eval([ me '(''reset'');' ]);
-                set(RunningH,'enable','on');
+                set(TestH,'enable','on');
             end %if Running
             %             pause(1)
         end %loop_num
@@ -731,7 +827,7 @@ switch action
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function samples=PlayCalibrationTone(tonefreq, tonedur)
+function samples=PlayCalibrationTone(tonefreq, tonedur, f) %f = filter?
 
 param.frequency=tonefreq; %hz
 param.amplitude=GetParam(me, 'target_amplitude');
@@ -769,6 +865,12 @@ else
     samples=MakeTone(param, samplerate);
 end
 
+if f %apply previously learned inverse filter
+    a=GetParam(me, 'inverse_filter');
+    samples=filter(a, 1, samples);
+    samples=samples./(max(samples));
+end
+
 switch GetParam(me, 'channel')
     case 1 %mono
         % samples already on mono=right side
@@ -777,6 +879,8 @@ switch GetParam(me, 'channel')
     case 3 %left
         samples=[0*samples;samples];
 end
+
+
 % uncomment to use soundmachine:
 % triggernum=2;
 % loop_flg=0;
@@ -1079,7 +1183,8 @@ addline(newdio,trigchan,'out');
 function out=me
 out=lower(mfilename);
 
-function GetInverseFilter(ScaledData, samples)
+function GetInverseFilter(ScaledData, samples, ai2SampleRate)
+%ai2SampleRate is daq samprate for mic data
 
 %get playsound sampling rate
 switch GetParam(me, 'soundmethod')
@@ -1091,17 +1196,15 @@ switch GetParam(me, 'soundmethod')
         samplerate=SoundLoadSM('samplerate');        
 end
 
-%get daq samprate for mic data
-persistent ai2
-ai2SampleRate=ai2.SampleRate;
 
 % resample original sound to match mic data
-samples=resample(samples, ai2SampleRate, samplerate);
-delay=zeros(1, 12);
-x=samples;
+x=resample(samples, ai2SampleRate, samplerate);
+delay=zeros(1, 30);
 d=[delay x(1:length(x)-length(delay))];
-
-O=17; %17
+%played sound is intentionally longer than mic data, truncate for now
+%(might be able to trim start as well?)
+d=d(1:length(ScaledData));
+O=GetParam(me, 'order'); %17
 p0 = 2*eye(O);
 lambda = 0.99;
 ha = adaptfilt.rls(O,lambda,p0);
@@ -1110,20 +1213,27 @@ tic
 [y] = filter(ha,ScaledData,d); %learns the inverse filter
 toc
 
+SetParam(me,'inverse_filter','value',ha.Coefficients);
+
 % t=1:length(x);
 % plot(t, x, t, y, t, xdata)
 % shg
 window=round(length(x)/128);
 noverlap=[];
-nfft=128;
+nfft=1024;
+%window=[];
 figure
-[Ppre, F]=pwelch(samples, window, noverlap, nfft, fs);
-[Ppost, F]=pwelch(ScaledData,  window, noverlap, nfft, fs);
-[PEQ, F]=pwelch(y, window, noverlap, nfft, fs);
-plot(F, Ppre, F, Ppost, F, PEQ);shg
+[Ppre, F]=pwelch(samples, window, noverlap, nfft, ai2SampleRate);
+[Ppost, F]=pwelch(ScaledData,  window, noverlap, nfft, ai2SampleRate);
+[PEQ, F]=pwelch(y, window, noverlap, nfft, ai2SampleRate);
 F2=F/1000;
-plot(F2, Ppre, F2, Ppost, F2, PEQ);shg
+z=filter(ha.Coefficients, 1, x);
+[Pinv, F]=pwelch(z, window, noverlap, nfft, ai2SampleRate);
+semilogy(F2, Ppre, F2, Ppost, F2, PEQ,F2, Pinv);
+shg
 xlabel('frequency, kHz')
 % set(gca, 'xscal', 'log')
-legend('original white noise', 'mic data from speaker', 'equalized')
 
+
+
+% keyboard

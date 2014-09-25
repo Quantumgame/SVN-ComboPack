@@ -63,7 +63,7 @@ if ~exist('binwidth','var'); binwidth=5; end
 if isempty(binwidth); binwidth=5; end
 if ~exist('monitor','var'); monitor=0; end
 if isempty(monitor); monitor=1; end
-
+monitor=1;
 tic;
 refract=15;
 fs=12; %fontsize for figures
@@ -294,6 +294,11 @@ ylim(ylimits)
 legend(p,'spikes');
 
 out.highrepper=highrepper;
+
+if monitor % view spike threshold (nstd/thresh)
+    MonitorSpikes(outfilename,filteredtrace,nstd,dspikes)
+
+end
 
 xlabel('time (ms)')
 ylabel('spikes, all trials')

@@ -54,7 +54,7 @@ if nargin==0; fprintf('\nNo input.');return;end
 global pref
 Prefs
 
-include_silentSound=1;
+include_silentSound=0;
 
 if ~isempty(varargin) % If args have been passed...
     

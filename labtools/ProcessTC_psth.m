@@ -404,5 +404,5 @@ outfilename=sprintf('out_psth%s-%s-%s', expdate, session, filenum);
 
 
 godatadir(expdate, session, filenum)
-save(outfilename, 'out')
+save(outfilename, 'out_psth')
 fprintf('\n saved to %s\n\n', outfilename);

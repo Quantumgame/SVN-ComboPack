@@ -11,15 +11,14 @@ function PlotTC_psthOE(expdate, session, filenum, channel, varargin)
 % mw 020814
 % mw 06.11.2014 - added MClust capability
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%sorter='MClust'; %can be either 'MClust' or 'simpleclust'
-%sorter='simpleclust';
-recordings = cell_list_ira_som_OE;
-for i=1:length(recordings)
-    if strcmp(recordings(i).expdate, expdate) && strcmp(recordings(i).session, session) && strcmp(recordings(i).filenum, filenum)
-    sorter=recordings(i).sorter;
-    end
-end
+sorter='MClust'; %can be either 'MClust' or 'simpleclust'
+% %sorter='simpleclust';
+% recordings = cell_list_ira_som_OE;
+% for i=1:length(recordings)
+%     if strcmp(recordings(i).expdate, expdate) && strcmp(recordings(i).session, session) && strcmp(recordings(i).filenum, filenum)
+%     sorter=recordings(i).sorter;
+%     end
+% end
 if nargin==0
     fprintf('\nno input');
     return;
@@ -95,7 +94,7 @@ end
 lostat=-1; % Discard data after this position (in samples), -1 to skip
 fs=10; %fontsize
 
-
+gogetdata(expdate, session, filenum);
 [datafile, eventsfile, stimfile]=getfilenames(expdate, session, filenum);
 OEeventsfile=strrep(eventsfile, 'AxopatchData1', 'OE');
 godatadir(expdate,session,filenum);
@@ -336,7 +335,7 @@ for i=1:length(event)
         end
     end
 end
-
+numreps=nreps;
 fprintf('\nmin num reps: %d\nmax num reps: %d', min(min(min(nreps))), max(max(max(nreps))))
 for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
     fprintf('\ncell %d:', clust)
@@ -464,7 +463,37 @@ for dindex=[1:numdurs]
     end %for clust
 end %for dindex
 
-
-
+out.M1=M1;
+out.mM1=mM1;
+out.expdate=expdate;
+out.filenum=filenum;
+out.session=session;
+out.datafile=datafile;
+out.eventsfile=eventsfile;
+out.stimfile=stimfile;
+out.lostat=lostat;
+out.freqs=freqs;
+out.amps=amps;
+out.durs=durs;
+out.nreps=nreps;
+out.numfreqs=numfreqs;
+out.numamps=numamps;
+out.numdurs=numdurs;
+out.event=event;
+out.xlimits=xlimits;
+out.ylimits=ylimits;
+out.samprate=samprate;
+out.channel=channel;
+out.Nclusters=Nclusters;
+out.nreps=nreps;
+try
+out.isrecording=isrecording;
+end
+try
+out.oepathname=oepathname;
+end
+outfilename=sprintf('outTCOE%s_%s-%s-%s',channel, expdate, session, filenum);
+godatadir(expdate, session, filenum);
+save (outfilename, 'out')
 fprintf('\n\n')
 

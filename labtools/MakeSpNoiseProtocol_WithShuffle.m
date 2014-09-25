@@ -295,9 +295,28 @@ wb=waitbar(0,'Generating waveforms and envelopes');
 for ii=1:MaxIndex,
 %     fprintf('.');
     waitbar(ii/MaxIndex, wb);
-    if ~mod(ii,3) %every 6th sentence is the first one, for high reps
+    if ~mod(ii,6) %every 6th sentence is the first one, for high reps 1
         sequence=[sequence hi_rep_2use];
         wf=waveform(s,hi_rep_2use)./5.01;
+        WavSet=[WavSet; wf]; %
+        tenv=zeros(length(wf),numbands);
+        %        tenv=zeros(totalbins,numbands);
+        for bandindex=1:numbands
+            a=FilterParams(bandindex).a;
+            b=FilterParams(bandindex).b;
+            tenv(:,bandindex)=filtfilt(b,a,wf);
+        end
+        decrementstep=newSamplingRate./EnvSamplingRate;
+        smfilt=ones(ceil(decrementstep),1)./ceil(decrementstep);
+        tenv=conv2(abs(tenv),smfilt,'same').*2;
+        %        EnvSet=[EnvSet; tenv(round(decrementstep./2:decrementstep:totalbins),:)];
+        EnvSet=[EnvSet; tenv(round(decrementstep./2:decrementstep:length(wf)),:)];
+        
+    end
+    hi_rep_2use2=2;
+        if ~mod(ii,6) %every 7th sentence is the first one, for high reps 2
+        sequence=[sequence hi_rep_2use2];
+        wf=waveform(s,hi_rep_2use2)./5.01;
         WavSet=[WavSet; wf]; %
         tenv=zeros(length(wf),numbands);
         %        tenv=zeros(totalbins,numbands);
@@ -336,7 +355,7 @@ for ii=1:MaxIndex,
     
 end
 close(wb)
-fprintf('\n');
+ fprintf('\n');
 %SpNoise object can force sampling rate if less than 4*highest frequency
 
 

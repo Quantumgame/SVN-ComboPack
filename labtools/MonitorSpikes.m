@@ -30,7 +30,7 @@ L1=line(xlimits, thresh*[1 1]);
 L2=line(xlimits, thresh*[-1 -1]);
 set([L1 L2], 'color', 'g');
 
-lostatfile=sprintf('lostat-%s',outfilename(end-17:end));
+lostatfile=sprintf('lostat-%s',outfilename(end-16:end));
 try load(lostatfile);
 catch
     lostat=length(filteredtrace);

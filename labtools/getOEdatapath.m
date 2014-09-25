@@ -1,5 +1,6 @@
-function oepathname=getOEdatapath(expdate, session, filenum)
+function [oepathname isrecording]=getOEdatapath(expdate, session, filenum)
 %get OE data path from exper
+%usage: [oepathname isrecording]=getOEdatapath(expdate, session, filenum)
     gorawdatadir(expdate, session, filenum)
     expfilename=sprintf('%s-%s-%s-%s.mat', expdate, whoami, session, filenum);
     expstructurename=sprintf('exper_%s', filenum);

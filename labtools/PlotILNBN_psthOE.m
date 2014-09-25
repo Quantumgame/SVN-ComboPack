@@ -12,14 +12,14 @@ function PlotILNBN_psthOE(expdate, session, filenum, channel, varargin)
 %edited by ira 04-01-14
 % mw 06.11.2014 - added MClust capability
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%sorter='MClust'; %can be either 'MClust' or 'simpleclust'
+sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 %sorter='simpleclust';
-recordings = cell_list_ira_som_OE;
-for i=1:length(recordings)
-    if strcmp(recordings(i).expdate, expdate) && strcmp(recordings(i).session, session) && strcmp(recordings(i).filenum, filenum)
-    sorter=recordings(i).sorter;
-    end
-end
+% recordings = cell_list_ira_som_OE;
+% for i=1:length(recordings)
+%     if strcmp(recordings(i).expdate, expdate) && strcmp(recordings(i).session, session) && strcmp(recordings(i).filenum, filenum)
+%         sorter=recordings(i).sorter;
+%     end
+% end
 dbstop if error
 if nargin==0
     fprintf('\nno input');
@@ -155,6 +155,7 @@ switch sorter
         %MClust spiketime files are of the form simpleclustfname_1.t
         %there is one for each cluster
         basefn=sprintf(sprintf('ch%s_simpleclust_*.t', channel));
+        OEdatafile=sprintf('ch%s_simpleclust.mat', channel);
         d=dir(basefn);
         numclusters=size(d, 1);
         if numclusters==0 error('PlotMClustTC: no cluster files found');end
@@ -543,7 +544,7 @@ if ylimits==-1
                         N=1000*N./binwidth; %normalize to spike rate in Hz
                         ymax= max(ymax,max(N));
                         
-                             st=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
+                        st=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
                         X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                         [N, x]=hist(st, X);
                         N=N./nrepsON(findex, aindex, bwindex, dindex); %normalize to spike rate (averaged across trials)
@@ -595,21 +596,28 @@ end
 % Plot psth, ON/OFF overlay
 
 for clust=1:Nclusters
-%  for i=1:length(clust1)
-%         clust=clust1(i);
+    %  for i=1:length(clust1)
+    %         clust=clust1(i);
     for dindex=1:numdurs;
         
         figure
         p=0;
+        if numdurs~=1 %dealing with multiple durations when a silent stimulus is added
         if dindex~=1
             subplot1(numbws,numfreqs-1)
         end
         if dindex==1
             subplot1(numamps-1,numfreqs-1)
         end
+        else
+            subplot1(numbws,numfreqs-1)
+        end
+            
         for bwindex=1:numbws
-            for aindex=[1:numamps]
-                for findex=1:numfreqs
+            for findex=1:numfreqs
+                
+                for aindex=[1:numamps]
+                    
                     %                 if bwindex==numbws
                     %                     findex=1;
                     %                 end
@@ -651,14 +659,28 @@ for clust=1:Nclusters
                         
                     end
                 end
+                if bwindex==numbws
+                    if numfreqs>2
+                    vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
+                    frequencies=num2str(freqs/1000, .1);
+                    text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
+                    else
+                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
+                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
+                    end
+                else
+                end
+                
+                set(gca, 'yticklabel', '')
             end
         end
         % Label amps and freqs.
         p=0;
         if dindex==1
             xlabel('Quiet white noise, 25 ms')
-            title(sprintf('%s-%s-%s: -1000 dB (Max reps ON=%.0f, OFF=%.0f cell number %.0f)',expdate,session, filenum, max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
+            title(sprintf('%s-%s-%s: -1000 dB (Max reps ON=%.0f, OFF=%.0f cell # %.0f)',expdate,session, filenum, max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
         else
+            
             for bwindex=[1:numbws]
                 for findex=2:numfreqs
                     p=p+1;
@@ -676,16 +698,12 @@ for clust=1:Nclusters
                     end
                     set(gca, 'xtickmode', 'auto')
                     grid on
-                    if bwindex==numbws
-                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
-                        text(mean(xlimits), vpos, sprintf('%.1f kHz', freqs(findex)/1000))
-                    else
-                        set(gca, 'yticklabel', '')
-                    end
+                    
                 end
                 
                 subplot1(ceil(numfreqs/3))
-                title(sprintf('%s-%s-%s: %.0f dB (Max reps ON=%.0f, OFF=%.0f cell number %.0f)',expdate,session, filenum, amps(aindex), max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
+                
+                title(sprintf('%s-%s-%s: %.0f dB (Max reps ON=%.0f, OFF=%.0f cell number %.0f, )',expdate,session, filenum, amps(aindex), max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
                 
                 %                 pos=get(gcf, 'pos');
                 %                 pos(2)=pos(2)-600;
@@ -698,132 +716,7 @@ for clust=1:Nclusters
     end
 end
 
-% Plot ON only
 
-% for clust=1:Nclusters
-%     for dindex=1;
-%         for aindex=[1:numamps]
-%         figure
-%         p=0;
-%         subplot1(numbws,numfreqs-1)
-%         for aindex=numamps:-1:1
-%             for findex=1:numfreqs
-%                 p=p+1;
-%                 subplot1(p)
-%                 hold on
-%                 spiketimesON=mM1ONp(clust, findex, aindex, bwindex, dindex).spiketimes; % All spiketimes.
-%                 X=xlimits(1):binwidth:xlimits(2); % Histogram w/specified bin centers
-%                 [NON, xON]=hist(spiketimesON, X);
-%
-%                 NON=NON./nrepsON(findex, aindex, dindex); % Bin count / # trials
-%                 NON=1000*NON./binwidth; % Normalize to spike rate in Hz
-%                 bON=bar(xON, NON,1);
-%                 set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
-%                 line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
-%                 line(xlimits, [0 0], 'color', 'k')
-%                 xlim(xlimits)
-%                 ylim(ylimits)
-%             end
-%         end
-%
-%         Label amps and freqs.
-%         p=0;
-%         for aindex=[numamps:-1:1]
-%             for findex=1:numfreqs
-%                 p=p+1;
-%                 subplot1(p)
-%                 if findex==1
-%                     ylabel(sprintf('%.0f',amps(aindex)))
-%                     if aindex~=1
-%                         set(gca, 'yticklabel', '')
-%                     end
-%                 end
-%                 vpos=ylimits(1)-diff(ylimits)/10;
-%                 if aindex==1 && findex~=1
-%                     text(mean(xlimits), vpos, sprintf('%.1f', freqs(findex)/1000))
-%                     set(gca,'xticklabel','')
-%                 end
-%                 grid off
-%                 box off
-%                 if aindex==1 && findex==1
-%                     axis on
-%                     set(gca,'xtick',xlimits)
-%                     set(gca,'xticklabel',{xlimits})
-%                     xlabel('Time (ms)');
-%                     ylabel('Av. spikecount');
-%                 else
-%                     set(gca, 'yticklabel', '')
-%                 end
-%                 if findex==round(numfreqs/2) && aindex==numamps
-%                     title(sprintf('%s-%s-%s cell %d: ON trials only',expdate,session,filenum, clust))
-%                 end
-%             end
-%         end
-%         subplot1(ceil(numfreqs/3))
-%     end %dindex
-% end %clust
-% end
-% % Plot OFF Only
-% for clust=1:Nclusters
-%     for dindex=1;
-%         figure
-%         p=0;
-%         subplot1(numamps,numfreqs)
-%         for aindex=numamps:-1:1
-%             for findex=1:numfreqs
-%                 p=p+1;
-%                 subplot1(p)
-%                 hold on
-%                 spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex).spiketimes;
-%                 X=xlimits(1):binwidth:xlimits(2); % specify bin centers
-%                 [NOFF, xOFF]=hist(spiketimesOFF, X);
-%                 NOFF=NOFF./nrepsOFF(findex, aindex, dindex);
-%                 NOFF=1000*NOFF./binwidth; %normalize to spike rate in Hz
-%                 bOFF=bar(xOFF, NOFF,1);
-%                 set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-%                 line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
-%                 line(xlimits, [0 0], 'color', 'k')
-%                 xlim(xlimits)
-%                 ylim(ylimits)
-%             end
-%         end
-%
-%         Label amps and freqs.
-%         p=0;
-%         for aindex=[numamps:-1:1]
-%             for findex=1:numfreqs
-%                 p=p+1;
-%                 subplot1(p)
-%                 if findex==1
-%                     ylabel(sprintf('%.0f',amps(aindex)))
-%                     if aindex~=1
-%                         set(gca, 'yticklabel', '')
-%                     end
-%                 end
-%                 vpos=ylimits(1)-diff(ylimits)/10;
-%                 if aindex==1 && findex~=1
-%                     text(mean(xlimits), vpos, sprintf('%.1f', freqs(findex)/1000))
-%                     set(gca,'xticklabel','')
-%                 end
-%                 grid off
-%                 box off
-%                 if aindex==1 && findex==1
-%                     axis on
-%                     set(gca,'xtick',xlimits)
-%                     set(gca,'xticklabel',{xlimits})
-%                     xlabel('Time (ms)');
-%                     ylabel('Av. spikecount');
-%                 else
-%                     set(gca, 'yticklabel', '')
-%                 end
-%                 if findex==round(numfreqs/2) && aindex==numamps
-%                     title(sprintf('%s-%s-%s cell %d: OFF trials only',expdate,session,filenum, clust))
-%                 end
-%             end
-%         end
-%         subplot1(ceil(numfreqs/3))
-%     end %dindex
-% end %clust
 %% Save it to an outfile!
 
 % Evoked spikes.

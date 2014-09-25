@@ -1,8 +1,11 @@
-function ProcessNS_OE(varargin)
-%usage: ProcessTC_OE(expdate, session, filename, [xlimits], [ylimits], [channel])
-%creates OE axopatch datafile
-%extracts spikes from simple_clust file
-%ira 03-24-14
+function ProcessILPhoneme_OE(varargin)
+%usage: ProcessILPhoneme_OE(expdate, session, filename, [channel], [xlimits], [ylimits] )
+%Processes data and creates an outfile. Uses exper data to extract stim
+%trace, assumes exper samprate is 10e3.
+%currently, cannot handle stimuli with and without later trials. But should
+%be able in the future. 
+%Can also be used for any natural speech stimuli
+%ira 07.22.14
 if nargin==0
     fprintf('\nno input\n')
     return
@@ -22,8 +25,6 @@ elseif nargin==4
     channel=varargin{4};
     xlimits=[];
     ylimits=-1;
-    prompt=('Please enter tetrode number: ');
-    channel=input(prompt,'s') ;
     binwidth=5;
 elseif nargin==5
     expdate=varargin{1};
@@ -32,8 +33,6 @@ elseif nargin==5
     channel=varargin{4};
     xlimits=varargin{5};
     ylimits=-1;
-    prompt=('Please enter tetrode number: ');
-    channel=input(prompt,'s') ;
     binwidth=5;
 elseif nargin==6
     expdate=varargin{1};
@@ -56,7 +55,6 @@ elseif nargin==7
 else
     error('wrong number of arguments');
 end
-
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 %sorter='simpleclust';
 
@@ -77,6 +75,7 @@ OEeventsfile=strrep(eventsfile, 'AxopatchData1', 'OE');
 %         exp=eval(expstructurename);
 %         isrecording=exp.openephyslinker.param.isrecording.value;
 %         oepathname=exp.openephyslinker.param.oepathname.value;
+%     end
 %         cd(oepathname)
 %         OEdatafile=sprintf('ch%s_simpleclust.mat', channel);
 %         load(OEdatafile)
@@ -111,7 +110,7 @@ OEeventsfile=strrep(eventsfile, 'AxopatchData1', 'OE');
 % end
 %find OE data directory
 try
-    oepathname=getOEdatapath(expdate, session, filenum);
+    [oepathname isrecording]=getOEdatapath(expdate, session, filenum);
     cd(oepathname);
 catch
     cd('C:\Program Files\Open Ephys')
@@ -216,8 +215,8 @@ for i=1:length(event) %
     end
 end
 
-numepochs=length(unique(allfilenames));
-epochfilenames=(unique(allfilenames));
+numsounds=length(unique(allfilenames));
+soundsfilenames=(unique(allfilenames));
 dur=unique(alldurs);
 isi=unique(allisis);
 if length(dur)~=1 error('cannot handle multiple durs');end
@@ -226,9 +225,8 @@ if isempty(xlimits)
     xlimits=[-1000 dur+1000];
 end
 
-
 M1=[];
-nreps=zeros(1, numepochs);
+nreps=zeros(1, numsounds);
 lostin_counter=[];
 lostat_counter=[];
 inRange=zeros(1, Nclusters);
@@ -248,8 +246,10 @@ for i=1:length(event)
         %ira 07-14-14
         start=(pos/samprate+xlimits(1)*1e-3);%spiketimes are in seconds, so region for spikes is in seconds
         start1=(pos1+xlimits(1)*1e-3*10e3); %stimulus is in exper sampling rate, which is 10e3
-        stop=(pos/samprate+xlimits(2)*1e-3)-1;
-        stop1=(pos1+(xlimits(2)*1e-3)*10e3)-1;
+        stop=(pos/samprate+xlimits(2)*1e-3); %mw 08072014
+        stop1=(pos1+(xlimits(2)*1e-3)*10e3);
+%         stop=(pos/samprate+xlimits(2)*1e-3)-1;
+%         stop1=(pos1+(xlimits(2)*1e-3)*10e3)-1;
         region=start:stop;
         region1=start1:stop1;
         
@@ -273,16 +273,15 @@ for i=1:length(event)
             aindex= 1;
             dindex= 1;
             dur=event(i).Param.duration;
-            epochnum=find(strcmp(epochfilenames, epochfile));
-            nreps(epochnum)=nreps(epochnum)+1;
+            soundnum=find(strcmp(soundsfilenames, epochfile));
+            nreps(soundnum)=nreps(soundnum)+1;
             for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
                 st=spiketimes(clust).spiketimes;
                 spiketimes1=st(st>start & st<stop); % spiketimes in region
                 inRange(clust)=inRange(clust)+ length(spiketimes1);
                 spiketimes1=(spiketimes1-pos/samprate)*1000;%covert to ms after tone onset
-                M1(clust, epochnum, nreps(epochnum)).spiketimes=spiketimes1;
-                M1stim(clust,epochnum, nreps(epochnum),:)=(stim1(region1));
-                sequences(clust,epochnum,nreps(epochnum),:)=event(i).Param.sequence;
+                M1(clust, soundnum, nreps(soundnum)).spiketimes=spiketimes1;
+                M1stim(clust,soundnum, nreps(soundnum),:)=(stim1(region1));
             end
             
         end
@@ -292,13 +291,13 @@ end
 %accumulate across trials
 
 for clust=1:Nclusters
-    for epochind=1:epochnum
+    for soundind=1:soundnum
         spiketimes1=[];
-        for rep=1:nreps(epochind)
-            spiketimes1=[M1(clust, epochind, rep).spiketimes spiketimes1 ];
+        for rep=1:nreps(soundind)
+            spiketimes1=[M1(clust, soundind, rep).spiketimes spiketimes1 ];
         end
-        mM1(clust, epochind).spiketimes=spiketimes1;
-        mM1stim(clust, epochind,:)=mean(M1stim(clust, epochind, 1:nreps(epochind),:), 3);
+        mM1(clust, soundind).spiketimes=spiketimes1;
+        mM1stim(clust, soundind,:)=mean(M1stim(clust, soundind, 1:nreps(soundind),:), 3);
     end
 end
 
@@ -316,21 +315,20 @@ out.stimfile=stimfile;
 out.nreps=nreps;
 out.event=event;
 out.samprate=samprate;
-out.epochfilenames=epochfilenames;
-out.numepochs=numepochs;
-out.sequences=sequences;
+out.soundsfilenames=soundsfilenames;
+out.numsounds=numsounds;
 out.dur=dur;
 out.isi=isi;
 out.mM1stim=mM1stim;
 out.M1stim=M1stim;
 out.Nclusters=Nclusters;
 out.event1=event1;
-%out.isrecording=isrecording;
+out.isrecording=isrecording;
 out.oepathname=oepathname;
-out.channel=channel;
+out.tetrode=channel;
 out.info=info;
 
-outfilename=sprintf('outNSOE%s_%s-%s-%s',channel, expdate, session, filenum);
+outfilename=sprintf('outPhOE%s_%s-%s-%s',channel, expdate, session, filenum);
 godatadir(expdate, session, filenum);
 save (outfilename, 'out')
 try
@@ -339,4 +337,3 @@ end
 fprintf('\n saved to %s', outfilename)
 
 end
-

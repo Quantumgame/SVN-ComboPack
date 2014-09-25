@@ -55,12 +55,12 @@ end
 
 dur=stimuli{1}.param.duration;
 isi=stimuli{2}.param.next;
-% try
+try
 [data, alltimestamps, info] = load_open_ephys_data(filename);
 samprate=info.header.sampleRate;
 [b,a]=butter(3, 100/15000, 'high');
 fdata=filtfilt(b,a,data); 
-thresh=10*std(fdata);%((max(data)-mean(data))/2.1);
+thresh=20*std(fdata);%((max(data)-mean(data))/2.1);
 thdata=fdata>thresh;
 sdata=sparse([0; diff(thdata)]);
 soundcardtriggerPos=find(sdata==1);
@@ -117,11 +117,11 @@ xlim([start stop])
 title(sprintf('OEread soundcardtriggers: only plotting %d seconds of data surrounding first soundcard trigger', sec_to_plot))
 
 fprintf('\nfound %d soundcard triggers\n', length(soundcardtriggerPos))
-
+catch
   if isempty(soundcardtriggerPos)
       fprintf('\n|n|nHelp!!!!!!!!!!!!!!!!    No soundcard triggers detected. Resorting to hardware triggers.\n\n')
   end
-
+end
 % catch
 %     fprintf('\nNo soundcard trigger file found. Resorting to hardware triggers.\n\n')
 % end

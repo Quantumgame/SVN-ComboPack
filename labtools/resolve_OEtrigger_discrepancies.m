@@ -1,4 +1,5 @@
 function resolve_OEtrigger_discrepancies(expdate, session, filename)
+% usage: resolve_OEtrigger_discrepancies(expdate, session, filename)
 %the idea of this function is to serve as a monitor and problem resolver.
 %When the soundcard triggers, HW triggers, and exper stimuli don't match
 %up, hopefully this will allow the user to see the nature of the error and
@@ -47,25 +48,26 @@ isi=stimuli{2}.param.next;
 %plot CH36 and 37 to see if a static spike occurs simultaneously on both
 %channels
 cd(oepathname)
-[data, alltimestamps, info] = load_open_ephys_data('100_CH36.continuous');
+%[data, alltimestamps, info] = load_open_ephys_data('100_CH36.continuous');
 [data2, alltimestamps, info] = load_open_ephys_data('100_CH37.continuous');
 
 godatadir(expdate, session, filename)
 fid=fopen(sprintf('soundcardtrigs_to_ignore-%s-%s-%s.txt', expdate, session, filename), 'w+t');
 win=1e3;
-win2=1e5;
+win2=1e3;
+dbstop if error
 for w=1:length(wrong_triggers)
     figure
     subplot(211)
     pos=soundcardtriggerPos(wrong_triggers(w));
-    plot(data(pos-win:pos+win), 'c');
+    %plot(data(pos-win:pos+win), 'c');
     hold on
     plot(data2(pos-win:pos+win)+1000, 'g');
     plot(win, 10000, 'o')
     title(sprintf('event number %d', wrong_triggers(w)));
     legend({'laser signal', 'soundcard trigger'})
    subplot(212)
-   plot(data(pos-win2:pos+win2), 'c');
+   %plot(data(pos-win2:pos+win2), 'c');
     hold on
     plot(data2(pos-win2:pos+win2)+1000, 'g');
     plot(win2, 10000, 'o')
