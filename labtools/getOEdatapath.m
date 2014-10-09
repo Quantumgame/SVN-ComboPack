@@ -7,8 +7,13 @@ function [oepathname isrecording]=getOEdatapath(expdate, session, filenum)
     if exist(expfilename)==2 %try current directory
         load(expfilename)
         exp=eval(expstructurename);
+        try
         isrecording=exp.openephyslinker.param.isrecording.value;
         oepathname=exp.openephyslinker.param.oepathname.value;
+        catch
+            isrecording=0;
+            oepathname='linker was not recording';
+        end
     else %try data directory
         cd ../../..
         try
