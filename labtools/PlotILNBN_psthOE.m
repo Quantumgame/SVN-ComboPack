@@ -716,6 +716,125 @@ for clust=1:Nclusters
     end
 end
 
+%Plot OFF trials only
+
+for clust=1:Nclusters
+    %  for i=1:length(clust1)
+    %         clust=clust1(i);
+    for dindex=1:numdurs;
+        
+        figure
+        p=0;
+        if numdurs~=1 %dealing with multiple durations when a silent stimulus is added
+        if dindex~=1
+            subplot1(numbws,numfreqs-1)
+        end
+        if dindex==1
+            subplot1(numamps-1,numfreqs-1)
+        end
+        else
+            subplot1(numbws,numfreqs-1)
+        end
+            
+        for bwindex=1:numbws
+            for findex=1:numfreqs
+                
+                for aindex=[1:numamps]
+                    
+                    %                 if bwindex==numbws
+                    %                     findex=1;
+                    %                 end
+                    if nrepsON(findex, aindex, bwindex, dindex)==0
+                        fprintf('\n no reps')
+                    else
+                        p=p+1;
+                        subplot1(p)
+                        hold on
+                        
+                        spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
+                        X=xlimits(1):binwidth:xlimits(2); % specify bin centers
+                        [NOFF, xOFF]=hist(spiketimesOFF, X);
+                       
+                        NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
+                        NOFF=1000*NOFF./binwidth;
+                       
+                        bOFF=bar(xOFF,NOFF,1);
+
+                        set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+                        line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+                        line(xlimits, [0 0], 'color', 'k')
+                        
+                        xlim(xlimits)
+                        %ylim(ylimits1(clust,:))
+                        
+                        % Add stars for ttest.
+                        if pvalues(findex,aindex, bwindex)<alpha
+                            text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
+                        end
+                        
+                    end
+                end
+                if bwindex==numbws
+                    if numfreqs>2
+                    vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                    frequencies=num2str(freqs/1000, .1);
+                    text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
+                    elseif numfreqs==2
+                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(2)/1000))
+                    else
+                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
+                    end
+                else
+                end
+                
+                set(gca, 'yticklabel', '')
+            end
+        end
+        % Label amps and freqs.
+        p=0;
+%         if dindex==1
+%             xlabel('Quiet white noise, 25 ms')
+%             subplot1(ceil(numfreqs/3))
+%             title(sprintf('%s-%s-%s: -1000 dB (cell # %.0f, tetrode %s)',expdate,session, filenum, clust, channel))
+%         else
+            
+            for bwindex=[1:numbws]
+                for findex=2:numfreqs
+                    p=p+1;
+                    subplot1(p)
+                    if findex==2
+                        T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
+                        set(T, 'HorizontalAlignment', 'right')
+                        
+                        if bwindex==1
+                            T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
+                            set(T, 'HorizontalAlignment', 'right')
+                        end
+                    else
+                        set(gca, 'xticklabel', '')
+                    end
+                    set(gca, 'xtickmode', 'auto')
+                    grid on
+                    
+                end
+                
+                subplot1(ceil(numfreqs/3))
+                
+                title(sprintf('%s-%s-%s: %.0f dB (cell number %.0f, tetrode %s KMA)',expdate,session, filenum, amps(aindex), clust, channel))
+                
+                %                 pos=get(gcf, 'pos');
+                %                 pos(2)=pos(2)-600;
+                %                 pos(4)=pos(4)+600;
+                %                 set(gcf, 'pos', pos);
+                %                 text
+            end
+        %end %dindex
+        %nclust
+    end
+end
+
 
 %% Save it to an outfile!
 

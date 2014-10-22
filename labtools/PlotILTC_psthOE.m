@@ -298,7 +298,7 @@ for i=1:length(event)
             if isempty(pos) & ~isempty(event(i).Position)
                 pos=event(i).Position;
                 fprintf('\nWARNING! Missing a soundcard trigger. Using hardware trigger instead.')
-                keyboard
+                
             end
         else
             pos=event(i).Position; %in sec
@@ -640,7 +640,7 @@ end
                         set(gca, 'yticklabel', '')
                     end
                     if findex==round(numfreqs/2) && aindex==numamps
-                        title(sprintf('%s-%s-%s cell %d: ON trials only',expdate,session,filenum, clust))
+                        title(sprintf('%s-%s-%s cell %d tetrode %s: ON trials only',expdate,session,filenum, clust, channel))
                     end
                 end
             end
@@ -704,7 +704,7 @@ end
                         set(gca, 'yticklabel', '')
                     end
                     if findex==round(numfreqs/2) && aindex==numamps
-                        title(sprintf('%s-%s-%s cell %d: OFF trials only',expdate,session,filenum, clust))
+                        title(sprintf('%s-%s-%s cell %d tetrode %s: OFF trials only',expdate,session,filenum, clust, channel))
                     end
                 end
             end

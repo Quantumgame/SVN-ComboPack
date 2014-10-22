@@ -206,7 +206,7 @@ j=0;
 for i=1:length(event)
     if strcmp(event(i).Type, 'tone') | strcmp(event(i).Type, 'whitenoise') | ...
             strcmp(event(i).Type, 'fmtone') | strcmp(event(i).Type, '2tone')| strcmp(event(i).Type, 'grating')
-        if isfield(event(i), 'soundcardtriggerPos')
+        if  isfield(event(i), 'soundcardtriggerPos')
             pos=event(i).soundcardtriggerPos;
         else
             pos=event(i).Position*samprate; %pos is in samples

@@ -79,6 +79,29 @@ for i=1:length(uniqueTimestamps)
     end
     if on
         j=j+1;
+%         if bv3==97
+%             keyboard;
+%         elseif bv3==99
+%             keyboard;
+%         elseif bv3==123
+%             keyboard;
+%         end
+% if j==477
+%     stimid(j)=bv3-1;
+%     timestamps(j)=uniqueTimestamps(i);
+%     j=j+1;
+%     %keyboard
+% elseif j==479
+%     stimid(j)=bv3-1;
+%     timestamps(j)=uniqueTimestamps(i);
+%     j=j+1;
+%     %keyboard
+% elseif j==1392
+%     stimid(j)=bv3-1;
+%     timestamps(j)=uniqueTimestamps(i);
+%     j=j+1;
+%     %keyboard
+% end
         stimid(j)=bv3;
         timestamps(j)=uniqueTimestamps(i);
         %check if stimid is sequential, as it should be
@@ -87,7 +110,7 @@ for i=1:length(uniqueTimestamps)
                 %OK
             else
                 if stimid(j)~=0
-                    warning(sprintf('non-sequential OE stimID bytes! there is a problem with stimID bytes, %d, bit number %d'),stimid(j), bv3)
+                    warning(sprintf('non-sequential OE stimID bytes! there is a problem with stimID bytes, %d, bit number %d,%d',j, bv3, i))
                 end
             end
         end
