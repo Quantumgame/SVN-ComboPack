@@ -126,7 +126,7 @@ InitParam(me,'stimulus_bytes','value',{});    % cell array that keeps track of s
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function SendStimulus(stimulus,trigger)
 % expects a structure in stimulus to send out
-global exper pref
+global exper pref calibrationmethod
 if ~isstruct(stimulus)
     Message(me,'Not a correct stimulus');
     return;
