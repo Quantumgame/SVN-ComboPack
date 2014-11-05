@@ -79,8 +79,9 @@ for i=1:length(uniqueTimestamps)
     end
     if on
         j=j+1;
-%         if bv3==97
+%         if i==66;
 %             keyboard;
+%         end
 %         elseif bv3==99
 %             keyboard;
 %         elseif bv3==123

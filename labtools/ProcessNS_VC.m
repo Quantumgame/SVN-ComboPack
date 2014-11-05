@@ -35,7 +35,7 @@ fprintf('\nload file: ')
 durs=getdurs(expdate,session,filenum);
 durs=max(durs);
 if isempty(xlimits)
-    xlimits=[-1000 durs+1000];
+    xlimits=[0 durs+1000];
 end
 stim1=S.nativeScalingStim*double(S.stim);
 scaledtrace=D.nativeScaling*double(D.trace) +D.nativeOffset;
@@ -219,7 +219,7 @@ for i=1:length(event)
                 lostat_counter=[lostat_counter i];
             elseif start<lostat(1)
                 lostin_counter=[lostin_counter i];
-            else
+            else 
                 switch event(i).Type
                     case 'naturalsound'
                         epochfile=event(i).Param.file;

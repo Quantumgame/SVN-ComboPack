@@ -74,7 +74,18 @@ if exist(ignorefname, 'file')
 end 
 if nevents~= length(stimuli)
    fprintf('\nfound %d OE stimID events, but %d stimuli in exper structure',nevents,length(stimuli) )
-   error('n events doesnt match n stimuli')
+   fprintf('\n events doesnt match n stimuli')
+   keybard
+%    if length(stimuli)>nevents
+%    triggers_missing=length(stimuli)-nevents;
+%    end
+%    soundcardtriggerPos1=diff(soundcardtriggerPos);
+%    for i=1:length(triggers_missing)
+%        trig_mis(i,:)=find(max(soundcardtriggerPos1))
+%        soundcardtriggerPos1(find(max(soundcardtriggerPos1)))=NaN;
+%    end
+%    
+       
 end
 
 %modified from E2GetEvents

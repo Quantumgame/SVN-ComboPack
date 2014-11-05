@@ -348,7 +348,11 @@ for clust=1:Nclusters
                 if sent==1
                     start=isi;
                     stimtrace=squeeze(M1stim(clust,eindex,rep,  :));
+                    if xlimits(1)<0
+                        stimtrace=stimtrace(1:end);
+                    else
                     stimtrace=stimtrace(-xlimits(1)*samprate*.001+1:end);
+                    end
                     stimtrace=stimtrace-mean(stimtrace(1:100));
                     stimtrace=stimtrace./max(abs(stimtrace));
                     
@@ -392,9 +396,12 @@ for clust=1:Nclusters
     
     
     X=xlimits(1):binwidth:3000;
+    try
     [N, x]=hist(spiketimes2.spiketimes, X);
+    
     N=N./nreps(eindex);
     N=1000*N./binwidth;
+    end
     
     %xlim(xlimits(1), 3000);
     ylimits(2)=ylimits(2)/2;

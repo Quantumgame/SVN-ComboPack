@@ -307,10 +307,15 @@ end
 for pindex=1:numpotentials
     plot(t, stimseg-.1*diff(ylimits), 'm', t, squeeze(mean(M2(pindex, :,:), 2)),  c(pindex), 'linewidth', 2)
 end
+outfilename=sprintf('out%s-%s-%s', expdate, session, filenum);
 
+out.M2=M2;
+godatadir(expdate, session, filenum)
+save (outfilename, 'out')
 xlabel('time, ms')
 title(sprintf('%s-%s-%s, one 3s sentence segment, %d reps',expdate,session, filenum, sum(squeeze(sequences(:)==highrepper))));
 
 orient portrait
+
 
 

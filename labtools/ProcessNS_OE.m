@@ -134,9 +134,10 @@ first_sample_timestamp=OEget_first_sample_timestamp(oepathname); %in s
 % new variables: stimid, timestamps
 filename='all_channels.events';
 [data, alltimestamps, info] = load_open_ephys_data(filename);
-try
+godatadir(expdate, session, filenum);
+if exist(OEeventsfile,'file')
     E=load(OEeventsfile);
-catch
+else
     OEgetEvents(expdate, session, filenum);
     E=load(OEeventsfile);
 end
@@ -237,7 +238,8 @@ for i=1:length(event)
         if isfield(event(i), 'soundcardtriggerPos')
             pos=event(i).soundcardtriggerPos;
             if strcmp(event1(i).Type, 'naturalsound')
-                pos1= event1(i).soundcardtriggerPos ;
+                pos1= event1(i).Position;
+                fprintf('using hardware triggers for stimulus')%soundcardtriggerPos ;
             end
         else
             pos=event(i).Position;
@@ -247,7 +249,7 @@ for i=1:length(event)
         end
         %ira 07-14-14
         start=(pos/samprate+xlimits(1)*1e-3);%spiketimes are in seconds, so region for spikes is in seconds
-        start1=(pos1+xlimits(1)*1e-3*10e3); %stimulus is in exper sampling rate, which is 10e3
+        start1=(pos1+(xlimits(1)*1e-3)*10e3); %stimulus is in exper sampling rate, which is 10e3
         stop=(pos/samprate+xlimits(2)*1e-3)-1;
         stop1=(pos1+(xlimits(2)*1e-3)*10e3)-1;
         region=start:stop;
@@ -281,7 +283,13 @@ for i=1:length(event)
                 inRange(clust)=inRange(clust)+ length(spiketimes1);
                 spiketimes1=(spiketimes1-pos/samprate)*1000;%covert to ms after tone onset
                 M1(clust, epochnum, nreps(epochnum)).spiketimes=spiketimes1;
-                M1stim(clust,epochnum, nreps(epochnum),:)=(stim1(region1));
+                try
+                    M1stim(clust,epochnum, nreps(epochnum),:)=(stim1(region1));
+                catch
+                    missing=length(stim1):region1(end);
+                    stim1(missing)=0;
+                    M1stim(clust,epochnum, nreps(epochnum),:)=stim1(region1);
+                end
                 sequences(clust,epochnum,nreps(epochnum),:)=event(i).Param.sequence;
             end
             

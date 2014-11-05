@@ -31,8 +31,6 @@ else
 end
 % Defaults
 if channel==[]; fprintf('No tetrode selected'); end
-if ~exist('xlimits','var'); xlimits=[0 100]; end
-if isempty(xlimits); xlimits=[0 100]; end
 if ~exist('ylimits','var'); ylimits=-1; end
 if isempty(ylimits); ylimits=-1; end
 if ~exist('binwidth','var'); binwidth=5; end
@@ -99,6 +97,7 @@ end
 
 first_sample_timestamp=OEget_first_sample_timestamp(oepathname); %in s
 %load spiketimes from clustered data
+sorter='MClust';
 switch sorter
     case 'simpleclust'
         OEdatafile=sprintf('ch%s_simpleclust.mat', channel);
@@ -186,22 +185,28 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+if exist('xlimits','var')
+    frintf('xlimits are specified');
+    if isempty(xlimits); xlimits=[-50 max(duration)]; end
+else
+    xlimits=[-50 max(duration)];
+end
 
 M1ONp=[]; %all spiketimes by trial
 mM1ONp=[]; %all spiketimes collapsed across trials
-nrepsON=zeros(numgapdurs, numpulamps);
+nrepsON=zeros(numgapdurs, numpulseamps);
 M1spontON=[]; %spont spiketimes by trial
 mM1spontON=[]; %spont spiketimes collapsed across trials
 sM1spontON=[];%std dev of spont
 semM1spontON=[];%s.e.m. of spont
 M1OFFp=[];
 mM1OFFp=[];
-nrepsOFF=zeroszeros(numgapdurs, numpulamps);
+nrepsOFF=zeros(numgapdurs, numpulseamps);
 M1spontOFF=[];
 mM1spontOFF=[];
 sM1spontOFF=[];
 semM1spontOFF=[];
+inRange=zeros(1, Nclusters);
 
 % Extract into big matrix M
 %if ~outfile_exists
@@ -217,9 +222,9 @@ for i=1:length(event)
     start=(pos+xlimits(1)*1e-3); %in sec
     stop=(pos+xlimits(2)*1e-3); %in sec
     if start>0 %(disallow negative start times)
-        if stop>lostat
-            fprintf('\ndiscarding spikes')
-        else
+%         if stop>lostat
+%             fprintf('\ndiscarding spikes')
+%         else
             aopulseon=event(i).Param.AOPulseOn;
             if strcmp(event(i).Type, 'gapinnoise')
                 
@@ -259,7 +264,7 @@ for i=1:length(event)
                     end
                 end
             end
-        end
+%         end
     end
 end
 
@@ -304,16 +309,16 @@ for paindex=1:numpulseamps
             spiketimesON=[];
             spikecountsON=[];
             for rep=1:nrepsON(gdindex,paindex)
-                spiketimesON=[spiketimesON M1(clust,gdindex,paindex, rep).spiketimes];
+                spiketimesON=[spiketimesON M1ONp(clust,gdindex,paindex, rep).spiketimes];
             end
-            mM1ON(clust,gdindex,paindex).spiketimes=spiketimesON;
+            mM1ONp(clust,gdindex,paindex).spiketimes=spiketimesON;
             
             %off
             spiketimesOFF=[];
             for rep=1:nrepsOFF(gdindex,paindex)
-                spiketimesOFF=[spiketimesON M1(clust,gdindex,paindex, rep).spiketimes];
+                spiketimesOFF=[spiketimesON M1OFFp(clust,gdindex,paindex, rep).spiketimes];
             end
-            mM1OFF(clust,gdindex,paindex).spiketimes=spiketimesON;
+            mM1OFFp(clust,gdindex,paindex).spiketimes=spiketimesON;
             
         end
     end
@@ -323,7 +328,7 @@ end
 
 %find axis limits
 
-if isempty(ylimits)
+if ylimits==-1
     for clust=1:Nclusters
         ylimmax=0.0001;
         for paindex=1:numpulseamps
@@ -341,7 +346,7 @@ if isempty(ylimits)
     
 else
     for clust=1:Nclusters
-        ylimits1(clust, :)=[ylimits];
+        ylimits1(clust, :)=ylimits;
     end
 end
 
@@ -349,7 +354,7 @@ end
 %Plot ON only
 
 figure;
-for clust=1:NClusters
+for clust=1:Nclusters
     for paindex=1:numpulseamps
         p=0;
         subplot1(numgapdurs,1)
@@ -399,7 +404,7 @@ for clust=1:NClusters
     %Plot OFF only
     
     figure;
-    for clust=1:NClusters
+    for clust=1:Nclusters
         for paindex=1:numpulseamps
             p=0;
             subplot1(numgapdurs,1)
@@ -498,11 +503,11 @@ for clust=1:NClusters
     out.numpulseamps=numpulseamps;
     out.numgapdurs=numgapdurs;
     out.nreps=nreps;
-    duration=out.duration;
+    out.duration=duration;
     out.oepathname=oepathname;
     out.OEdatafile=OEdatafile;
     out.xlimits=xlimits;
-    out.NClusters=Ncllusters;
+    out.NClusters=Nclusters;
     
     godatadir(expdate,session,filenum);
     save (outfilename, 'out')
