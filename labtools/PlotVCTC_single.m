@@ -1,12 +1,12 @@
-function PlotVCTC_single(expdate, session, filenum)
+function PlotVCTC_single(expdate, session, filenum, Vout)
 % plots tuning curve of synaptic currents
 % optimized for fast checking of reversals while you have a cell
 % usage:
 %     PlotVCTC_single(expdate, session, filenum)
 if nargin==0 fprintf('no input');return; end
-ProcessData_single(expdate, session, filenum)
+%Vout=0;
 
-Vout=0;
+
 xl=[0 250]; %xlimits
 outfile=sprintf('out%s-%s-%s.mat', expdate, session, filenum);
 if exist(outfile,'file')

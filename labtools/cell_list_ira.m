@@ -2337,7 +2337,7 @@ cells(i).R(4)=nan;
 cells(i).E(4)=nan;
 cells(i).I(4)=nan;
 cells(i).tau(4)=nan;
-cells(i).filenum(5,:)='006';% 010=006+002
+cells(i).filenum(5,:)='010';% 010=006+002
 cells(i).description{5}='TC'; 
 cells(i).mode{5}='vclamp';
 cells(i).use{5}='y';

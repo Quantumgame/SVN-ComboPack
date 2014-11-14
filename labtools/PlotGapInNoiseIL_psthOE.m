@@ -170,6 +170,7 @@ if ~outfile_exists
     numpulseamps=length(pulseamp);
     numgapdurs=length(gapdurs);
     nreps=zeros(numgapdurs);
+    
     duration=unique(duration);
 else
     gapdurs=out.gapdurs;
@@ -353,8 +354,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plot ON only
 
-figure;
+
 for clust=1:Nclusters
+    figure;
     for paindex=1:numpulseamps
         p=0;
         subplot1(numgapdurs,1)
@@ -379,7 +381,7 @@ for clust=1:Nclusters
             offset=yl(2);
             %plot rasters
             inc=(ylimmax)/10;
-            for n=1:nreps(gdindex,paindex)
+            for n=1:nrepsON(gdindex,paindex)
                 spiketimes2=M1ONp(clust,gdindex,paindex, n).spiketimes;
                 h=plot(spiketimes2, offset+ones(size(spiketimes2)), '.');
                 offset=offset+inc;
@@ -397,14 +399,15 @@ for clust=1:Nclusters
             
         end
     end
-    
+end
     xlabel('ms')
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Plot OFF only
     
-    figure;
+    
     for clust=1:Nclusters
+        figure;
         for paindex=1:numpulseamps
             p=0;
             subplot1(numgapdurs,1)
@@ -413,7 +416,7 @@ for clust=1:Nclusters
                 subplot1(p)
                 hold on
                 if p==1
-                    title(sprintf('OFF trials %s-%s-%s tetrode %s',expdate,session,filenum))
+                    title(sprintf('OFF trials %s-%s-%s tetrode %s',expdate,session,filenum, channel))
                 end
                 spiketimesOFF=mM1OFFp(clust,gdindex,paindex).spiketimes;
                 X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
@@ -429,8 +432,8 @@ for clust=1:Nclusters
                 offset=yl(2);
                 %plot rasters
                 inc=(ylimmax)/10;
-                for n=1:nreps(gdindex,paindex)
-                    spiketimes2=M1ONp(clust,gdindex,paindex, n).spiketimes;
+                for n=1:nrepsOFF(gdindex,paindex)
+                    spiketimes2=M1OFFp(clust,gdindex,paindex, n).spiketimes;
                     h=plot(spiketimes2, offset+ones(size(spiketimes2)), '.');
                     offset=offset+inc;
                     %                 set(h, 'markersize', 5)

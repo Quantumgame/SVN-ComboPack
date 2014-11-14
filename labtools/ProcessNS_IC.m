@@ -71,7 +71,7 @@ isi=unique(allisis);
 if length(dur)~=1 error('cannot handle multiple durs');end
 if length(isi)~=1 error('cannot handle multiple isis');end
 if isempty(xlimits)
-    xlimits=[-1000 dur+1000];
+    xlimits=[0 dur+1000];
 end
 
 M1=[];

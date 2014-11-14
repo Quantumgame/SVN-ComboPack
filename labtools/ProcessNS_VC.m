@@ -256,6 +256,67 @@ else
 end
 mM1=squeeze(mM1);
 mM1stim=squeeze(mM1stim);
+ylimits=[];
+if isempty(ylimits)
+    ylimits=[0 0];
+    for eindex=1:numepochs
+        for pindex=1:numpotentials
+            trace1=squeeze(mM1(eindex, pindex, :));
+            trace1=trace1-mean(trace1(1:100));
+            if min([trace1])<ylimits(1) ylimits(1)=min([trace1]);end
+            if max([trace1])>ylimits(2) ylimits(2)=max([trace1]);end
+        end
+    end
+end
+offset1=0;
+rep2=0;
+highrepper=1;
+figure;
+c='bgrycm';
+hold on
+for rep=1:max(max(nreps))
+    for eindex=1:numepochs
+        seq=squeeze(sequences(eindex,pindex, rep,:));
+        for sent=1:length(seq)
+            if sent==1
+                start=100;
+                stimtrace=squeeze(M1stim(eindex,pindex, rep,  :));
+                stimtrace=stimtrace(-xlimits(1)*samprate*.001+1:end);
+                stimtrace=stimtrace-mean(stimtrace(1:100));
+                stimtrace=stimtrace./max(abs(stimtrace));
+                stimtrace=.025*diff(ylimits)*stimtrace;
+            end
+            
+            stop=start+3000;
+            regionms=start:stop;
+            startsamp=round(start*.001*samprate+1);
+            stopsamp=round(stop*.001*samprate);
+            %             fprintf('\n%d-%d', start, stop)
+            %             fprintf('\t%d %d %d %d ', sent, seq(sent), eindex, rep)
+            %
+            start=stop+2*isi;
+            if seq(sent)==highrepper
+                %             if seq(sent)~=highrepper
+                offset1=offset1+.05*diff(ylimits);
+                stimseg=stimtrace(startsamp:stopsamp+1000);
+                t=1:length(stimseg(1:2000));
+                t=1000*t/samprate;
+                %                     p=plot(t, stimseg+offset,'m');
+                for pindex=1:numpotentials
+                    
+                    trace1=squeeze(M1(eindex, pindex, rep,startsamp:stopsamp+1000));
+                    %sum(trace1)
+                    %if sum(trace1)~=0
+                    trace1=trace1-mean(trace1(1:100));
+                    plot( t, trace1(1:2000)+offset1+.1*diff(ylimits),c(pindex))
+                    rep2=rep2+1;
+                    M2(pindex, rep2,:)=trace1;
+                    %end
+                end
+            end
+        end
+    end
+end
 
 
 %subtract Vout and liquid junction potential
@@ -300,6 +361,7 @@ out.meanrs=median(median(Rs));
 out.Rs_pulses=Rs_pulses;
 out.meanpulse=squeeze(mean(mean(Rs_pulses)));
 out.lostat=lostat;
+out.M2=M2;
 
 outfilename=sprintf('out%s-%s-%s', expdate, session, filenum);
 godatadir(expdate, session, filenum)

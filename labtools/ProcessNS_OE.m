@@ -300,7 +300,7 @@ end
 %accumulate across trials
 
 for clust=1:Nclusters
-    for epochind=1:epochnum
+    for epochind=1:length(epochfilenames)
         spiketimes1=[];
         for rep=1:nreps(epochind)
             spiketimes1=[M1(clust, epochind, rep).spiketimes spiketimes1 ];

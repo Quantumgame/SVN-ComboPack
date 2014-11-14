@@ -257,7 +257,7 @@ for rep=1:max(nreps)
         seq=sequences(eindex, rep,:);
         for sent=1:length(seq)
             if sent==1
-                start=500;
+                start=100;
                 stimtrace=squeeze(M1stim(eindex,rep,  :));
                 stimtrace=stimtrace(-xlimits(1)*samprate*.001+1:end);
                 stimtrace=stimtrace-mean(stimtrace(1:100));
@@ -293,8 +293,11 @@ p=plot(t, stimseg-.1*diff(ylimits), 'm',t, trace1+offset+2,'b', t, squeeze(mean(
 
 legend(p,'stimulus trace','membrane potentials', 'mean of all repetitions'); 
 
-
-
+out.M2=M2;
+out.M2stim=M2stim;
+outfilename=sprintf('out%s-%s-%s', expdate, session, filenum);
+godatadir(expdate, session, filenum)
+save (outfilename, 'out')
 xlabel('time (ms)')
 ylabel('voltage ( \muV), all trials')
 title(sprintf('%s-%s-%s one 3s sentence segment, %d reps', expdate,session, filenum, sum(squeeze(sequences(:)==highrepper))))
