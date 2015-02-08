@@ -25,6 +25,174 @@ i=0;
 i=i+1;
 recordings(i).user='ira';
 recordings(i).rig='rig1';
+recordings(i).genotype='Arch'; %ChR2 or Arch
+recordings(i).mouse_number=27; 
+recordings(i).laser_intesity=68; %in mWT
+recordings(i).expdate='012315';
+recordings(i).session='001';
+recordings(i).filenum='003';
+recordings(i).OE_filename='12-58-24'
+recordings(i).channels_rec=['4','8','12','16','20','24','28','32']; 
+recordings(i).tetrodes_rec=['8'];
+recordings(i).description='ILWNClick';
+recordings(i).notes=''; %
+recordings(i).depth=.40; %total number of turns
+recordings(i).sound_evoked=1; % 
+recordings(i).tetrode(1,:).number='8';
+recordings(i).tetrode(1,:).channel_ON='28'; %which channel from the tetrode was recording LFPs?
+recordings(i).tetrode(1,:).num_tuned_cells=3; %how many total tuned cells are there?
+recordings(i).tetrode(1,:).cluster(1,:).number=1;
+recordings(i).tetrode(1,:).cluster(1,:).quality=5;
+recordings(i).tetrode(1,:).cluster(1,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(1,:).CF=20.5;
+recordings(i).tetrode(1,:).cluster(1,:).notes='increase in click responses';
+recordings(i).tetrode(1,:).cluster(1,:).effect='y';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).tetrode(1,:).cluster(2,:).number=1;
+recordings(i).tetrode(1,:).cluster(2,:).quality=3;
+recordings(i).tetrode(1,:).cluster(2,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(2,:).CF='ut';
+recordings(i).tetrode(1,:).cluster(2,:).notes='increase in click responses';
+recordings(i).tetrode(1,:).cluster(2,:).effect='y';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).tetrode(1,:).cluster(3,:).number=1;
+recordings(i).tetrode(1,:).cluster(3,:).quality=3;
+recordings(i).tetrode(1,:).cluster(3,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(3,:).CF='ut';
+recordings(i).tetrode(1,:).cluster(3,:).notes='increase in click responses';
+recordings(i).tetrode(1,:).cluster(3,:).effect='y';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).sorter='MClust';
+recordings(i).extra2=NaN;
+recordings(i).extra3=NaN;
+
+i=0;
+i=i+1;
+recordings(i).user='ira';
+recordings(i).rig='rig1';
+recordings(i).genotype='Arch'; %ChR2 or Arch
+recordings(i).mouse_number=27; 
+recordings(i).laser_intesity=68; %in mWT
+recordings(i).expdate='012315';
+recordings(i).session='001';
+recordings(i).filenum='003';
+recordings(i).OE_filename='14-44-12'
+recordings(i).channels_rec=['4','8','12','16','20','24','28','32']; 
+recordings(i).tetrodes_rec=['8'];
+recordings(i).description='ILTC';
+recordings(i).notes='single dB long tones'; %
+recordings(i).depth=.40; %total number of turns
+recordings(i).sound_evoked=1; % 
+recordings(i).tetrode(1,:).number='8';
+recordings(i).tetrode(1,:).channel_ON='28'; %which channel from the tetrode was recording LFPs?
+recordings(i).tetrode(1,:).num_tuned_cells=3; %how many total tuned cells are there?
+recordings(i).tetrode(1,:).cluster(1,:).number=1;
+recordings(i).tetrode(1,:).cluster(1,:).quality=5;
+recordings(i).tetrode(1,:).cluster(1,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(1,:).CF=20.5;
+recordings(i).tetrode(1,:).cluster(1,:).notes='WN responses, off responses, decrease in off responses';
+recordings(i).tetrode(1,:).cluster(1,:).effect='y';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).tetrode(1,:).cluster(2,:).number=1;
+recordings(i).tetrode(1,:).cluster(2,:).quality=5;
+recordings(i).tetrode(1,:).cluster(2,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(2,:).CF='ut';
+recordings(i).tetrode(1,:).cluster(2,:).notes='WN and OFF responses only, decrease in off responses';
+recordings(i).tetrode(1,:).cluster(2,:).effect='y';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).tetrode(1,:).cluster(3,:).number=1;
+recordings(i).tetrode(1,:).cluster(3,:).quality=4;
+recordings(i).tetrode(1,:).cluster(3,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(3,:).CF='ut';
+recordings(i).tetrode(1,:).cluster(3,:).notes='WN and off responses only, decrease if off responses';
+recordings(i).tetrode(1,:).cluster(3,:).effect='y';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).sorter='MClust';
+recordings(i).extra2=NaN;
+recordings(i).extra3=NaN;
+
+i=0;
+i=i+1;
+recordings(i).user='ira';
+recordings(i).rig='rig1';
+recordings(i).genotype='Arch'; %ChR2 or Arch
+recordings(i).mouse_number=27; 
+recordings(i).laser_intesity=68; %in mWT
+recordings(i).expdate='012315';
+recordings(i).session='001';
+recordings(i).filenum='005';
+recordings(i).OE_filename='15-30-15'
+recordings(i).channels_rec=['4','8','12','16','20','24','28','32']; 
+recordings(i).tetrodes_rec=['8'];
+recordings(i).description='ILGap';
+recordings(i).notes='001-004, Gap without the laser, looks like 0ff responses at longer gap that are not present in this recording'; %
+recordings(i).depth=.40; %total number of turns
+recordings(i).sound_evoked=1; % 
+recordings(i).tetrode(1,:).number='8';
+recordings(i).tetrode(1,:).channel_ON='28'; %which channel from the tetrode was recording LFPs?
+recordings(i).tetrode(1,:).num_tuned_cells=3; %how many total tuned cells are there?
+recordings(i).tetrode(1,:).cluster(1,:).number=1;
+recordings(i).tetrode(1,:).cluster(1,:).quality=5;
+recordings(i).tetrode(1,:).cluster(1,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(1,:).CF=20.5;
+recordings(i).tetrode(1,:).cluster(1,:).notes='no gap responses';
+recordings(i).tetrode(1,:).cluster(1,:).effect='n';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).tetrode(1,:).cluster(2,:).number=1;
+recordings(i).tetrode(1,:).cluster(2,:).quality=5;
+recordings(i).tetrode(1,:).cluster(2,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(2,:).CF='ut';
+recordings(i).tetrode(1,:).cluster(2,:).notes='no gap responses';
+recordings(i).tetrode(1,:).cluster(2,:).effect='n';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).tetrode(1,:).cluster(3,:).number=1;
+recordings(i).tetrode(1,:).cluster(3,:).quality=5;
+recordings(i).tetrode(1,:).cluster(3,:).mode='SU'; %single cell isolation or MUA?
+recordings(i).tetrode(1,:).cluster(3,:).CF='ut';
+recordings(i).tetrode(1,:).cluster(3,:).notes='no gap responses, decrease is onset at 128 ms';
+recordings(i).tetrode(1,:).cluster(3,:).effect='n';
+recordings(i).tetrode(1,:).extra='';
+recordings(i).sorter='MClust';
+recordings(i).extra2=NaN;
+recordings(i).extra3=NaN;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+i=0;
+i=i+1;
+recordings(i).user='ira';
+recordings(i).rig='rig1';
 recordings(i).genotype='ChR'; %ChR2 or Arch
 recordings(i).mouse_number=9; 
 recordings(i).laser_intesity=25; %in mWT

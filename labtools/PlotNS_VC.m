@@ -266,7 +266,7 @@ for rep=1:max(max(nreps))
         seq=squeeze(sequences(eindex,pindex, rep,:));
         for sent=1:length(seq)
             if sent==1
-                start=100;
+                start=out.isi;
                 stimtrace=squeeze(M1stim(eindex,pindex, rep,  :));
                 stimtrace=stimtrace(-xlimits(1)*samprate*.001+1:end);
                 stimtrace=stimtrace-mean(stimtrace(1:100));
@@ -296,6 +296,8 @@ for rep=1:max(max(nreps))
                     %if sum(trace1)~=0
                     trace1=trace1-mean(trace1(1:100));
                     plot( t, trace1+offset+.1*diff(ylimits), c(pindex))
+                    hold on
+                    plot(t, stimseg+offset+.1*diff(ylimits),'m')
                     rep2=rep2+1;
                     M2(pindex, rep2,:)=trace1;
                     %end

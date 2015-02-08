@@ -257,7 +257,7 @@ for rep=1:max(nreps)
         seq=sequences(eindex, rep,:);
         for sent=1:length(seq)
             if sent==1
-                start=100;
+                start=out.isi;
                 stimtrace=squeeze(M1stim(eindex,rep,  :));
                 stimtrace=stimtrace(-xlimits(1)*samprate*.001+1:end);
                 stimtrace=stimtrace-mean(stimtrace(1:100));

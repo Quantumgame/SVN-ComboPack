@@ -93,6 +93,14 @@ else
     error('Wrong number of arguments.');
 end
 
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+%Get PPA lazer params
+
+    ProcessData_single(expdate,session,filenum);
+    [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
+
 lostat=-1; % Discard data after this position (in samples), -1 to skip
 fs=10; %fontsize
 
@@ -506,17 +514,21 @@ end
                     [NOFF, xOFF]=hist(spiketimesOFF, X);
 
                     NON=NON./nrepsON(findex, aindex, dindex); %
-                    NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                    %NON=1000*NON./binwidth; %normalize to spike rate in Hz
                     NOFF=NOFF./nrepsOFF(findex, aindex, dindex);
-                    NOFF=1000*NOFF./binwidth;
+                    %NOFF=1000*NOFF./binwidth;
                     
-                    bON=bar(xON, NON,1);
+                   bON=bar(xON, NON,1);
                     hold on
-                    bOFF=bar(xOFF,NOFF,1);
+                     bOFF=bar(xOFF,NOFF,1);
+                    
                     
                     set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                     set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
                     line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+                    if aindex==1 && findex==1
+                    line([PPAstart width+PPAstart], [-.05 -.05], 'color', 'c', 'linewidth', 2)
+                    end
                     line(xlimits, [0 0], 'color', 'k')
                     
                     xlim(xlimits)
@@ -605,6 +617,9 @@ end
                     bON=bar(xON, NON,1);
                     set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                     line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+                    if aindex==1 && findex==1
+                    line([PPAstart width+PPAstart], [-.05 -.05], 'color', 'c', 'linewidth', 2)
+                    end
                     line(xlimits, [0 0], 'color', 'k')
                     xlim(xlimits)
                     ylim(ylimits1(clust,:))

@@ -45,7 +45,7 @@ amplitudes=zeros(size(neworder*nrepeats));
 interclickintervals=zeros(size(neworder*nrepeats));
 
 tdur=0;
-total_trainduration=next+start+trainduration;
+total_trainduration=trainduration;
 tdur=numisis*numamplitudes*(total_trainduration)/1000;%duration per repeat
 
 

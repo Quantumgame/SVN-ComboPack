@@ -317,9 +317,9 @@ for paindex=1:numpulseamps
             %off
             spiketimesOFF=[];
             for rep=1:nrepsOFF(gdindex,paindex)
-                spiketimesOFF=[spiketimesON M1OFFp(clust,gdindex,paindex, rep).spiketimes];
+                spiketimesOFF=[spiketimesOFF M1OFFp(clust,gdindex,paindex, rep).spiketimes];
             end
-            mM1OFFp(clust,gdindex,paindex).spiketimes=spiketimesON;
+            mM1OFFp(clust,gdindex,paindex).spiketimes=spiketimesOFF;
             
         end
     end
@@ -340,7 +340,7 @@ if ylimits==-1
                 N=N./nreps(gdindex,paindex); % averaged across trials
                 ylimmax=max(ylimmax, max(N));
             end
-            ylimits1(clust,:)=[-.3 ylimmax];
+            ylimits1(clust,:)=[-.2 ylimmax];
             
         end
     end
@@ -356,6 +356,8 @@ end
 
 
 for clust=1:Nclusters
+    
+    sp1=[];
     figure;
     for paindex=1:numpulseamps
         p=0;
@@ -365,7 +367,7 @@ for clust=1:Nclusters
             subplot1(p)
             hold on
             if p==1
-                title(sprintf('ON trials %s-%s-%s tetrode %s',expdate,session,filenum, channel))
+                title(sprintf('ON trials %s-%s-%s tetrode %s cell %d',expdate,session,filenum, channel, clust))
             end
             spiketimesON=mM1ONp(clust,gdindex,paindex).spiketimes;
             X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
@@ -373,32 +375,35 @@ for clust=1:Nclusters
             NON=NON./nreps(gdindex,paindex); % averaged across trials
             bON=bar(xON, NON,1);
             set(bON, 'facecolor',([51 204 0]/255), 'edgecolor', ([51 204 0]/255));
-            line([0 gapdelay],[-.1 -.1],'color','m','linewidth',1.5)
+            line([0 gapdelay],[-.01 -.01],'color','m','linewidth',1.5)
             if gapdurs(gdindex)>0
-                line([gapdelay+gapdurs(gdindex) max(duration)],[-.1 -.1],'color','m','linewidth',1.5) % Assuming a single duration.
+                line([gapdelay+gapdurs(gdindex) max(duration)],[-.01 -.01],'color','m','linewidth',1.5) % Assuming a single duration.
             end
             yl=ylim;
             offset=yl(2);
             %plot rasters
-            inc=(ylimmax)/10;
+            inc=(ylimmax)/50;
+            sp=[];
             for n=1:nrepsON(gdindex,paindex)
                 spiketimes2=M1ONp(clust,gdindex,paindex, n).spiketimes;
-                h=plot(spiketimes2, offset+ones(size(spiketimes2)), '.');
+                h=plot(spiketimes2, offset+zeros(size(spiketimes2)), '.');
                 offset=offset+inc;
                 %                 set(h, 'markersize', 5)
                 set(h,'Color','k');
+                sp=[sp spiketimes2];
             end
-            
+            sp1=[sp1 sp];
             xlim([(xlimits(1)) xlimits(2)])
             %        ylim([-.2 (2*ylimmax)])
             yl=ylim;
-            yl(1)=-.2;
+            yl(1)=-.03;
             ylim(yl);
             xlim(xlimits);
             ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
             
         end
     end
+    
 end
     xlabel('ms')
     
@@ -407,6 +412,7 @@ end
     
     
     for clust=1:Nclusters
+        sp1=[];
         figure;
         for paindex=1:numpulseamps
             p=0;
@@ -416,40 +422,43 @@ end
                 subplot1(p)
                 hold on
                 if p==1
-                    title(sprintf('OFF trials %s-%s-%s tetrode %s',expdate,session,filenum, channel))
+                    title(sprintf('OFF trials %s-%s-%s tetrode %s cell %d',expdate,session,filenum, channel,clust))
                 end
                 spiketimesOFF=mM1OFFp(clust,gdindex,paindex).spiketimes;
                 X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
-                [NOFF, xOFF]=hist(spiketimesON, X);
+                [NOFF, xOFF]=hist(spiketimesOFF, X);
                 NOFF=NOFF./nreps(gdindex,paindex); % averaged across trials
                 bOFF=bar(xOFF, NOFF,1);
                 set(bOFF, 'facecolor','none', 'edgecolor', [0 0 0]);
-                line([0 gapdelay],[-.1 -.1],'color','m','linewidth',1.5)
+                line([0 gapdelay],[-.01 -.01],'color','m','linewidth',1.5)
                 if gapdurs(gdindex)>0
-                    line([gapdelay+gapdurs(gdindex) max(duration)],[-.1 -.1],'color','m','linewidth',1.5) % Assuming a single duration.
+                    line([gapdelay+gapdurs(gdindex) max(duration)],[-.01 -.01],'color','m','linewidth',1.5) % Assuming a single duration.
                 end
                 yl=ylim;
                 offset=yl(2);
                 %plot rasters
-                inc=(ylimmax)/10;
+                inc=(ylimmax)/50;
+                sp=[];
                 for n=1:nrepsOFF(gdindex,paindex)
                     spiketimes2=M1OFFp(clust,gdindex,paindex, n).spiketimes;
-                    h=plot(spiketimes2, offset+ones(size(spiketimes2)), '.');
+                    h=plot(spiketimes2, offset+zeros(size(spiketimes2)), '.');
                     offset=offset+inc;
+                    sp=[sp spiketimes2];
                     %                 set(h, 'markersize', 5)
                     set(h,'Color','k');
                 end
-                
+                sp1=[sp1 sp];
                 xlim([(xlimits(1)) xlimits(2)])
                 %        ylim([-.2 (2*ylimmax)])
                 yl=ylim;
-                yl(1)=-.2;
+                yl(1)=-.03;
                 ylim(yl);
                 xlim(xlimits);
                 ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
                 
             end
         end
+        
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

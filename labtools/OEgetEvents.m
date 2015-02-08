@@ -75,7 +75,7 @@ end
 if nevents~= length(stimuli)
    fprintf('\nfound %d OE stimID events, but %d stimuli in exper structure',nevents,length(stimuli) )
    fprintf('\n events doesnt match n stimuli')
-   keybard
+
 %    if length(stimuli)>nevents
 %    triggers_missing=length(stimuli)-nevents;
 %    end

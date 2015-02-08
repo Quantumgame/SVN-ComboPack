@@ -275,6 +275,7 @@ for eindex=1:numepochs
                 rep2=rep2+1;
                 M2stim(rep2,:)=stimseg;
                 p=p+1;
+                M2(i,:)=spiketimes1;
                 
             end
             start=stop+2*isi;
@@ -294,12 +295,14 @@ ylim(ylimits)
 legend(p,'spikes');
 
 out.highrepper=highrepper;
+out.M2=M2;
 
 if monitor % view spike threshold (nstd/thresh)
     MonitorSpikes(outfilename,filteredtrace,nstd,dspikes)
 
 end
-
+outfilename=sprintf('out%s-%s-%s', expdate, session, filenum);
+save(outfilename,'out');
 xlabel('time (ms)')
 ylabel('spikes, all trials')
 title(sprintf('%s-%s-%s one 3s sentence segment, %d reps', expdate,session, filenum, sum(squeeze(sequences(:)==highrepper))))

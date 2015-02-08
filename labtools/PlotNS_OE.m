@@ -236,11 +236,11 @@ for clust=1:Nclusters
         subplot1( p)
         spiketimes1=mM1(clust,eindex).spiketimes; %in ms
         if xlimits(1)<0 %to align spikes with stimulus trace when xlimits(1)~=0 ira 06.04.14
-            start=abs(xlimits(1));
-            spiketimes1=spiketimes1+start;
+            start=abs(xlimits(1)+isi);
+            spiketimes1=spiketimes1-start;
         end
         if xlimits(1)>0
-            start=xlimits(1);
+            start=xlimits(1)+isi;
             spiketimes1=spiketimes1-start;
         end
         X=xlimits(1):binwidth:xlimits(2);
@@ -335,6 +335,7 @@ times_repeated=length(times_repeated);
 i=0;
 dbstop if error
 for clust=1:Nclusters
+    M2=[];
     fig=figure;
     hold on
     offset=0;
@@ -387,6 +388,7 @@ for clust=1:Nclusters
                     rep2=rep2+1;
                     M2stim(rep2,:)=stimseg;
                     p=p+1;
+                    M2(i).M2=spiketimes1;
                     
                 end
                 start=stop+2*isi;
@@ -409,12 +411,15 @@ for clust=1:Nclusters
     legend(p,'spikes');
     
     out.highrepper=highrepper;
+    out.M2=M2;
     
     xlabel('time (ms)')
     ylabel('spikes, all trials')
     title(sprintf('%s-%s-%s one 3s sentence segment, %d reps, cell # %d', expdate,session, filenum, sum(squeeze(sequences(:)==highrepper)), clust))
     orient portrait
 end
+outfilename=sprintf('out%s-%s-%s', expdate, session, filenum);
+save(outfilename,'out');
 end
 
 

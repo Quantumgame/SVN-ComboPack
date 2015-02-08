@@ -224,7 +224,7 @@ isi=unique(allisis);
 if length(dur)~=1 error('cannot handle multiple durs');end
 if length(isi)~=1 error('cannot handle multiple isis');end
 if isempty(xlimits)
-    xlimits=[-1000 dur+1000];
+    xlimits=[0 dur+1000];
 end
 
 
@@ -233,13 +233,14 @@ nreps=zeros(1, numepochs);
 lostin_counter=[];
 lostat_counter=[];
 inRange=zeros(1, Nclusters);
+fprintf('using hardware triggers for stimulus')%soundcardtriggerPos ;
 for i=1:length(event)
     if strcmp(event(i).Type, 'naturalsound')
         if isfield(event(i), 'soundcardtriggerPos')
             pos=event(i).soundcardtriggerPos;
             if strcmp(event1(i).Type, 'naturalsound')
                 pos1= event1(i).Position;
-                fprintf('using hardware triggers for stimulus')%soundcardtriggerPos ;
+                
             end
         else
             pos=event(i).Position;

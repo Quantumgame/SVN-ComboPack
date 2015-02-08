@@ -1,4 +1,4 @@
-function ProcessWNTrain2_psth(expdate, session, filenum, varargin)
+function ProcessILWNTrain2_psthOE(expdate, session, filenum, varargin)
 % usage: out=ProcessWNTrain2_psth(expdate, session, filenum, [xlimits], [nstd])
 % processes data for WNTrain2 stimuli
 %(these are WN trains at various isis but with fixed train duration)
