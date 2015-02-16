@@ -1,5 +1,5 @@
 function PlotGapInNoiseIL_psthOE(expdate,session,filenum,varargin)
-% PlotGapInNoise_psth(expdate,session,filenum,[thresh],[xlimits],[ylimits],[binwidth])
+% PlotGapInNoise_psth(expdate,session,filenum,tetrode,[xlimits],[ylimits],[binwidth], cell)
 % originally written by AKH 7/29/13, modified to open ephys data by ira
 % 10/22/14
 dbstop if error
@@ -12,20 +12,31 @@ if nargin==0
 elseif nargin==3
     prompt=('Please enter tetrode number: ');
     channel=input(prompt,'s') ;
+    cell=[];
 elseif nargin==4
     channel=varargin{1};
+    cell=[];
 elseif nargin==5
     channel=varargin{1};
     xlimits=varargin{2};
+    cell=[];
 elseif nargin==6
     channel=varargin{1};
     xlimits=varargin{2};
     ylimits=varargin{3};
+    cell=[];
 elseif nargin==7
     channel=varargin{1};
     xlimits=varargin{2};
     ylimits=varargin{3};
     binwidth=varargin{4};
+    cell=[];
+elseif nargin==8
+    channel=varargin{1};
+    xlimits=varargin{2};
+    ylimits=varargin{3};
+    binwidth=varargin{4};
+    cell=varargin{5};
 else
     fprintf('\nWrong number of arguments'); return;
 end
@@ -35,7 +46,9 @@ if ~exist('ylimits','var'); ylimits=-1; end
 if isempty(ylimits); ylimits=-1; end
 if ~exist('binwidth','var'); binwidth=5; end
 if isempty(binwidth); binwidth=5; end
-
+    if ~strcmp('char',class(channel))
+        channel=num2str(channel);
+    end
 lostat=-1; % Discard data after this position (in samples), -1 to skip
 fs=10; %fontsize
 
@@ -187,7 +200,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if exist('xlimits','var')
-    frintf('xlimits are specified');
+    fprintf('xlimits are specified');
     if isempty(xlimits); xlimits=[-50 max(duration)]; end
 else
     xlimits=[-50 max(duration)];
@@ -223,49 +236,49 @@ for i=1:length(event)
     start=(pos+xlimits(1)*1e-3); %in sec
     stop=(pos+xlimits(2)*1e-3); %in sec
     if start>0 %(disallow negative start times)
-%         if stop>lostat
-%             fprintf('\ndiscarding spikes')
-%         else
-            aopulseon=event(i).Param.AOPulseOn;
-            if strcmp(event(i).Type, 'gapinnoise')
-                
-                region=start:stop;
-                for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
-                    if isempty(find(region<0)) % Disallow negative start times
-                        gapdur=event(i).Param.gapdur;
-                        gdindex= find(gapdur==gapdurs);
-                        pulseamp=event(i).Param.amplitude;
-                        paindex= find(pulseamp==pulseamp);
-                        st=spiketimes(clust).spiketimes;
-                        spiketimes1=st(st>start & st<stop); % spiketimes in region
-                        spikecount=length(spiketimes1); % No. of spikes fired in response to this rep of this stim.
-                        inRange(clust)=inRange(clust)+ spikecount; %accumulate total spikecount in region
-                        spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
-                        spont_spikecount=length(find(st<start & st>(start-(stop-start))));
-                        % No. spikes in a region of same length preceding response window
-                        nreps(gdindex, paindex)=nreps(gdindex, paindex)+1;
-                        if aopulseon
-                            if clust==1
-                                nrepsON(gdindex, paindex)=nrepsON(gdindex, paindex)+1;
-                            end
-                            M1ONp(clust, gdindex, paindex, nreps(gdindex, paindex)).spiketimes=spiketimes1;
-                            M1ONspikecounts(clust,gdindex, paindex, nreps(gdindex, paindex))=spikecount; % No. of spikes
-                            M1spontON(clust,gdindex, paindex, nreps(gdindex, paindex))=spont_spikecount; % No. of spikes in spont window, for each presentation.
-                            %M1stim(gdindex, paindex, nreps(gdindex, paindex),:)=stim(start:stop);
-                        else
-                            if clust==1
-                                nrepsOFF(gdindex, paindex)=nrepsON(gdindex, paindex)+1;
-                            end
-                            M1OFFp(clust, gdindex, paindex, nreps(gdindex, paindex)).spiketimes=spiketimes1;
-                            M1OFFspikecounts(clust,gdindex, paindex, nreps(gdindex, paindex))=spikecount; % No. of spikes
-                            M1spontOFF(clust,gdindex, paindex, nreps(gdindex, paindex))=spont_spikecount; % No. of spikes in spont window, for each presentation.
-                            %M1stim(gdindex, paindex, nreps(gdindex, paindex),:)=stim(start:stop);
-                            
+        %         if stop>lostat
+        %             fprintf('\ndiscarding spikes')
+        %         else
+        aopulseon=event(i).Param.AOPulseOn;
+        if strcmp(event(i).Type, 'gapinnoise')
+            
+            region=start:0.001:stop;
+            for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
+                if isempty(find(region<0)) % Disallow negative start times
+                    gapdur=event(i).Param.gapdur;
+                    gdindex= find(gapdur==gapdurs);
+                    pulseamp=event(i).Param.amplitude;
+                    paindex= find(pulseamp==pulseamp);
+                    st=spiketimes(clust).spiketimes;
+                    spiketimes1=st(st>start & st<stop); % spiketimes in region
+                    spikecount=length(spiketimes1); % No. of spikes fired in response to this rep of this stim.
+                    inRange(clust)=inRange(clust)+ spikecount; %accumulate total spikecount in region
+                    spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
+                    spont_spikecount=length(find(st<start & st>(start-(stop-start))));
+                    % No. spikes in a region of same length preceding response window
+                    nreps(gdindex, paindex)=nreps(gdindex, paindex)+1;
+                    if aopulseon
+                        if clust==1
+                            nrepsON(gdindex, paindex)=nrepsON(gdindex, paindex)+1;
                         end
+                        M1ONp(clust, gdindex, paindex, nrepsON(gdindex, paindex)).spiketimes=spiketimes1;
+                        M1ONspikecounts(clust,gdindex, paindex, nrepsON(gdindex, paindex))=spikecount; % No. of spikes
+                        M1spontON(clust,gdindex, paindex, nrepsON(gdindex, paindex))=spont_spikecount; % No. of spikes in spont window, for each presentation.
+                        %M1stim(gdindex, paindex, nreps(gdindex, paindex),:)=stim(start:stop);
+                    else
+                        if clust==1
+                            nrepsOFF(gdindex, paindex)=nrepsOFF(gdindex, paindex)+1;
+                        end
+                        M1OFFp(clust, gdindex, paindex, nrepsOFF(gdindex, paindex)).spiketimes=spiketimes1;
+                        M1OFFspikecounts(clust,gdindex, paindex, nrepsOFF(gdindex, paindex))=spikecount; % No. of spikes
+                        M1spontOFF(clust,gdindex, paindex, nrepsOFF(gdindex, paindex))=spont_spikecount; % No. of spikes in spont window, for each presentation.
+                        %M1stim(gdindex, paindex, nreps(gdindex, paindex),:)=stim(start:stop);
+                        
                     end
                 end
             end
-%         end
+        end
+        %         end
     end
 end
 
@@ -326,7 +339,8 @@ for paindex=1:numpulseamps
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+ylimmaxON=ylimits;
+ylimmaxOFF=ylimits;
 %find axis limits
 
 if ylimits==-1
@@ -334,15 +348,21 @@ if ylimits==-1
         ylimmax=0.0001;
         for paindex=1:numpulseamps
             for gdindex=1:numgapdurs
-                st=mM1ONp(clust,gdindex,paindex).spiketimes;
+                st1=mM1ONp(clust,gdindex,paindex).spiketimes;
+                st2=mM1OFFp(clust,gdindex,paindex).spiketimes;
                 X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
-                [N, x]=hist(spiketimes1, X);
-                N=N./nreps(gdindex,paindex); % averaged across trials
-                ylimmax=max(ylimmax, max(N));
+                [N1, x1]=hist(st1, X);
+                [N2, x2]=hist(st2, X);
+                N1=N1./nrepsON(gdindex,paindex); % averaged across trials
+                N2=N2./nrepsON(gdindex,paindex); % averaged across trials
+                ylimmaxON=max(ylimmaxON, max(N1));
+                ylimmaxOFF=max(ylimmaxOFF,max(N2));
             end
-            ylimits1(clust,:)=[-.2 ylimmax];
+            ylimmax=max(ylimmaxON, ylimmaxOFF);
+            
             
         end
+        ylimits1(clust,:)=[-.2 ylimmax];
     end
     
 else
@@ -354,9 +374,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plot ON only
 
-
-for clust=1:Nclusters
-    
+if ~isempty(cell)
+    clust=cell;
     sp1=[];
     figure;
     for paindex=1:numpulseamps
@@ -372,7 +391,7 @@ for clust=1:Nclusters
             spiketimesON=mM1ONp(clust,gdindex,paindex).spiketimes;
             X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
             [NON, xON]=hist(spiketimesON, X);
-            NON=NON./nreps(gdindex,paindex); % averaged across trials
+            NON=NON./nrepsON(gdindex,paindex); % averaged across trials
             bON=bar(xON, NON,1);
             set(bON, 'facecolor',([51 204 0]/255), 'edgecolor', ([51 204 0]/255));
             line([0 gapdelay],[-.01 -.01],'color','m','linewidth',1.5)
@@ -382,7 +401,7 @@ for clust=1:Nclusters
             yl=ylim;
             offset=yl(2);
             %plot rasters
-            inc=(ylimmax)/50;
+            inc=ylimmax/50;
             sp=[];
             for n=1:nrepsON(gdindex,paindex)
                 spiketimes2=M1ONp(clust,gdindex,paindex, n).spiketimes;
@@ -395,22 +414,123 @@ for clust=1:Nclusters
             sp1=[sp1 sp];
             xlim([(xlimits(1)) xlimits(2)])
             %        ylim([-.2 (2*ylimmax)])
-            yl=ylim;
-            yl(1)=-.03;
+            yl=ylimits1(clust,:,:);
+            yl(1)=yl(1)/10;
+            yl(2)=yl(2)*2;
             ylim(yl);
             xlim(xlimits);
             ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
             
         end
     end
-    
-end
+else
+    for clust=1:Nclusters
+        sp1=[];
+        figure;
+        for paindex=1:numpulseamps
+            p=0;
+            subplot1(numgapdurs,1)
+            for gdindex=1:numgapdurs
+                p=p+1;
+                subplot1(p)
+                hold on
+                if p==1
+                    title(sprintf('ON trials %s-%s-%s tetrode %s cell %d',expdate,session,filenum, channel, clust))
+                end
+                spiketimesON=mM1ONp(clust,gdindex,paindex).spiketimes;
+                X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
+                [NON, xON]=hist(spiketimesON, X);
+                NON=NON./nrepsON(gdindex,paindex); % averaged across trials
+                bON=bar(xON, NON,1);
+                set(bON, 'facecolor',([51 204 0]/255), 'edgecolor', ([51 204 0]/255));
+                line([0 gapdelay],[-.01 -.01],'color','m','linewidth',1.5)
+                if gapdurs(gdindex)>0
+                    line([gapdelay+gapdurs(gdindex) max(duration)],[-.01 -.01],'color','m','linewidth',1.5) % Assuming a single duration.
+                end
+                
+                yl=ylim;
+                offset=yl(2);
+                %plot rasters
+                inc=ylimmax/50;
+                sp=[];
+                for n=1:nrepsON(gdindex,paindex)
+                    spiketimes2=M1ONp(clust,gdindex,paindex, n).spiketimes;
+                    h=plot(spiketimes2, offset+zeros(size(spiketimes2)), '.');
+                    offset=offset+inc;
+                    %                 set(h, 'markersize', 5)
+                    set(h,'Color','k');
+                    sp=[sp spiketimes2];
+                end
+                sp1=[sp1 sp];
+                xlim([(xlimits(1)) xlimits(2)])
+                %        ylim([-.2 (2*ylimmax)])
+                yl=ylimits1(clust,:,:);
+                yl(1)=yl(1)/10;
+                yl(2)=yl(2)*2;
+                ylim(yl);
+                xlim(xlimits);
+                ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+                
+            end
+        end
+        
+    end
     xlabel('ms')
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %Plot OFF only
-    
-    
+end
+set(gcf, 'pos', [618    72      520   900]);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Plot OFF only
+
+if ~isempty(cell)
+    clust=cell;
+    sp1=[];
+    figure;
+    for paindex=1:numpulseamps
+        p=0;
+        subplot1(numgapdurs,1)
+        for gdindex=1:numgapdurs
+            p=p+1;
+            subplot1(p)
+            hold on
+            if p==1
+                title(sprintf('OFF trials %s-%s-%s tetrode %s cell %d',expdate,session,filenum, channel,clust))
+            end
+            spiketimesOFF=mM1OFFp(clust,gdindex,paindex).spiketimes;
+            X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
+            [NOFF, xOFF]=hist(spiketimesOFF, X);
+            NOFF=NOFF./nrepsOFF(gdindex,paindex); % averaged across trials
+            bOFF=bar(xOFF, NOFF,1);
+            set(bOFF, 'facecolor','none', 'edgecolor', [0 0 0]);
+            line([0 gapdelay],[-.01 -.01],'color','m','linewidth',1.5)
+            if gapdurs(gdindex)>0
+                line([gapdelay+gapdurs(gdindex) max(duration)],[-.01 -.01],'color','m','linewidth',1.5) % Assuming a single duration.
+            end
+            yl=ylim;
+            offset=yl(2);
+            %plot rasters
+            inc=ylimmax/10;
+            sp=[];
+            for n=1:nrepsOFF(gdindex,paindex)
+                spiketimes2=M1OFFp(clust,gdindex,paindex, n).spiketimes;
+                h=plot(spiketimes2, offset+zeros(size(spiketimes2)), '.');
+                offset=offset+inc;
+                sp=[sp spiketimes2];
+                %                 set(h, 'markersize', 5)
+                set(h,'Color','k');
+            end
+            sp1=[sp1 sp];
+            xlim([(xlimits(1)) xlimits(2)])
+            %        ylim([-.2 (2*ylimmax)])
+            yl=ylimits1(clust,:,:);
+            yl(1)=yl(1)/10;
+            yl(2)=yl(2)*2;
+            ylim(yl);
+            xlim(xlimits);
+            ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+            
+        end
+    end
+else
     for clust=1:Nclusters
         sp1=[];
         figure;
@@ -427,7 +547,7 @@ end
                 spiketimesOFF=mM1OFFp(clust,gdindex,paindex).spiketimes;
                 X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
                 [NOFF, xOFF]=hist(spiketimesOFF, X);
-                NOFF=NOFF./nreps(gdindex,paindex); % averaged across trials
+                NOFF=NOFF./nrepsOFF(gdindex,paindex); % averaged across trials
                 bOFF=bar(xOFF, NOFF,1);
                 set(bOFF, 'facecolor','none', 'edgecolor', [0 0 0]);
                 line([0 gapdelay],[-.01 -.01],'color','m','linewidth',1.5)
@@ -437,7 +557,7 @@ end
                 yl=ylim;
                 offset=yl(2);
                 %plot rasters
-                inc=(ylimmax)/50;
+                inc=ylimmax/50;
                 sp=[];
                 for n=1:nrepsOFF(gdindex,paindex)
                     spiketimes2=M1OFFp(clust,gdindex,paindex, n).spiketimes;
@@ -449,9 +569,9 @@ end
                 end
                 sp1=[sp1 sp];
                 xlim([(xlimits(1)) xlimits(2)])
-                %        ylim([-.2 (2*ylimmax)])
-                yl=ylim;
-                yl(1)=-.03;
+                yl=ylimits1(clust,:,:);
+                yl(1)=yl(1)/10;
+                yl(2)=yl(2)*2;
                 ylim(yl);
                 xlim(xlimits);
                 ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
@@ -460,71 +580,73 @@ end
         end
         
     end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    % %plot stimulus as a sanity check
-    % if(0)
-    %     figure
-    %     for paindex=1:numpulseamps
-    %         p=0;
-    %         subplot1(numgapdurs,1)
-    %         for gdindex=1:numgapdurs
-    %             p=p+1;
-    %             subplot1(p)
-    %             hold on
-    %             if p==1
-    %                 title(sprintf('%s-%s-%s',expdate,session,filenum))
-    %             end
-    %             spiketimes1=mM1(gdindex,paindex).spiketimes;
-    %             X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
-    %             [N, x]=hist(spiketimes1, X);
-    %             N=N./nreps(gdindex,paindex); % averaged across trials
-    %             bar(x, N,1,'facecolor',[0 0 0]);
-    %             line([ 0 gapdelay ],[-.1 -.1],'color','g','linewidth',1.5)
-    %             if gapdurs(gdindex)>0
-    %                 line([gapdelay+gapdurs(gdindex) max(duration)],[-.1 -.1],'color','m','linewidth',1.5) % Assuming a single duration.
-    %             end
-    %             xlim([(xlimits(1)) xlimits(2)])
-    %             ylim([-.2 (1.1*ylimmax)])
-    %             ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
-    %             stimtrace=squeeze(M1stim(gdindex, paindex, nreps(gdindex, paindex),:));
-    %             stimtrace=.1*diff(ylim)*stimtrace./max(abs(stimtrace));
-    %             t=1:length(stimtrace);
-    %             t=t/10;t=t+xlimits(1);
-    %             plot(t, stimtrace, 'r')
-    %         end
-    %     end
-    %
-    %     xlabel('ms')
-    % end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    % SAVE AN OUTFILE
-    out.expdate=expdate;
-    out.session=session;
-    out.filenum=filenum;
-    out.M1OFFp=M1OFFp; % All spiketimes, trial-by-trial.
-    out.M1ONp=M1ONp;
-    out.mM1OFFp=mM1OFFp; % Accumulated spike times for *all* presentations of each laser/f/a combo.
-    out.mM1ONp=mM1ONp;
-    out.gapdurs=gapdurs;
-    out.soa=soa;
-    out.gapdelay=gapdelay;
-    out.noiseamp=noiseamp;
-    out.pulseamp=pulseamp;
-    out.numpulseamps=numpulseamps;
-    out.numgapdurs=numgapdurs;
-    out.nreps=nreps;
-    out.duration=duration;
-    out.oepathname=oepathname;
-    out.OEdatafile=OEdatafile;
-    out.xlimits=xlimits;
-    out.NClusters=Nclusters;
-    
-    godatadir(expdate,session,filenum);
-    save (outfilename, 'out')
-    fprintf('\n Saved to %s.\n', outfilename)
-    fprintf('\n\n')
-    
-    
+end
+set(gcf, 'pos', [618    72      520   900]);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% %plot stimulus as a sanity check
+% if(0)
+%     figure
+%     for paindex=1:numpulseamps
+%         p=0;
+%         subplot1(numgapdurs,1)
+%         for gdindex=1:numgapdurs
+%             p=p+1;
+%             subplot1(p)
+%             hold on
+%             if p==1
+%                 title(sprintf('%s-%s-%s',expdate,session,filenum))
+%             end
+%             spiketimes1=mM1(gdindex,paindex).spiketimes;
+%             X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
+%             [N, x]=hist(spiketimes1, X);
+%             N=N./nreps(gdindex,paindex); % averaged across trials
+%             bar(x, N,1,'facecolor',[0 0 0]);
+%             line([ 0 gapdelay ],[-.1 -.1],'color','g','linewidth',1.5)
+%             if gapdurs(gdindex)>0
+%                 line([gapdelay+gapdurs(gdindex) max(duration)],[-.1 -.1],'color','m','linewidth',1.5) % Assuming a single duration.
+%             end
+%             xlim([(xlimits(1)) xlimits(2)])
+%             ylim([-.2 (1.1*ylimmax)])
+%             ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+%             stimtrace=squeeze(M1stim(gdindex, paindex, nreps(gdindex, paindex),:));
+%             stimtrace=.1*diff(ylim)*stimtrace./max(abs(stimtrace));
+%             t=1:length(stimtrace);
+%             t=t/10;t=t+xlimits(1);
+%             plot(t, stimtrace, 'r')
+%         end
+%     end
+%
+%     xlabel('ms')
+% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% SAVE AN OUTFILE
+out.expdate=expdate;
+out.session=session;
+out.filenum=filenum;
+out.M1OFFp=M1OFFp; % All spiketimes, trial-by-trial.
+out.M1ONp=M1ONp;
+out.mM1OFFp=mM1OFFp; % Accumulated spike times for *all* presentations of each laser/f/a combo.
+out.mM1ONp=mM1ONp;
+out.gapdurs=gapdurs;
+out.soa=soa;
+out.gapdelay=gapdelay;
+out.noiseamp=noiseamp;
+out.pulseamp=pulseamp;
+out.numpulseamps=numpulseamps;
+out.numgapdurs=numgapdurs;
+out.nreps=nreps;
+out.duration=duration;
+out.oepathname=oepathname;
+out.OEdatafile=OEdatafile;
+out.xlimits=xlimits;
+out.NClusters=Nclusters;
+
+godatadir(expdate,session,filenum);
+save (outfilename, 'out')
+fprintf('\n Saved to %s.\n', outfilename)
+fprintf('\n\n')
+
+
 end

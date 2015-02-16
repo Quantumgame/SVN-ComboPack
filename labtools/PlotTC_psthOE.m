@@ -1,7 +1,7 @@
 function PlotTC_psthOE(expdate, session, filenum, channel, varargin)
 % plots psth tuning curve for spike data from Open Ephys/SimpleClust
 %
-% usage: PlotTC_psthOE(expdate, session, filenum, channel number, [xlimits], [ylimits], [binwidth])
+% usage: PlotTC_psthOE(expdate, session, filenum, channel number, [xlimits], [ylimits], [binwidth], cell)
 % (xlimits, ylimits, binwidth are optional)
 %
 %  defaults: binwidth=5ms, axes autoscaled
@@ -33,6 +33,7 @@ elseif nargin==3
     if ~strcmp('char',class(channel))
         channel=num2str(channel);
     end
+    cell=[];
 elseif nargin==4
     ylimits=-1;
     durs=getdurs(expdate, session, filenum);
@@ -42,6 +43,7 @@ elseif nargin==4
     if ~strcmp('char',class(channel))
         channel=num2str(channel);
     end
+    cell=[];
 elseif nargin==5
     xlimits=varargin{1};
     if isempty(xlimits)
@@ -69,6 +71,7 @@ elseif nargin==6
         ylimits=-1;
     end
     binwidth=5;
+    cell=[];
 elseif nargin==7
     xlimits=varargin{1};
     if isempty(xlimits)
@@ -87,6 +90,26 @@ elseif nargin==7
     if isempty(binwidth)
         binwidth=5;
     end
+    cell=[];
+    elseif nargin==8
+    xlimits=varargin{1};
+    if isempty(xlimits)
+        durs=getdurs(expdate, session, filenum);
+        dur=max([durs 100]);
+        xlimits=[-.5*dur 1.5*dur]; %x limits for axis
+    end
+    ylimits=varargin{2};
+    if isempty(ylimits)
+        ylimits=-1;
+    end
+    if ~strcmp('char',class(channel))
+        channel=num2str(channel);
+    end
+    binwidth=varargin{3};
+    if isempty(binwidth)
+        binwidth=5;
+    end
+    cell=varargin{4};
 else
     error('Wrong number of arguments.');
 end
@@ -394,6 +417,73 @@ end
 % end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %plot ch1
+
+if ~isempty(cell)
+    clust=cell;
+    for dindex=[1:numdurs]
+    figure
+        p=0;
+        subplot1(numamps,numfreqs)
+        for aindex=[numamps:-1:1]
+            for findex=1:numfreqs
+                p=p+1;
+                subplot1(p)
+                hold on
+                spiketimes1=mM1(clust, findex, aindex, dindex).spiketimes;
+                %         %use this code to plot curves
+                %         [n, x]=hist(spiketimes1, numbins);
+                %         r=plot(x, n);
+                %         set(r, 'linewidth', 2)
+                %use this code to plot histograms
+                X=xlimits(1):binwidth:xlimits(2); %specify bin centers
+                %             hist(spiketimes1, X);
+                [N, x]=hist(spiketimes1, X);
+                N=N./nreps(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
+                N=1000*N./binwidth; %normalize to spike rate in Hz
+                
+                bar(x, N,1);
+                line([0 0+durs(dindex)], [-.2 -.2], 'color', 'm', 'linewidth', 4)
+                line(xlimits, [0 0], 'color', 'k')
+%                 lim=ylimits1(clust,:);
+%                 ylimits(1)=lim(2);
+%                 ylimits(2)=lim(3)+lim(3)*.8;
+                ylim(ylimits1(clust,:))
+                xlim(xlimits)
+                set(gca, 'fontsize', fs)
+                set(gca, 'xticklabel', '')
+                set(gca, 'yticklabel', '')
+            end
+        end
+        
+        %label amps and freqs
+        p=0;
+        flabel=0;
+        alabel=0;
+        for aindex=[numamps:-1:1]
+            for findex=1:numfreqs
+                p=p+1;
+                subplot1(p)
+                if findex==1 && flabel==0;
+                    T=text(xlimits(1)-diff(xlimits)/2, mean(ylimits), int2str(amps(aindex)));
+                    set(T, 'HorizontalAlignment', 'right')
+                    flabel=1;
+                else
+                    set(gca, 'xticklabel', '')
+                end
+                set(gca, 'xtickmode', 'auto')
+                grid on
+                if aindex==1 && alabel==0;
+                    vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/20;
+                    text(mean(xlimits), vpos, sprintf('%.1f', freqs(findex)/1000))
+                else
+                    set(gca, 'yticklabel', '')
+                end
+            end
+        end
+        subplot1(ceil(numfreqs/3))
+        title(sprintf('%s-%s-%s cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, clust, durs(dindex), binwidth, inRange(clust)))
+end
+else
 for dindex=[1:numdurs]
     for clust=1:Nclusters
 %      for i=1:length(clust1)
@@ -462,6 +552,7 @@ for dindex=[1:numdurs]
         
     end %for clust
 end %for dindex
+end %cell
 
 out.M1=M1;
 out.mM1=mM1;

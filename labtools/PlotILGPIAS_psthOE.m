@@ -1,5 +1,5 @@
-function PlotILGPIAS_psth(expdate, session, filenum, channel, varargin)
-% PlotILGPIAS_psth(expdate, session, filenum, channel number, [xlimits], [ylimits], [binwidth])
+function PlotILGPIAS_psthOE(expdate, session, filenum, channel, varargin)
+% PlotILGPIAS_psth(expdate, session, filenum, channel number, [xlimits], [ylimits], [binwidth], cell)
 % (xlimits, ylimits, binwidth are optional)
 %  defaults: binwidth=5ms, axes autoscaled
 %  note there is no thresh because spikes were already cut in SimpleClust
@@ -32,16 +32,26 @@ if isempty(pref); Prefs; end
 if nargin==0
     fprintf('\nNo input'); return;
 elseif nargin==3
+    cell=[];
 elseif nargin==4
+    cell=[];
 elseif nargin==5
     xlimits=varargin{1};
+    cell=[];
 elseif nargin==6
     xlimits=varargin{1};
     ylimits=varargin{2};
+    cell=[];
 elseif nargin==7
     xlimits=varargin{1};
     ylimits=varargin{2};
     binwidth=varargin{3};
+    cell=[];
+elseif nargin==8
+    xlimits=varargin{1};
+    ylimits=varargin{2};
+    binwidth=varargin{3};
+    cell=varargin{4};
 else
     fprintf('\nWrong number of arguments'); return;
 end
@@ -406,8 +416,6 @@ for i=1:length(event)
     end
 end
 
-figure
-%plot(Delta)
 
 fprintf('\nnum reps ON: min: %d, max: %d', min(nrepsON(:)), max(nrepsON(:)))
 fprintf('\nnum reps OFF: min: %d, max: %d', min(nrepsOFF(:)), max(nrepsOFF(:)))
@@ -507,6 +515,93 @@ else
 end
 
 % Plotpsth ON
+if ~isempty(cell)
+    clust=cell;
+    figure
+    for paindex=1:numpulseamps
+        p=0;
+        subplot1(numgapdurs,1)
+        
+        for gdindex=1:numgapdurs
+            p=p+1;
+            subplot1(p)
+            hold on
+            
+            if p==1
+                title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
+            end
+            
+            if ~isempty (M1ONtc) & ~isempty (M1OFFtc)
+                %only makes sense to do the t-test if you have both ON and OFF
+                ONcounts=[M1ONtc(clust, gdindex,paindex).spiketimes];
+                OFFcounts=[M1OFFtc(clust, gdindex,paindex).spiketimes];
+                [h,pvalues]=ttest2(ONcounts,OFFcounts);
+                if pvalues<0.05
+                    if mean(ONcounts)>mean(OFFcounts)
+                        fprintf('\n%.1f ms gap: p = %f; ON > OFF',gapdurs(gdindex),pvalues)
+                    else
+                        fprintf('\n%.1f ms gap: p = %f; OFF > ON',gapdurs(gdindex),pvalues)
+                    end
+                else
+                    fprintf('\n%.1f ms gap: p = %f',gapdurs(gdindex),pvalues)
+                end
+            end
+            
+            % plot off psth
+            if ~isempty (mM1OFFtc)
+                
+                spiketimes1=mM1OFFtc(clust, gdindex,paindex).spiketimes;
+                %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
+                X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+                [N, x]=hist(spiketimes1, X);
+                N=N./nrepsOFF(gdindex,paindex); % averaged across trials
+                N=1000*N./binwidth; %normalize to spike rate in Hz
+                bar(x-gapdelay, N,1,'facecolor',[0 0 0]);
+            end
+            
+            BinCenters=X-gapdelay; %for writing bin centers to aldis file
+            
+            % plot on psth
+            if ~isempty (mM1ONtc)
+                spiketimes1=mM1ONtc(clust, gdindex,paindex).spiketimes;
+                %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
+                X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+                [N, x]=hist(spiketimes1, X);
+                N=N./nrepsON(gdindex,paindex); % averaged across trials
+                N=1000*N./binwidth; %normalize to spike rate in Hz
+                bar(x-gapdelay, N,1,'facecolor','none','edgecolor',[0 .8 0]);
+            end
+            
+            %plot stim
+            if(0)
+                %when we load the stim we should plot it here
+                stim=squeeze(mM1ONtcstim(gdindex, paindex,:));
+                stim=stim-median(stim(1:(length(stim))));
+                stim=stim./max(abs(stim));
+                
+                t=1:length(stim);
+                t=t/10;
+                t=t+xlimits(1)+gapdelay;
+                hold on; plot(t, (stim*(ylimmax/2)), 'm');
+            end
+            
+            
+            
+            
+            xlim([(xlimits(1)) xlimits(2)])
+            %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
+            ylim(ylimits1(clust, :))
+            ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+            
+            if gapdurs(gdindex)>0
+                line([0 0],[ylim],'color','m')
+                line(-[(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+            end
+        end
+    end
+    
+    xlabel('ms')
+else
 for clust=1:Nclusters
     figure
     for paindex=1:numpulseamps
@@ -593,9 +688,101 @@ for clust=1:Nclusters
     
     xlabel('ms')
 end %for clust
+end
 
 % Plotpsth ON/OFF again, this time with rasters
 if 1
+    if ~isempty(cell)
+        clust=cell;
+                figure
+        for paindex=1:numpulseamps
+            p=0;
+            subplot1(numgapdurs,1)
+            
+            for gdindex=1:numgapdurs
+                p=p+1;
+                subplot1(p)
+                hold on
+                
+                if p==1
+                    title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
+                end
+                
+                
+                
+                % plot off psth
+                offset=0;
+                yl=ylimits1(clust,:);
+                inc=(yl(2))/max(max(max(nrepsOFF)));
+                if ~isempty (mM1OFFtc)
+                    
+                    spiketimes1=mM1OFFtc(clust, gdindex,paindex).spiketimes;
+                    %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
+                    X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+                    [N, x]=hist(spiketimes1, X);
+                    N=N./nrepsOFF(gdindex,paindex); % averaged across trials
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    bar(x-gapdelay, N,1,'facecolor',[0 0 0]);
+                end
+                
+                for n=1:nrepsOFF(gdindex,paindex)
+                    spiketimes2=M1OFFtc(clust, gdindex,paindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2-gapdelay, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                end
+                
+                
+                % plot on psth
+                if ~isempty (mM1ONtc)
+                    spiketimes1=mM1ONtc(clust, gdindex,paindex).spiketimes;
+                    %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
+                    X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+                    [N, x]=hist(spiketimes1, X);
+                    N=N./nrepsON(gdindex,paindex); % averaged across trials
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    bar(x-gapdelay, N,1,'facecolor','none','edgecolor',[0 .8 0]);
+                end
+                
+                
+                for n=1:nrepsON(gdindex,paindex)
+                    spiketimes2=M1ONtc(clust, gdindex,paindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2-gapdelay, ylimits(2)+ones(size(spiketimes2))+offset, '.g');
+                end
+                
+                %plot stim
+                if(0)
+                    %when we load the stim we should plot it here
+                    stim=squeeze(mM1ONtcstim(gdindex, paindex,:));
+                    stim=stim-median(stim(1:(length(stim))));
+                    stim=stim./max(abs(stim));
+                    
+                    t=1:length(stim);
+                    t=t/10;
+                    t=t+xlimits(1)+gapdelay;
+                    hold on; plot(t, (stim*(ylimmax/2)), 'm');
+                end
+                
+                    if gapdurs(gdindex)>0
+                line([0 0],[ylim],'color','m')
+                line(-[(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+            end
+                
+                
+                xlim([(xlimits(1)) xlimits(2)])
+                %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
+                %ylim(ylimits1(clust, :))
+                ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+                %
+                %             if gapdurs(gdindex)>0
+                %                 line([0 0],[ylim],'color','m')
+                %                 line([(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+                %             end
+            end
+        end
+        
+        xlabel('ms')
+    else
     for clust=1:Nclusters
         figure
         for paindex=1:numpulseamps
@@ -653,6 +840,155 @@ if 1
                     h=plot(spiketimes2-gapdelay, ylimits(2)+ones(size(spiketimes2))+offset, '.g');
                 end
                 
+                %plot stim
+                if(0)
+                    %when we load the stim we should plot it here
+                    stim=squeeze(mM1ONtcstim(gdindex, paindex,:));
+                    stim=stim-median(stim(1:(length(stim))));
+                    stim=stim./max(abs(stim));
+                    
+                    t=1:length(stim);
+                    t=t/10;
+                    t=t+xlimits(1)+gapdelay;
+                    hold on; plot(t, (stim*(ylimmax/2)), 'm');
+                end
+                
+                    if gapdurs(gdindex)>0
+                line([0 0],[ylim],'color','m')
+                line(-[(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+            end
+                
+                
+                xlim([(xlimits(1)) xlimits(2)])
+                %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
+                %ylim(ylimits1(clust, :))
+                ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+                %
+                %             if gapdurs(gdindex)>0
+                %                 line([0 0],[ylim],'color','m')
+                %                 line([(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+                %             end
+            end
+        end
+        
+        xlabel('ms')
+    end %for clust
+end %if plot rasters
+end
+
+% Plot OFF trials
+if ~isempty(cell)
+        clust=cell;
+                figure
+        for paindex=1:numpulseamps
+            p=0;
+            subplot1(numgapdurs,1)
+            
+            for gdindex=1:numgapdurs
+                p=p+1;
+                subplot1(p)
+                hold on
+                
+                if p==1
+                    title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
+                end
+                
+                
+                
+                % plot off psth
+                offset=0;
+                yl=ylimits1(clust,:);
+                inc=(yl(2))/max(max(max(nrepsOFF)));
+                if ~isempty (mM1OFFtc)
+                    
+                    spiketimes1=mM1OFFtc(clust, gdindex,paindex).spiketimes;
+                    %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
+                    X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+                    [N, x]=hist(spiketimes1, X);
+                    N=N./nrepsOFF(gdindex,paindex); % averaged across trials
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    bar(x-gapdelay, N,1,'facecolor',[0 0 0]);
+                end
+                
+                for n=1:nrepsOFF(gdindex,paindex)
+                    spiketimes2=M1OFFtc(clust, gdindex,paindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2-gapdelay, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                end
+                
+                
+                %plot stim
+                if(0)
+                    %when we load the stim we should plot it here
+                    stim=squeeze(mM1ONtcstim(gdindex, paindex,:));
+                    stim=stim-median(stim(1:(length(stim))));
+                    stim=stim./max(abs(stim));
+                    
+                    t=1:length(stim);
+                    t=t/10;
+                    t=t+xlimits(1)+gapdelay;
+                    hold on; plot(t, (stim*(ylimmax/2)), 'm');
+                end
+                
+                    if gapdurs(gdindex)>0
+                line([0 0],[ylim],'color','m')
+                line(-[(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+            end
+                
+                
+                xlim([(xlimits(1)) xlimits(2)])
+                %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
+                %ylim(ylimits1(clust, :))
+                ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+                %
+                %             if gapdurs(gdindex)>0
+                %                 line([0 0],[ylim],'color','m')
+                %                 line([(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+                %             end
+            end
+        end
+        
+        xlabel('ms')
+    else
+    for clust=1:Nclusters
+        figure
+        for paindex=1:numpulseamps
+            p=0;
+            subplot1(numgapdurs,1)
+            
+            for gdindex=1:numgapdurs
+                p=p+1;
+                subplot1(p)
+                hold on
+                
+                if p==1
+                    title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
+                end
+                
+                
+                
+                % plot off psth
+                offset=0;
+                yl=ylimits1(clust,:);
+                inc=(yl(2))/max(max(max(nrepsOFF)));
+                if ~isempty (mM1OFFtc)
+                    
+                    spiketimes1=mM1OFFtc(clust, gdindex,paindex).spiketimes;
+                    %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
+                    X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+                    [N, x]=hist(spiketimes1, X);
+                    N=N./nrepsOFF(gdindex,paindex); % averaged across trials
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    bar(x-gapdelay, N,1,'facecolor',[0 0 0]);
+                end
+                
+                for n=1:nrepsOFF(gdindex,paindex)
+                    spiketimes2=M1OFFtc(clust, gdindex,paindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2-gapdelay, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                end
+                
+                                
                 %plot stim
                 if(0)
                     %when we load the stim we should plot it here
