@@ -58,6 +58,7 @@ elseif nargin==5
     end
     ylimits=-1;
     binwidth=5;
+    cell=[];
 elseif nargin==6
     xlimits=varargin{1};
     if isempty(xlimits)
