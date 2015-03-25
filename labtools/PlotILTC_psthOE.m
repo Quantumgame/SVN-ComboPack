@@ -1,4 +1,4 @@
-function PlotILTC_psthOE(expdate, session, filenum, channel, varargin)
+ function PlotILTC_psthOE(expdate, session, filenum, channel, varargin)
 % plots psth tuning curve for spike data from Open Ephys/SimpleClust
 % interleaved laser ON and OFF trials, PPA_laser signal expected on 100_CH36
 % usage: PlotILTC_psthOE(expdate, session, filenum, channel number, [xlimits], [ylimits], [binwidth],cell)
