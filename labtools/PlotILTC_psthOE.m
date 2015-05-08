@@ -490,14 +490,14 @@ if ylimits==-1
                 X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                 [N, x]=hist(st, X);
                 N=N./nrepsON(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
-                %                 N=1000*N./binwidth; %normalize to spike rate in Hz
+                                N=1000*N./binwidth; %normalize to spike rate in Hz
                 ymax= max(ymax,max(N));
                 
                 st=mM1OFFp(clust, findex, aindex, dindex).spiketimes;
                 X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                 [N, x]=hist(st, X);
                 N=N./nrepsON(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
-                %                 N=1000*N./binwidth; %normalize to spike rate in Hz
+                                 N=1000*N./binwidth; %normalize to spike rate in Hz
                 ymax= max(ymax,max(N));
             end
         end
@@ -541,9 +541,9 @@ if ~isempty(cell)
                 [NOFF, xOFF]=hist(spiketimesOFF, X);
                 
                 NON=NON./nrepsON(findex, aindex, dindex); %
-                %NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                NON=1000*NON./binwidth; %normalize to spike rate in Hz
                 NOFF=NOFF./nrepsOFF(findex, aindex, dindex);
-                %NOFF=1000*NOFF./binwidth;
+                NOFF=1000*NOFF./binwidth;
                 
                 bON=bar(xON, NON,1);
                 hold on
@@ -629,9 +629,9 @@ else
                     [NOFF, xOFF]=hist(spiketimesOFF, X);
                     
                     NON=NON./nrepsON(findex, aindex, dindex); %
-                    %NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                    NON=1000*NON./binwidth; %normalize to spike rate in Hz
                     NOFF=NOFF./nrepsOFF(findex, aindex, dindex);
-                    %NOFF=1000*NOFF./binwidth;
+                    NOFF=1000*NOFF./binwidth;
                     
                     bON=bar(xON, NON,1);
                     hold on
