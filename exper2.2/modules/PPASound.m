@@ -14,6 +14,9 @@ if nargin > 0
 else
     action = lower(get(gcbo,'tag'));
 end
+
+restart_timer
+
 % Message(me, action)
 switch action
     case 'init'
@@ -28,6 +31,16 @@ switch action
         PsychPortAudio('Stop', PPAhandle);
         PsychPortAudio('Close', PPAhandle);
         InitPPA;
+        
+    case 'getready'
+        PPATimer=timerfind('tag', 'PPATimer');
+        if ~get(PPATimer, 'running')
+            start(PPATimer)
+        end
+
+    case 'close'
+        PPATimer=timerfind('tag', 'PPATimer');
+        delete(PPATimer)
         
     case 'esealteston'
         %PPASound('reset');
@@ -59,19 +72,22 @@ switch action
     case 'ppatimer'
         PPAhandle=GetParam(me,'PPAhandle');
         try        status = PsychPortAudio('GetStatus', PPAhandle);
+            
 %             status.Active
             h=findobj('tag', 'active');
             if status.Active==0; %device not running
-%                 message(me, 'not running', 'append')
+%                  message(me, 'not running', 'append')
                 set(h, 'string', 'not running', 'backgroundcolor', [.5 .5 .5])
             elseif status.Active==1; %device running
-%                 message(me, ' running', 'append')
+%                  message(me, ' running', 'append')
                 set(h, 'string', 'running', 'backgroundcolor', [1 0 0])
                 
             end
         catch
                             message(me, 'ppatimer could not check status', 'append')
         end
+        
+
     case 'playsound'
         PlaySound;
         
@@ -359,7 +375,7 @@ if ExistParam('PPALaser', 'on')
         end
     end
 end
-
+str1=str;
 % we used to add a silent pad at the end to avoid dropouts, but that didn't really work and the problem is now solved differently anyway
 
 SetParam(me,'samples', samples); %store samples for re-buffering if we're looping (used only for looping)
@@ -374,7 +390,7 @@ if isfield(param, 'seamless')
         if status.Active==0; %device not running, need to start it
             str=sprintf('%s\nhad to start it !!!', str);
             beep
-            currstimuli=getparam('stimulusprotocol', 'currentstimulus');
+            currstimuli=GetParam('stimulusprotocol', 'currentstimulus');
             protocol=getparam('stimulusprotocol', 'protocol');
             currstimulus=currstimuli(protocol);
             fid=fopen(fullfile(getparam('control','fulldatapath'),[getparam('control', 'fullexpiddatafile'), 'seamless_starts.txt']), 'a');
@@ -397,26 +413,43 @@ if isfield(param, 'seamless')
             PsychPortAudio('Start', PPAhandle,nreps,when,0);
             
         else %already started, just add to schedule
-            %gotime is in normalized units (fraction of stimulus duration)
-%             gotime=.5; %this was pre-06.12.2014
-%            gotime=.01; %mw 06.13.2014
-            gotime=.1; %mw 06.13.2014
-            if status.PositionSecs<gotime*param.duration/1000 %less than halfway from start of stimulus (aldis you could try lowering this to, say, .25)
-                str=sprintf('%s\npausing', str);
-                %Message(me, str, 'append');
-                while status.PositionSecs<(gotime*param.duration/1000) %let's pause until halfway from start of stimulus
-                    status = PsychPortAudio('GetStatus', PPAhandle);
-                    pause(.01)
-                    str=sprintf('%s\nActive=%d,pausing at %g', str,status.Active, status.PositionSecs);
-                Message(me, str, 'append');
-                end
-            end
+            %mw 07.03.2014 trying new strategy to try to solve "screwups"
+            %instead of gotime/pause, I will check for free slots at
+            %AddToSchedule and pause there if necessary
+            
+% %             %gotime is in normalized units (fraction of stimulus duration)
+% % %             gotime=.5; %this was pre-06.12.2014
+% %             gotime=.01; %mw 06.13.2014
+% % %            gotime=.1; %mw 06.13.2014 last known goo dvlaue 07.03.2014
+% %             if status.PositionSecs<gotime*param.duration/1000 %less than halfway from start of stimulus (aldis you could try lowering this to, say, .25)
+% %                 str=sprintf('%s\npausing', str);
+% %                 %Message(me, str, 'append');
+% %                 while status.PositionSecs<(gotime*param.duration/1000) %let's pause until halfway from start of stimulus
+% %                     status = PsychPortAudio('GetStatus', PPAhandle);
+% %                     pause(.01)
+% %                     str=sprintf('%s\nActive=%d,pausing at %g', str,status.Active, status.PositionSecs);
+% %                 Message(me, str, 'append');
+% %                 end
+% %             end
+            
             str=sprintf('%s\nalready started', str);
               %  Message(me, str, 'append');
             buf = PsychPortAudio('CreateBuffer', [], samples);
             
-            PsychPortAudio('AddToSchedule', PPAhandle, buf, 1, 0.0, [], []);
-            
+            [success, freeslots] = PsychPortAudio('AddToSchedule', PPAhandle, buf, 1, 0.0, [], []);
+            if success 
+                            str=sprintf('%s\nAddToSchedule success, %d free slots', str, freeslots);
+            else
+                            str=sprintf('%s\nAddToSchedule FAIL', str);
+            end
+            %freeslots defaults to 128
+                        if freeslots <20 %arbitrary guess
+                            %                         pause for to play back slots
+                            pause(5)
+                            str=sprintf('%s\nWarning: Free Slots <20 !!!', str);
+                            str=sprintf('%s\nPaused 5 seconds', str);
+
+                        end
             %troubleshooting an out-of-memory error with GPIAS 3-2010
             %PsychPortAudio('DeleteBuffer',buf, 1);%mw091710 this waits for
             %buffer to finish playing, which blocks seamless play
@@ -455,6 +488,34 @@ end
 SetParam(me,'loop_flg', loop_flg); %store loop flag
 SetParam(me,'seamless', seamless); %store whether transition should be seamless or not
 Message(me, str, 'append');
+
+% write diagnostic logfile -mw 07.07.2014
+
+try
+    protocol=GetParam('stimulusprotocol', 'protocol');
+    currstims=GetParam('stimulusprotocol', 'currentstimulus');
+    currstim=currstims(protocol);
+    stimuli=GetSharedParam('StimulusProtocols');
+    stimuli=stimuli{protocol};
+    stimulus=stimuli(currstim);
+    paths=Control('GetDataPath');
+    cd(paths{3});
+    expids=Control('GetExpid');
+    fid=fopen(sprintf('%sppasoundlog.txt', expids{3}), 'at');
+    fprintf(fid, '\n\nstim %d', currstim);
+    fprintf(fid, '\n%s', stimulus.type);
+    names=fieldnames(param);
+%     fprintf(fid, '\n');
+    for nameidx=1:length(names)
+        fprintf(fid, '\n%s %g', names{nameidx}, eval(['param.', names{nameidx}]));
+    end
+    fprintf(fid, '%s', str1);
+    fprintf(fid, '\n%s', str);
+    fprintf(fid,'\nGetSecs %.6f', GetSecs);
+    fclose(fid);
+catch
+    Message(me, 'failed to write logfile', 'append')
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -514,7 +575,9 @@ uicontrol('parent',fig,'string','not playing','tag','active','units','normal',..
     'fontweight','bold',...
     'style','text');
 
-PPATimer=timer('TimerFcn',[me '(''PPATimer'');'],'ExecutionMode','fixedDelay', 'Period', .5);
+delete(timerfind('tag', 'PPATimer'))
+
+PPATimer=timer('tag', 'PPATimer', 'TimerFcn',[me '(''PPATimer'');'],'ExecutionMode','fixedDelay', 'Period', .5);
 start(PPATimer)
 set(fig,'pos', [screensize(3)-128 screensize(4)-n*vs-100 158 150] ,'visible','on');
 
@@ -522,6 +585,16 @@ Message(me, 'Initialized GUI');
 pause(.2)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function restart_timer
+PPATimer=timerfind('tag', 'PPATimer');
+if strcmp(get(PPATimer, 'running'), 'off')
+    start(PPATimer)
+    Message(me, 'restarted timer', 'append')
+else
+%    start(PPATimer)
+%    Message(me, 'timer already running', 'append')
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=me

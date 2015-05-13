@@ -62,7 +62,7 @@ else
 end
 
 if isempty(xlimits)
-    xlimits=[-100 300]; % default x limits for axis
+    xlimits=[-200 450]; % default x limits for axis
 end
 if xlimits(1)>-100
     error('xlimits(1) must be <= -100 ms otherwise some functions below will fail')
@@ -249,6 +249,11 @@ for i=1:length(event)
     if strcmp(event(i).Type, 'GPIAS')
         j=j+1;
         allsoas(j)=event(i).Param.soa;
+        if isfield(event(i).Param, 'soaflag')
+            allsoaflags{j}=event(i).Param.soaflag;
+        else
+            allsoaflags{j}='soa';
+        end
         allgapdurs(j)=event(i).Param.gapdur;
         allgapdelays(j)=event(i).Param.gapdelay;
         allnoisefreqs(j)=event(i).Param.center_frequency;
@@ -265,6 +270,7 @@ M1=[];
 gapdurs=unique(allgapdurs);
 pulsedurs=unique(allpulsedurs);
 soas=unique(allsoas);
+soaflag=unique(allsoaflags);
 gapdelays=unique(allgapdelays);
 pulseamps=unique(allpulseamps);
 pulsedurs=unique(allpulsedurs);
@@ -313,7 +319,7 @@ noiseBW=log2(noiseupper_frequency/noiselower_frequency);
 %preallocate so that if ON and OFF do not have identical gapdurs, it won't
 %be a problem. Leave nreps blank since that needs to be accumulated for
 %each condition.
-M1ONtc=zeros(numgapdurs, numpulseamps, 1,  ((xlimits(2)+gapdelay)*1e-3*samprate)-((xlimits(1)+gapdelay)*1e-3*samprate));
+M1ONtc=zeros(numgapdurs, numpulseamps, 1,  round(((xlimits(2)+gapdelay)*1e-3*samprate)-((xlimits(1)+gapdelay)*1e-3*samprate)));
 M2ONtc=M1ONtc;
 M1ONtcstim=M1ONtc;
 M1OFFtc=M1ONtc;
@@ -520,12 +526,19 @@ else
         end
     end
 end
-%convert Pre/PostStartleWindow to samples:
-PreStartleWindow=1+(PreStartleWindowms-xlimits(1))*samprate/1000;
-PostStartleWindow=(PostStartleWindowms-xlimits(1)+soa)*samprate/1000;
+% %convert Pre/PostStartleWindow to samples:
+% switch soaflag
+%     case 'soa' %soa actually refers to soa
+%         PreStartleWindow=1+(PreStartleWindowms-xlimits(1))*samprate/1000;
+%         PostStartleWindow=(PostStartleWindowms-xlimits(1)+soa)*samprate/1000;
+%     case 'isi' %soa actually refers to isi
+%         PreStartleWindow=1+(PreStartleWindowms-xlimits(1)-gapdur)*samprate/1000;
+%         PostStartleWindow=(PostStartleWindowms-xlimits(1)+soa)*samprate/1000;
+% end
 ISIWindow=(ISIWindowms-xlimits(1))*samprate/1000; %added by APW 3_31_14
-fprintf('\nPreStartleWindow: %d %d',PreStartleWindow)
-fprintf('\nPostStartleWindow: %d %d', PostStartleWindow)
+
+% fprintf('\nPreStartleWindow: %d %d',PreStartleWindow)
+% fprintf('\nPostStartleWindow: %d %d', PostStartleWindow)
 fprintf('\nISIWindow: %d %d', ISIWindow)
 
 % Plot the actual trace with mean trace overlayed
@@ -669,7 +682,18 @@ if true
                 subplot1(p)
                 hold on
                 
-                
+                %convert Pre/PostStartleWindow to samples:
+switch soaflag{:}
+    case 'soa' %soa actually refers to soa
+        PreStartleWindow=1+(PreStartleWindowms-xlimits(1))*samprate/1000;
+        PostStartleWindow=(PostStartleWindowms-xlimits(1)+soa)*samprate/1000;
+    case 'isi' %soa actually refers to isi
+        PreStartleWindow=1+(PreStartleWindowms-xlimits(1)-gapdurs(gdindex))*samprate/1000;
+        PostStartleWindow=(PostStartleWindowms-xlimits(1)+soa)*samprate/1000;
+end
+fprintf('\ngap %d: PreStartleWindow: %d %d', gapdurs(gdindex), PreStartleWindow)
+fprintf('\ngap %d: PostStartleWindow: %d %d', gapdurs(gdindex), PostStartleWindow)
+
                 
                 % plot each trial in blue
                 prestartle=[];
@@ -688,12 +712,16 @@ if true
                     poststartle=[poststartle sumstartle];
                     sumISIamplitude=sum(trace1(ISIWindow(1):ISIWindow(2)));%added by APW 3_31_14
                     ISIamplitude=[ISIamplitude sumISIamplitude];%added by APW 3_31_14
-                    clear t sumprestartle sumstartle sumISIstartle %added by APW 3_31_14
+                    clear t sumprestartle sumstartle sumISIamplitude %added by APW 3_31_14
                 end
                 if nrepsOFF(gdindex, paindex)>0
-                    % add the stimulus in magenta
-                    line([0 gapdurs(gdindex)],[0 0],'color','m','linewidth',10);
-                    
+      % add the gap stimulus in magenta
+                    switch soaflag{:}
+                        case 'soa' %soa actually refers to soa
+                            line([0 gapdurs(gdindex)],[0 0],'color','m','linewidth',10);
+                        case 'isi' %soa actually refers to isi
+                            line([-gapdurs(gdindex) 0],[0 0],'color','m','linewidth',10);
+                    end                    
                     % add the startle stimulus in magenta
                     line([soa soa+pulsedur],[0 0],'color','m','linewidth',10);
                     
@@ -715,6 +743,10 @@ if true
                     LaserOFFstartle(gdindex, paindex,1:length(poststartle))=poststartle;
                     LaserOFFprestartle(gdindex, paindex,1:length(prestartle))=prestartle;
                     LaserOFFISIamplitude(gdindex, paindex,1:length(ISIamplitude))=ISIamplitude; %added by APW 3_31_14
+                    
+ % for gdindex=1
+ %    gap0LaserOFFstartle=LaserOFFstartle
+ % end                  
                     
                     % plot the mean trace in red
                     trace1=squeeze(mM1OFFtc(gdindex, paindex,:));
@@ -777,12 +809,18 @@ if true
                     clear t sumprestartle sumstartle
                 end
                 if nrepsON(gdindex, paindex)>0
-                try
-                    line([laserstart-gapdelay laserstart-gapdelay+laserwidth],-2.5*offset*[1 1],'color','c','linewidth',5);   % AW commented out to enable no laser gap detection plots
-                end
+                    try
+                        line([laserstart-gapdelay laserstart-gapdelay+laserwidth],-2.5*offset*[1 1],'color','c','linewidth',5);   % AW commented out to enable no laser gap detection plots
+                    end
                     
                     % add the gap stimulus in magenta
-                    line([0 gapdurs(gdindex)],[0 0],'color','m','linewidth',10);
+                    switch soaflag{:}
+                        case 'soa' %soa actually refers to soa
+                            line([0 gapdurs(gdindex)],[0 0],'color','m','linewidth',10);
+                        case 'isi' %soa actually refers to isi
+                            line([-gapdurs(gdindex) 0],[0 0],'color','m','linewidth',10);
+                    end
+                    
                     
                     % add the startle stimulus in magenta
                     if length(pulsedurs)~=1
@@ -854,6 +892,7 @@ if true
                     elseif H==1
                         fprintf('\nAt %d ms, the laser SIGNIFICANTLY changed the startle (ttest: p = %.3f)',gapdurs(gdindex),P);
                     end
+                    
                 else
                     [H,P,CI,STATS] = ttest2(LaserONstartle(gdindex, paindex,:),LaserOFFstartle(gdindex, paindex,:));
                     if H==0
@@ -862,16 +901,28 @@ if true
                         fprintf('\nAt %d ms, the laser SIGNIFICANTLY changed the startle (ttest2: p = %.3f)',gapdurs(gdindex),P);
                     end
                 end
+                
             end
+            
+            for gdindex=2:numgapdurs
+                [H,P,CI,STATS] = ttest(LaserOFFstartle(1,paindex,:),LaserOFFstartle(gdindex, paindex,:));
+                    if H==0
+                        fprintf('\nGap %d: no different from Gap 0 (laser off) (ttest: p = %.3f)',gapdurs(gdindex),P);
+                    elseif H==1
+                        fprintf('\nGap %d: significantly different from Gap 0 (laser off) (ttest: p = %.3f)',gapdurs(gdindex),P);
+                    end
+            end
+            
         end
     end
     
     figure;hold on
     errorbar(nanmean(squeeze(LaserOFFstartle(:,paindex,:))'),nanstd(squeeze(LaserOFFstartle(:,paindex,:))')/sqrt(size(LaserOFFstartle,3)), 'k-o')
+%    errorbar(nanmedian(squeeze(LaserOFFstartle(:,paindex,:))'),nanstd(squeeze(LaserOFFstartle(:,paindex,:))')/sqrt(size(LaserOFFstartle,3)), 'k-o')
     set(gca, 'xtick', 1:numgapdurs)
     set(gca, 'xticklabel', gapdurs)
-    %errorbar(mean(LaserONstartle'),std(LaserONstartle')/sqrt(size(LaserONstartle,2)), 'c-o')
     errorbar(nanmean(squeeze(LaserONstartle(:,paindex,:))'),nanstd(squeeze(LaserONstartle(:,paindex,:))')/sqrt(size(LaserONstartle,3)), 'c-o')
+%    errorbar(nanmedian(squeeze(LaserONstartle(:,paindex,:))'),nanstd(squeeze(LaserONstartle(:,paindex,:))')/sqrt(size(LaserONstartle,3)), 'c-o')
     set(gca, 'xtick', 1:numgapdurs)
     set(gca, 'xticklabel', gapdurs)
     title ('LaserON/OFF startle')
@@ -880,6 +931,11 @@ if true
     legend('Laser OFF', 'Laser ON')
     fprintf('\n\n')
     
+    mean(squeeze(LaserOFFstartle(:,paindex,:))')
+    mean(squeeze(LaserONstartle(:,paindex,:))')
+    
+    median(squeeze(LaserOFFstartle(:,paindex,:))')
+    median(squeeze(LaserONstartle(:,paindex,:))')
 end
 
 txtfilename=sprintf('%s-%s-%sout.txt', expdate, session, filenum);

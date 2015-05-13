@@ -185,7 +185,7 @@ end
 stimuli(1).type='exper2 stimulus protocol';
 stimuli(1).param.name= sprintf('Arch, interleaved, pre%dms/width%dms/isi%dms/%s', pre, width, isi, tc.stimuli(1).param.name);
 stimuli(1).param.description=sprintf('Arch, interleaved, pre: %dms, width: %d, isi: %dms, pulse, %s',pre, width, isi, tc.stimuli(1).param.description);
-filename=sprintf('Arch-IL-%d-%d-%d-%s', pre, width, isi, tcfilename);
+filename=sprintf('Laser-IL-%d-%d-%d-%s', pre, width, isi, tcfilename);
 
 
 cd(pref.stimuli) %where stimulus protocols are saved

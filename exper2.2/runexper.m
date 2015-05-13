@@ -28,8 +28,9 @@ end
 
 if strcmp(pref.username,'apw') && strcmp(pref.rigconfig,'axopatch')
     % These don't open in tetrode mode.
-    close sealtest 
-    close onliner
+    %(you can change the startup modules in Prefs) -mw 06.17.2014
+%    close sealtest 
+%    close onliner
 elseif strcmp(pref.username,'mak')
 %     close holdcmd
 %     close onliner

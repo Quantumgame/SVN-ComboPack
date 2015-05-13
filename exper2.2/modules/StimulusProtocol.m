@@ -113,7 +113,7 @@ switch action
             %             cd('Michael')
             %         else
             if strcmp(pref.username,'ira')
-                cd('Iryna')
+               % cd('Iryna')
             elseif strcmp(pref.username,'teg')
                 cd('Taryn')
             end

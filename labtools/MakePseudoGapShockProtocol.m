@@ -86,7 +86,7 @@ while tc_n+1<=length(tc.stimuli)
     %then add the GPIAS with laser on
     if strcmp(tone.type, 'GPIAS')
         stimuli(st_n)=tone;
-        if tone.param.gapdur==0 %This is where we assign shock to a specific gap duration.
+        if tone.param.gapdur==10 %This is where we assign shock to a specific gap duration.
             stimuli(st_n).param.AOPulseOn=1;
         else
             stimuli(st_n).param.AOPulseOn=0;
