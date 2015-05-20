@@ -707,9 +707,7 @@ if 1
                 if p==1
                     title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
                 end
-                
-                
-                
+               
                 % plot off psth
                 offset=0;
                 yl=ylimits1(clust,:);

@@ -724,9 +724,11 @@ if ~isempty(cell)
                 spiketimesON=mM1ONp(clust, findex, aindex, dindex).spiketimes; % All spiketimes.
                 X=xlimits(1):binwidth:xlimits(2); % Histogram w/specified bin centers
                 [NON, xON]=hist(spiketimesON, X);
-                
                 NON=NON./nrepsON(findex, aindex, dindex); % Bin count / # trials
+                NON=1000*NON./binwidth; %normalize to spike rate in Hz
                 bON=bar(xON, NON,1);
+                
+         
                 set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                 line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
                 if aindex==1 && findex==1
@@ -788,10 +790,10 @@ else
                     hold on
                     spiketimesON=mM1ONp(clust, findex, aindex, dindex).spiketimes; % All spiketimes.
                     X=xlimits(1):binwidth:xlimits(2); % Histogram w/specified bin centers
-                    [NON, xON]=hist(spiketimesON, X);
-                    
-                    NON=NON./nrepsON(findex, aindex, dindex); % Bin count / # trials
-                    bON=bar(xON, NON,1);
+                [NON, xON]=hist(spiketimesON, X);
+                NON=NON./nrepsON(findex, aindex, dindex); % Bin count / # trials
+                NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                bON=bar(xON, NON,1);
                     set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                     line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
                     if aindex==1 && findex==1
@@ -859,7 +861,7 @@ if ~isempty(cell)
                 X=xlimits(1):binwidth:xlimits(2); % specify bin centers
                 [NOFF, xOFF]=hist(spiketimesOFF, X);
                 NOFF=NOFF./nrepsOFF(findex, aindex, dindex);
-                %                     NOFF=1000*NOFF./binwidth; %normalize to spike rate in Hz
+                 NOFF=1000*NOFF./binwidth; %normalize to spike rate in Hz
                 bOFF=bar(xOFF, NOFF,1);
                 set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
                 line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
@@ -921,7 +923,7 @@ else
                     X=xlimits(1):binwidth:xlimits(2); % specify bin centers
                     [NOFF, xOFF]=hist(spiketimesOFF, X);
                     NOFF=NOFF./nrepsOFF(findex, aindex, dindex);
-                    %                     NOFF=1000*NOFF./binwidth; %normalize to spike rate in Hz
+                    NOFF=1000*NOFF./binwidth; %normalize to spike rate in Hz
                     bOFF=bar(xOFF, NOFF,1);
                     set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
                     line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
