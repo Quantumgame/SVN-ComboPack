@@ -15,6 +15,8 @@
 % mw 06.11.2014 - added MClust capability
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
+rasters=1;
+
 % sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
 % for i=1:length(recordings)
@@ -609,18 +611,21 @@ if ~isempty(cell)
         
     end % dindex
 else
-    
     for dindex=1:length(durs);
         for clust=1:Nclusters
+           
             figure
             p=0;
             subplot1(numamps,numfreqs)
             for aindex=numamps:-1:1
                 for findex=1:numfreqs
+                     offset=0;
                     p=p+1;
                     subplot1(p)
                     hold on
-                    
+                                    
+                    yl=ylimits1(clust,:);
+                    inc=(yl(2))/max(max(max(nrepsOFF)));
                     spiketimesON=mM1ONp(clust, findex, aindex, dindex).spiketimes;
                     spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex).spiketimes;
                     
@@ -646,8 +651,26 @@ else
                     end
                     line(xlimits, [0 0], 'color', 'k')
                     
+                    if rasters==1
+                        
+                                        
+                for n=1:nrepsOFF(findex, aindex, dindex)
+                    spiketimes2=M1OFFp(clust, findex, aindex, dindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                end
+                for n=1:nrepsON(findex, aindex, dindex)
+                    spiketimes2=M1ONp(clust, findex, aindex, dindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.g');
+                end
+                    end
+                    
+                    
+                    
                     xlim(xlimits)
-                    ylim(ylimits1(clust,:))
+                    ylimits2(clust,2)=ylimits1(clust,2)*3;
+                    ylim(ylimits2(clust,:))
                     
                     % Add stars for ttest.
                     if pvalues(findex,aindex)<alpha
