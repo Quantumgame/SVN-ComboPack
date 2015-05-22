@@ -653,17 +653,17 @@ else
                     
                     if rasters==1
                         
-                                        
-                for n=1:nrepsOFF(findex, aindex, dindex)
-                    spiketimes2=M1OFFp(clust, findex, aindex, dindex, n).spiketimes;
-                    offset=offset+inc;
-                    h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
-                end
-                for n=1:nrepsON(findex, aindex, dindex)
-                    spiketimes2=M1ONp(clust, findex, aindex, dindex, n).spiketimes;
-                    offset=offset+inc;
-                    h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.g');
-                end
+                        
+                        for n=1:nrepsOFF(findex, aindex, dindex)
+                            spiketimes2=M1OFFp(clust, findex, aindex, dindex, n).spiketimes;
+                            offset=offset+inc;
+                            h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                        end
+                        for n=1:nrepsON(findex, aindex, dindex)
+                            spiketimes2=M1ONp(clust, findex, aindex, dindex, n).spiketimes;
+                            offset=offset+inc;
+                            h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.g');
+                        end
                     end
                     
                     
