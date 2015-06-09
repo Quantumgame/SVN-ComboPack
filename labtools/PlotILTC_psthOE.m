@@ -125,8 +125,13 @@ end
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %Get PPA lazer params
 
-ProcessData_single(expdate,session,filenum);
+try
 [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+catch
+    ProcessData_single(expdate,session,filenum);
+    [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+end
+
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
@@ -151,6 +156,15 @@ try
 catch
     OEgetEvents(expdate, session, filenum);
     load(OEeventsfile)
+end
+
+% check for missing soundcard triggers
+for i=1:length(event)
+    sct(i)=event(i).soundcardtriggerPos/30e3;
+end
+time=(event(2).Param.duration+event(2).Param.next)/1000;%convert it to sec
+if time>diff(sct)
+    fprintf('\n POSSIBLE ISSUES WITH SOUNDCARD TRIGGERS. One or more SCT is closer in time than stim dur + isi. Check SCTs!!! \n')
 end
 
 %check for laser in events
@@ -406,7 +420,7 @@ for i=1:length(event)
                         M1spontON(clust, findex,aindex,dindex, nrepsON(findex, aindex, dindex))=spont_spikecount; % No. of spikes in spont window, for each presentation.
                         % Could save actual spont spiketimes here, in addition
                         % to count...
-                        %mM1ONp(findex, aindex, dindex).spiketimes=squeeze(mean(M1ONp(clust, findex,aindex,dindex, :).spiketimes));
+                        
                     else
                         if clust==1
                             nrepsOFF(findex, aindex, dindex)=nrepsOFF(findex, aindex, dindex)+1;
@@ -414,9 +428,8 @@ for i=1:length(event)
                         M1OFFp(clust, findex,aindex,dindex, nrepsOFF(findex, aindex, dindex)).spiketimes=spiketimes1;
                         M1OFFspikecounts(clust, findex,aindex,dindex,nrepsOFF(findex, aindex, dindex))=spikecount;
                         M1spontOFF(clust, findex,aindex,dindex, nrepsOFF(findex, aindex, dindex))=spont_spikecount;
-                        %mM1OFFp(findex, aindex, dindex).spiketimes=mean(M1OFFp(clust, findex,aindex,dindex, :).spiketimes);
+                        
                     end
-                    %delete M1(clust, findex,aindex,dindex, nreps(findex, aindex, dindex)).spiketimes=spiketimes1;
                 end
             end
         end
@@ -430,11 +443,6 @@ for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
     fprintf('\ntotal num spikes: %d', length(spiketimes(clust).spiketimes))
     fprintf('\nIn range: %d', inRange(clust))
 end
-
-
-
-
-
 
 % Accumulate spiketimes across trials, for psth...
 for dindex=1:length(durs); % Hardcoded.
@@ -477,13 +485,13 @@ else
     mM1ONspikecount=mean(M1ONspikecounts,5); % Mean spike count
     sM1ONspikecount=std(M1ONspikecounts,[],5); % Std of the above
     for clust=1:Nclusters
-        semM1ONspikecount(clust, :,:)=squeeze(sM1ONspikecount(clust, :,:))./sqrt(max(nrepsON(:,:,1))); % Sem of the above
+        semM1ONspikecount(clust, :,:)=squeeze(sM1ONspikecount(clust, :,:))./sqrt(max(max(nrepsON(:,:,1)))); % Sem of the above
     end
     % Spont
     mM1spontON=mean(M1spontON,5);
     sM1spontON=std(M1spontON,[],5);
     for clust=1:Nclusters
-        semM1spontON(clust, :,:)=squeeze(sM1spontON(clust, :,:))./sqrt(max((nrepsON(:,:,1))));
+        semM1spontON(clust, :,:)=squeeze(sM1spontON(clust, :,:))./sqrt(max(max((nrepsON(:,:,1)))));
     end
 end
 if isempty(mM1OFFp) %no laser pulses in this file
@@ -495,13 +503,13 @@ else
     mM1OFFspikecount=mean(M1OFFspikecounts,5); % Mean spike count
     sM1OFFspikecount=std(M1OFFspikecounts,[],5); % Std of the above
     for clust=1:Nclusters
-        semM1OFFspikecount(clust, :,:)=squeeze(sM1OFFspikecount(clust, :,:))./sqrt(max(nrepsOFF(:,:,1))); % Sem of the above
+        semM1OFFspikecount(clust, :,:)=squeeze(sM1OFFspikecount(clust, :,:))./sqrt(max(max(nrepsOFF(:,:,1)))); % Sem of the above
     end
     % Spont
     mM1spontOFF=mean(M1spontOFF,5);
     sM1spontOFF=std(M1spontOFF,[],5);
     for clust=1:Nclusters
-        semM1spontOFF(clust, :,:)=squeeze(sM1spontOFF(clust, :,:))./sqrt(max(nrepsOFF(:,:,1)));
+        semM1spontOFF(clust, :,:)=squeeze(sM1spontOFF(clust, :,:))./sqrt(max(max(nrepsOFF(:,:,1))));
     end
 end
 %find axis limits
@@ -539,7 +547,7 @@ end
 if isempty(mM1ONspikecount) %no laser pulses in this file
     pvalues=nan(size(nrepsON));alpha=[];
 else
-    [h,pvalues]=ttest2(M1ONspikecounts,M1OFFspikecounts,[],[],[],4);
+    [h,pvalues]=ttest2(M1ONspikecounts,M1OFFspikecounts,[],[],[],5);
     alpha=0.05/(numamps*numfreqs);
 end
 
@@ -607,8 +615,9 @@ if ~isempty(cell)
                 end
                 
                 % Add stars for ttest.
-                if pvalues(findex,aindex)<alpha
+                if pvalues(clust,findex,aindex)<alpha
                     text((xlimits(2)*.1),(ylimits1(clust,2)*.6),'*','fontsize',30,'color','r')
+                    fprintf('On trial is significantly different from OFF trial, freg= %.2f, amp= %.2f', freqs(findex), amps(aindex));
                 end
                 
             end
@@ -1085,23 +1094,23 @@ out.session=session;
 out.filenum=filenum;
 out.tetrode=channel;
 out.cluster=cell;
-out.M1OFFp=M1OFFp(cell,:,:,:,:); % All spiketimes, trial-by-trial.
-out.M1ONp=M1ONp(cell,:,:,:,:);
-out.mM1OFFp=mM1OFFp(cell,:,:); % Accumulated spike times for *all* presentations of each laser/f/a combo.
-out.mM1ONp=mM1ONp(cell,:,:);
-out.mM1ONspikecount=mM1ONspikecount(cell,:,:); % Mean spikecount for each laser/f/a combo.
-out.sM1ONspikecount=sM1ONspikecount;
-out.semM1ONspikecount=semM1ONspikecount;
-out.mM1OFFspikecount=mM1OFFspikecount;
-out.sM1OFFspikecount=sM1OFFspikecount;
-out.semM1OFFspikecount=semM1OFFspikecount;
+out.M1OFFp=squeeze(M1OFFp(cell,:,:,:,:)); % All spiketimes, trial-by-trial.
+out.M1ONp=squeeze(M1ONp(cell,:,:,:,:));
+out.mM1OFFp=squeeze(mM1OFFp(cell,:,:)); % Accumulated spike times for *all* presentations of each laser/f/a combo.
+out.mM1ONp=squeeze(mM1ONp(cell,:,:));
+out.mM1ONspikecount=squeeze(mM1ONspikecount(cell,:,:)); % Mean spikecount for each laser/f/a combo.
+out.sM1ONspikecount=squeeze(sM1ONspikecount(cell,:,:));
+out.semM1ONspikecount=squeeze(semM1ONspikecount(cell,:,:));
+out.mM1OFFspikecount=squeeze(mM1OFFspikecount(cell,:,:));
+out.sM1OFFspikecount=squeeze(sM1OFFspikecount(cell,:,:));
+out.semM1OFFspikecount=squeeze(semM1OFFspikecount(cell,:,:));
 % Spont spikes.
-out.mM1spontON=mM1spontON;
-out.sM1spontON=sM1spontON;
-out.semM1spontON=semM1spontON;
-out.mM1spontOFF=mM1spontOFF;
-out.sM1spontOFF=sM1spontOFF;
-out.semM1spontOFF=semM1spontOFF;
+out.mM1spontON=squeeze(mM1spontON(cell,:,:));
+out.sM1spontON=squeeze(sM1spontON(cell,:,:));
+out.semM1spontON=squeeze(semM1spontON(cell,:,:));
+out.mM1spontOFF=squeeze(mM1spontOFF(cell,:,:));
+out.sM1spontOFF=squeeze(sM1spontOFF(cell,:,:));
+out.semM1spontOFF=squeeze(semM1spontOFF(cell,:,:));
 out.amps=amps;
 out.freqs=freqs;
 out.nrepsON=nrepsON;
@@ -1115,13 +1124,14 @@ out.OEdatafile=OEdatafile;
 out.isi=isi;
 out.spiketimes=spiketimes;
 out.inRange=inRange(cell,:);
-out.M1ONspikecounts=M1ONspikecounts;
-out.M1OFFspikecounts=M1OFFspikecounts;
+out.M1ONspikecounts=squeeze(M1ONspikecounts(cell,:,:,:,:));
+out.M1OFFspikecounts=squeeze(M1OFFspikecounts(cell,:,:,:,:));
     outfilename=sprintf('out%sArch_TC%s-%s-%s-%d',channel,expdate,session, filenum, cell);
     cd(location);
     save (outfilename, 'out');
-    fprintf('saved the outfile in a synced folder');
+    fprintf('\nsaved the outfile in a synced folder');
 end
+godatadir(expdate,session,filenum);
 fprintf('\n Saved to %s.\n', outfilename)
 
 
