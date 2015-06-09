@@ -82,8 +82,8 @@ if ~strcmp('char',class(channel))
     channel=num2str(channel);
 end
 
-if ~exist('xlimits','var'); xlimits=[0 100]; end
-if isempty(xlimits); xlimits=[0 100]; end
+if ~exist('xlimits','var'); xlimits=[-200 200]; end
+if isempty(xlimits); xlimits=[-200 200]; end
 if ~exist('ylimits','var'); ylimits=-1; end
 if isempty(ylimits); ylimits=-1; end
 if ~exist('binwidth','var'); binwidth=5; end
@@ -167,7 +167,6 @@ else %process data and generate outfile
                 [OEdatafile, oepathname] = uigetfile('*simpleclust.mat', 'pick a simpleclust.mat file');
         end
     end
-    
     first_sample_timestamp=OEget_first_sample_timestamp(oepathname); %in s
 
     switch sorter
@@ -220,6 +219,22 @@ else %process data and generate outfile
 if isempty(event); fprintf('\nno stimuli\n'); return; end
 
 fprintf('\ncomputing tuning curve...');
+
+% check for missing soundcard triggers
+for i=1:length(event)
+    sct(i)=event(i).soundcardtriggerPos/30e3;
+end
+time=event(2).Param.duration/1000; %convert it to sec
+if time>diff(sct)
+    fprintf('\n POSSIBLE ISSUES WITH SOUNDCARD TRIGGERS. One or more SCT is closer in time than stim duration. Check SCTs!!! \n')
+end
+try
+[on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+catch
+    ProcessData_single(expdate,session,filenum);
+    [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+end
+
 
 %get freqs/amps
 j=0;
@@ -358,7 +373,7 @@ for i=1:length(event)
                     end
                 end                
                 pos=event(i-numrestarts-numaopulsestoskip-numscrewbacks+numscrewforwards).soundcardtriggerPos/samprate; %soundcardtriggerPos now in sec;
-            pr=event(i).Position
+            pr=event(i).Position;
         else
             pos=event(i).Position;
             fprintf('\nWARNING! Missing a soundcard trigger. Using hardware trigger instead.')
@@ -366,6 +381,8 @@ for i=1:length(event)
         
         start=(pos+(xlimits(1)+gapdelay)*1e-3); %in seconds, relative to gap offset
         stop=(pos+(xlimits(2)+gapdelay)*1e-3); %in seconds
+        start2=pos+(gapdelay)*1e-3; %for response only (0-150 ms after gap termination)
+        stop2=pos+(gapdelay+150)*1e-3;
         if start>0 %(disallow negative start times)
             if stop>lostat
                 fprintf('\ndiscarding event after lostat')
@@ -381,10 +398,13 @@ for i=1:length(event)
                     for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
                         st=abs(spiketimes(clust).spiketimes);
                         spiketimes1=st(st>start & st<stop); % spiketimes in region
+                        spiketimes2=st(st>start2 & st<stop2); %where resonse should be
                         inRange(clust)=inRange(clust)+ length(spiketimes1);
-                        spiketimes1=(spiketimes1-pos)*1000;%convert to ms relative to gap offset
+                        spiketimes1=(spiketimes1-pos)*1000;
+                        spiketimes2=(spiketimes2-pos)*1000;%convert to ms relative to gap offset
                         %                             spiketimes1=(spiketimes1-pos-gapdelay/1000)*1000;%covert to ms after tone onset
-                        M1ONtc(clust, gdindex, paindex, nrepsON(gdindex, paindex)).spiketimes=spiketimes1; % 
+                        M1ONtc(clust, gdindex, paindex, nrepsON(gdindex, paindex)).spiketimes=spiketimes1;
+                        M1ONtc2(clust, gdindex, paindex, nrepsON(gdindex, paindex)).spiketimes=spiketimes2;% responses only, not xlimit window
                     end
                     %                         M1ONtcstim(gdindex, paindex, nrepsON(gdindex, paindex),:)=stim(region);
                     %would be nice to load stim from continuous channel and put it in Mstim
@@ -393,10 +413,13 @@ for i=1:length(event)
                     for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
                         st=spiketimes(clust).spiketimes;
                         spiketimes1=st(st>start & st<stop); % spiketimes in region
+                        spiketimes2=st(st>start2 & st<stop2); %where resonse should be
                         inRange(clust)=inRange(clust)+ length(spiketimes1);
-                        spiketimes1=(spiketimes1-pos)*1000;%covert to ms relative to gap offset
+                        spiketimes1=(spiketimes1-pos)*1000;
+                        spiketimes2=(spiketimes2-pos)*1000;%covert to ms relative to gap offset
                         %                             spiketimes1=(spiketimes1-pos-gapdelay/1000)*1000;%covert to ms after tone onset
                         M1OFFtc(clust, gdindex, paindex, nrepsOFF(gdindex, paindex)).spiketimes=spiketimes1;
+                        M1OFFtc2(clust, gdindex, paindex, nrepsOFF(gdindex, paindex)).spiketimes=spiketimes2;% responses only, not xlimit window
                     end
                     % M1OFFtcstim(gdindex, paindex, nrepsOFF(gdindex, paindex),:)=stim(region);
                 end
@@ -419,10 +442,13 @@ for paindex=1:numpulseamps
     for gdindex=1:numgapdurs
         for clust=1:Nclusters
             spiketimes1=[];
+            spiketimes2=[];
             for rep=1:nrepsON(gdindex,paindex)
                 spiketimes1=[spiketimes1 M1ONtc(clust, gdindex,paindex, rep).spiketimes];
+                spiketimes2=[spiketimes2 M1ONtc2(clust, gdindex,paindex, rep).spiketimes]; %only responses (0-150 ms from gap termination)
             end
             mM1ONtc(clust, gdindex,paindex).spiketimes=spiketimes1;
+            mM1ONtc2(clust, gdindex,paindex).spiketimes=spiketimes2;
         end
     end
 end
@@ -432,10 +458,13 @@ for paindex=1:numpulseamps
     for gdindex=1:numgapdurs
         for clust=1:Nclusters
             spiketimes1=[];
+            spiketimes2=[];
             for rep=1:nrepsOFF(gdindex,paindex)
                 spiketimes1=[spiketimes1 M1OFFtc(clust, gdindex,paindex, rep).spiketimes];
+                spiketimes2=[spiketimes2 M1OFFtc2(clust, gdindex,paindex, rep).spiketimes];%only responses (0-150 ms from gap termination)
             end
             mM1OFFtc(clust, gdindex,paindex).spiketimes=spiketimes1;
+            mM1OFFtc2(clust, gdindex,paindex).spiketimes=spiketimes2;
         end
     end
 end
@@ -473,17 +502,21 @@ fprintf('\nsaved to %s\n', outfilename);
 
 end 
 if save_the_outfile==1
-    out.user=whoami;   
+out.user=whoami;   
 out.expdate=expdate;
 out.session=session;
 out.filenum=filenum;
 out.tetrode=channel;
 out.cluster=cell;
-out.M1OFFtc = M1OFFtc(cell,:,:,:);
-out.M1ONtc = M1ONtc(cell,:,:,:);
-out.mM1OFFtc = mM1OFFtc(cell,:,:,:);
-out.mM1ONtc = mM1ONtc(cell,:,:,:);
-out.inRange=inRange(clust,:,:,:);
+out.M1OFFtc = squeeze(M1OFFtc(cell,:,:,:));
+out.M1ONtc = squeeze(M1ONtc(cell,:,:,:));
+out.M1ONtc2 = squeeze(M1ONtc2(cell,:,:,:));
+out.M1OFFtc2 = squeeze(M1OFFtc2(cell,:,:,:));
+out.mM1OFFtc = squeeze(mM1OFFtc(cell,:));
+out.mM1ONtc = squeeze(mM1ONtc(cell,:));
+out.mM1OFFtc2 = squeeze(mM1OFFtc2(cell,:));
+out.mM1ONtc2 = squeeze(mM1ONtc2(cell,:));
+out.inRange=inRange(clust);
 out.binwidth=binwidth;
 out.samprate=samprate;
 out.numpulseamps = numpulseamps;
@@ -495,8 +528,14 @@ out.Nclusters = Nclusters;
 out.nrepsOFF=nrepsOFF;
 out.nrepsON=nrepsON;
 out.xlimits=xlimits;
+out.PPAstart=PPAstart;
+out.width=width;
+out.numpulses=numpulses;
+out.oepathname=oepathname;
+%out.OEdatafile=OEdatafile;
+out.isi=isi;
     cd(location);
-    outfilename=sprintf('out%sArchNBN%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+    outfilename=sprintf('out%sILGPIAS-%s-%s-%s-%d',channel,expdate,session, filenum, cell);
     save (outfilename, 'out');
     fprintf('saved the outfile in a synced folder');
     save(outfilename, 'out')
@@ -552,13 +591,14 @@ if ~isempty(cell)
                 title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
             end
             
-            if ~isempty (M1ONtc) & ~isempty (M1OFFtc)
-                %only makes sense to do the t-test if you have both ON and OFF
-                ONcounts=[M1ONtc(clust, gdindex,paindex).spiketimes];
-                OFFcounts=[M1OFFtc(clust, gdindex,paindex).spiketimes];
+            if ~isempty (M1ONtc2(clust,:)) & ~isempty (M1OFFtc2(clust,:))
+                %only makes sense to do the t-test if you have both ON and
+                %OFF only in 0-150 ms window from gap termination
+                ONcounts=[mM1ONtc2(clust, gdindex,paindex).spiketimes];
+                OFFcounts=[mM1OFFtc2(clust, gdindex,paindex).spiketimes];
                 [h,pvalues]=ttest2(ONcounts,OFFcounts);
                 if pvalues<0.05
-                    if mean(ONcounts)>mean(OFFcounts)
+                    if length(ONcounts)>length(OFFcounts)
                         fprintf('\n%.1f ms gap: p = %f; ON > OFF',gapdurs(gdindex),pvalues)
                     else
                         fprintf('\n%.1f ms gap: p = %f; OFF > ON',gapdurs(gdindex),pvalues)
@@ -634,13 +674,13 @@ for clust=1:Nclusters
                 title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
             end
             
-            if ~isempty (M1ONtc) & ~isempty (M1OFFtc)
+            if ~isempty (M1ONtc2) & ~isempty (M1OFFtc2)
                 %only makes sense to do the t-test if you have both ON and OFF
-                ONcounts=[M1ONtc(clust, gdindex,paindex).spiketimes];
-                OFFcounts=[M1OFFtc(clust, gdindex,paindex).spiketimes];
+                ONcounts=[mM1ONtc2(clust, gdindex,paindex).spiketimes];
+                OFFcounts=[mM1OFFtc2(clust, gdindex,paindex).spiketimes];
                 [h,pvalues]=ttest2(ONcounts,OFFcounts);
                 if pvalues<0.05
-                    if mean(ONcounts)>mean(OFFcounts)
+                    if length(ONcounts)>length(OFFcounts)
                         fprintf('\n%.1f ms gap: p = %f; ON > OFF',gapdurs(gdindex),pvalues)
                     else
                         fprintf('\n%.1f ms gap: p = %f; OFF > ON',gapdurs(gdindex),pvalues)
