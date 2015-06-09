@@ -10,12 +10,14 @@
 %  cell is an option for plotting only one specific cluster (cell),
 
 %Use PlotILNBN_psthOE to process narrow band noise
-
+% D drive version
 % mw 032614
 % mw 06.11.2014 - added MClust capability
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
+save_the_outfile=1; % saves an outfile in a specific locationt hat is synced with ira's macbook for analysis
+location='D:\lab\Somatostatin_project_shared_folder\Data';
 
 % sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
@@ -429,25 +431,9 @@ for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
     fprintf('\nIn range: %d', inRange(clust))
 end
 
-% ON, evoked
-if isempty(mM1ONp) %no laser pulses in this file
-    mM1ONspikecount=[];
-    sM1ONspikecount=[];
-    semM1ONspikecount=[];
-    M1ONspikecounts=[];
-else
-    mM1ONspikecount=mean(M1ONspikecounts,5); % Mean spike count
-    sM1ONspikecount=std(M1ONspikecounts,[],5); % Std of the above
-    for clust=1:Nclusters
-        semM1ONspikecount(clust, :,:)=squeeze(sM1ONspikecount(clust, :,:))./sqrt(nrepsON(:,:,1)); % Sem of the above
-    end
-    % Spont
-    mM1spontON=mean(M1spontON,5);
-    sM1spontON=std(M1spontON,[],5);
-    for clust=1:Nclusters
-        semM1spontON(clust, :,:)=squeeze(sM1spontON(clust, :,:))./sqrt(nrepsON(:,:,1));
-    end
-end
+
+
+
 
 
 % Accumulate spiketimes across trials, for psth...
@@ -481,6 +467,43 @@ end
 
 dindex=1;
 
+% ON, evoked
+if isempty(mM1ONp) %no laser pulses in this file
+    mM1ONspikecount=[];
+    sM1ONspikecount=[];
+    semM1ONspikecount=[];
+    M1ONspikecounts=[];
+else
+    mM1ONspikecount=mean(M1ONspikecounts,5); % Mean spike count
+    sM1ONspikecount=std(M1ONspikecounts,[],5); % Std of the above
+    for clust=1:Nclusters
+        semM1ONspikecount(clust, :,:)=squeeze(sM1ONspikecount(clust, :,:))./sqrt(max(nrepsON(:,:,1))); % Sem of the above
+    end
+    % Spont
+    mM1spontON=mean(M1spontON,5);
+    sM1spontON=std(M1spontON,[],5);
+    for clust=1:Nclusters
+        semM1spontON(clust, :,:)=squeeze(sM1spontON(clust, :,:))./sqrt(max((nrepsON(:,:,1))));
+    end
+end
+if isempty(mM1OFFp) %no laser pulses in this file
+    mM1OFFspikecount=[];
+    sM1OFFspikecount=[];
+    semM1OFFspikecount=[];
+    M1OFFspikecounts=[];
+else
+    mM1OFFspikecount=mean(M1OFFspikecounts,5); % Mean spike count
+    sM1OFFspikecount=std(M1OFFspikecounts,[],5); % Std of the above
+    for clust=1:Nclusters
+        semM1OFFspikecount(clust, :,:)=squeeze(sM1OFFspikecount(clust, :,:))./sqrt(max(nrepsOFF(:,:,1))); % Sem of the above
+    end
+    % Spont
+    mM1spontOFF=mean(M1spontOFF,5);
+    sM1spontOFF=std(M1spontOFF,[],5);
+    for clust=1:Nclusters
+        semM1spontOFF(clust, :,:)=squeeze(sM1spontOFF(clust, :,:))./sqrt(max(nrepsOFF(:,:,1)));
+    end
+end
 %find axis limits
 
 if ylimits==-1
@@ -534,7 +557,7 @@ if ~isempty(cell)
                 p=p+1;
                 subplot1(p)
                 hold on
-                
+
                 spiketimesON=mM1ONp(clust, findex, aindex, dindex).spiketimes;
                 spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex).spiketimes;
                 
@@ -550,6 +573,21 @@ if ~isempty(cell)
                 bON=bar(xON, NON,1);
                 hold on
                 bOFF=bar(xOFF,NOFF,1);
+                offset=0;
+                yl=ylimits1(clust,:);
+                inc=(yl(2))/max(max(max(nrepsOFF)));
+                    if rasters==1
+                    for n=1:nrepsOFF(findex, aindex, dindex)
+                    spiketimes2=M1OFFp(clust, findex, aindex, dindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                    end
+                    for n=1:nrepsON(findex, aindex, dindex)
+                    spiketimes2=M1ONp(clust, findex, aindex, dindex, n).spiketimes;
+                    offset=offset+inc;
+                    h=plot(spiketimes2, ylimits1(clust,2)+ones(size(spiketimes2))+offset, '.g');
+                    end
+                    end
                 
                 
                 set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
@@ -561,7 +599,12 @@ if ~isempty(cell)
                 line(xlimits, [0 0], 'color', 'k')
                 
                 xlim(xlimits)
-                ylim(ylimits1(clust,:))
+                if rasters==1
+                ylimits2(clust,2)=ylimits1(clust,2)*3;
+                ylim(ylimits2(clust,:))
+                else
+                    ylim(ylimits1(clust,:));
+                end
                 
                 % Add stars for ttest.
                 if pvalues(findex,aindex)<alpha
@@ -996,37 +1039,89 @@ end
 %% Save it to an outfile!
 
 % Evoked spikes.
+out.expdate=expdate;
+out.session=session;
+out.filenum=filenum;
+out.tetrode=channel;
+out.cluster=cell;
 out.M1OFFp=M1OFFp; % All spiketimes, trial-by-trial.
 out.M1ONp=M1ONp;
 out.mM1OFFp=mM1OFFp; % Accumulated spike times for *all* presentations of each laser/f/a combo.
 out.mM1ONp=mM1ONp;
-%     out.mM1ONspikecount=mM1ONspikecount; % Mean spikecount for each laser/f/a combo.
-%     out.sM1ONspikecount=sM1ONspikecount;
-%     out.semM1ONspikecount=semM1ONspikecount;
-%     out.mM1OFFspikecount=mM1OFFspikecount;
-%     out.sM1OFFspikecount=sM1OFFspikecount;
-%     out.semM1OFFspikecount=semM1OFFspikecount;
-%
-%     % Spont spikes.
-%     out.mM1spontON=mM1spontON;
-%     out.sM1spontON=sM1spontON;
-%     out.semM1spontON=semM1spontON;
-%     out.mM1spontOFF=mM1spontOFF;
-%     out.sM1spontOFF=sM1spontOFF;
-%     out.semM1spontOFF=semM1spontOFF;
-%
+out.mM1ONspikecount=mM1ONspikecount; % Mean spikecount for each laser/f/a combo.
+out.sM1ONspikecount=sM1ONspikecount;
+out.semM1ONspikecount=semM1ONspikecount;
+out.mM1OFFspikecount=mM1OFFspikecount;
+out.sM1OFFspikecount=sM1OFFspikecount;
+out.semM1OFFspikecount=semM1OFFspikecount;
+% Spont spikes.
+out.mM1spontON=mM1spontON;
+out.sM1spontON=sM1spontON;
+out.semM1spontON=semM1spontON;
+out.mM1spontOFF=mM1spontOFF;
+out.sM1spontOFF=sM1spontOFF;
+out.semM1spontOFF=semM1spontOFF;
 out.amps=amps;
 out.freqs=freqs;
 out.nrepsON=nrepsON;
 out.nrepsOFF=nrepsOFF;
 out.xlimits=xlimits;
-
+out.PPAstart=PPAstart;
+out.width=width;
+out.numpulses=numpulses;
 out.oepathname=oepathname;
 out.OEdatafile=OEdatafile;
-
+out.isi=isi;
+out.spiketimes=spiketimes;
 godatadir(expdate,session,filenum);
 outfilename=sprintf('out%sArch_TC%s-%s-%s',channel,expdate,session, filenum);
 save (outfilename, 'out')
+
+
+if save_the_outfile==1
+out.user=whoami;   
+out.expdate=expdate;
+out.session=session;
+out.filenum=filenum;
+out.tetrode=channel;
+out.cluster=cell;
+out.M1OFFp=M1OFFp(cell,:,:,:,:); % All spiketimes, trial-by-trial.
+out.M1ONp=M1ONp(cell,:,:,:,:);
+out.mM1OFFp=mM1OFFp(cell,:,:); % Accumulated spike times for *all* presentations of each laser/f/a combo.
+out.mM1ONp=mM1ONp(cell,:,:);
+out.mM1ONspikecount=mM1ONspikecount(cell,:,:); % Mean spikecount for each laser/f/a combo.
+out.sM1ONspikecount=sM1ONspikecount;
+out.semM1ONspikecount=semM1ONspikecount;
+out.mM1OFFspikecount=mM1OFFspikecount;
+out.sM1OFFspikecount=sM1OFFspikecount;
+out.semM1OFFspikecount=semM1OFFspikecount;
+% Spont spikes.
+out.mM1spontON=mM1spontON;
+out.sM1spontON=sM1spontON;
+out.semM1spontON=semM1spontON;
+out.mM1spontOFF=mM1spontOFF;
+out.sM1spontOFF=sM1spontOFF;
+out.semM1spontOFF=semM1spontOFF;
+out.amps=amps;
+out.freqs=freqs;
+out.nrepsON=nrepsON;
+out.nrepsOFF=nrepsOFF;
+out.xlimits=xlimits;
+out.PPAstart=PPAstart;
+out.width=width;
+out.numpulses=numpulses;
+out.oepathname=oepathname;
+out.OEdatafile=OEdatafile;
+out.isi=isi;
+out.spiketimes=spiketimes;
+out.inRange=inRange(cell,:);
+out.M1ONspikecounts=M1ONspikecounts;
+out.M1OFFspikecounts=M1OFFspikecounts;
+    outfilename=sprintf('out%sArch_TC%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+    cd(location);
+    save (outfilename, 'out');
+    fprintf('saved the outfile in a synced folder');
+end
 fprintf('\n Saved to %s.\n', outfilename)
 
 
