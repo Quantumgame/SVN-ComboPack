@@ -24,6 +24,9 @@ sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 %sorter='simpleclust';
 fprintf('\nsorter: %s', sorter)
 
+save_the_outfile=0; % saves an outfile in a specific locationt hat is synced with ira's macbook for analysis
+location='D:\lab\Somatostatin_project_shared_folder\Data';
+
 refract=15;
 fs=12; %fontsize for figures
 global pref
@@ -337,13 +340,7 @@ numscrewforwards=0;
 
 inRange=zeros(1, Nclusters);
 for i=1:length(event)
-    
-%     if any(i==(restarts))
-%         numrestarts=numrestarts+1;
-%         fprintf('\ndiscarding event %d due to PPA restart', i)
-%     end
-%     waitbar( i/length(event), wb);
-    
+   
     %go back for any screwups mw 07012014
     if any(i==screwbackpoints)
         numscrewbacks=numscrewbacks+1;
@@ -352,8 +349,7 @@ for i=1:length(event)
     end
     
     if strcmp(event(i).Type, 'GPIAS')
-        
-        if isfield(event(i), 'soundcardtriggerPos')
+        if  isfield(event(i), 'soundcardtriggerPos')
                 %go back numrestarts, skipping any aopulses
                 numaopulsestoskip=0;
                 for k=1:numrestarts
@@ -362,11 +358,7 @@ for i=1:length(event)
                     end
                 end                
                 pos=event(i-numrestarts-numaopulsestoskip-numscrewbacks+numscrewforwards).soundcardtriggerPos/samprate; %soundcardtriggerPos now in sec;
-% 
-%                 I=i-numrestarts-numscrewbacks+numscrewforwards;
-%             pos=event(I).soundcardtriggerPos/samprate; %soundcardtriggerPos now in sec
-            pr=event(i).Position;
-%            Delta(i)=pos-pr;
+            pr=event(i).Position
         else
             pos=event(i).Position;
             fprintf('\nWARNING! Missing a soundcard trigger. Using hardware trigger instead.')
@@ -382,15 +374,12 @@ for i=1:length(event)
                 gdindex= find(gapdur==gapdurs);
                 pulseamp=event(i).Param.pulseamp;
                 paindex= find(pulseamp==pulseamps);
-                %                     if isfield(event(i).Param, 'AOPulseOn')
                 aopulseon=event(i).Param.AOPulseOn;
-                %                     else
-                %                         aopulseon=0;
-                %                     end
+
                 if aopulseon
                     nrepsON(gdindex, paindex)=nrepsON(gdindex, paindex)+1;
                     for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
-                        st=spiketimes(clust).spiketimes;
+                        st=abs(spiketimes(clust).spiketimes);
                         spiketimes1=st(st>start & st<stop); % spiketimes in region
                         inRange(clust)=inRange(clust)+ length(spiketimes1);
                         spiketimes1=(spiketimes1-pos)*1000;%convert to ms relative to gap offset
@@ -459,6 +448,7 @@ for paindex=1:numpulseamps;
     end
 end
 
+
 out.M1OFFtc = M1OFFtc;
 out.M1ONtc = M1ONtc;
 out.mM1OFFtc = mM1OFFtc;
@@ -481,7 +471,38 @@ godatadir(expdate, session, filenum)
 save(outfilename, 'out')
 fprintf('\nsaved to %s\n', outfilename);
 
-end %if ~outfile exists
+end 
+if save_the_outfile==1
+    out.user=whoami;   
+out.expdate=expdate;
+out.session=session;
+out.filenum=filenum;
+out.tetrode=channel;
+out.cluster=cell;
+out.M1OFFtc = M1OFFtc(cell,:,:,:);
+out.M1ONtc = M1ONtc(cell,:,:,:);
+out.mM1OFFtc = mM1OFFtc(cell,:,:,:);
+out.mM1ONtc = mM1ONtc(cell,:,:,:);
+out.inRange=inRange(clust,:,:,:);
+out.binwidth=binwidth;
+out.samprate=samprate;
+out.numpulseamps = numpulseamps;
+out.numgapdurs = numgapdurs;
+out.pulseamps = pulseamps;
+out.gapdurs = gapdurs;
+out.gapdelay = gapdelay;
+out.Nclusters = Nclusters;
+out.nrepsOFF=nrepsOFF;
+out.nrepsON=nrepsON;
+out.xlimits=xlimits;
+    cd(location);
+    outfilename=sprintf('out%sArchNBN%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+    save (outfilename, 'out');
+    fprintf('saved the outfile in a synced folder');
+    save(outfilename, 'out')
+
+end
+
 
 
 if ylimits==-1
@@ -585,11 +606,7 @@ if ~isempty(cell)
                 hold on; plot(t, (stim*(ylimmax/2)), 'm');
             end
             
-            
-            
-            
             xlim([(xlimits(1)) xlimits(2)])
-            %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
             ylim(ylimits1(clust, :))
             ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
             
@@ -670,12 +687,7 @@ for clust=1:Nclusters
                 t=t+xlimits(1)+gapdelay;
                 hold on; plot(t, (stim*(ylimmax/2)), 'm');
             end
-            
-            
-            
-            
             xlim([(xlimits(1)) xlimits(2)])
-            %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
             ylim(ylimits1(clust, :))
             ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
             
@@ -728,12 +740,9 @@ if 1
                     offset=offset+inc;
                     h=plot(spiketimes2-gapdelay, yl(2)+ones(size(spiketimes2))+offset, '.k');
                 end
-                
-                
                 % plot on psth
                 if ~isempty (mM1ONtc)
                     spiketimes1=mM1ONtc(clust, gdindex,paindex).spiketimes;
-                    %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
                     X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
                     [N, x]=hist(spiketimes1, X);
                     N=N./nrepsON(gdindex,paindex); % averaged across trials
@@ -764,18 +773,9 @@ if 1
                     if gapdurs(gdindex)>0
                 line([0 0],[ylim],'color','m')
                 line(-[(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
-            end
-                
-                
+                    end   
                 xlim([(xlimits(1)) xlimits(2)])
-                %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
-                %ylim(ylimits1(clust, :))
                 ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
-                %
-                %             if gapdurs(gdindex)>0
-                %                 line([0 0],[ylim],'color','m')
-                %                 line([(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
-                %             end
             end
         end
         
@@ -858,14 +858,7 @@ if 1
                 
                 
                 xlim([(xlimits(1)) xlimits(2)])
-                %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
-                %ylim(ylimits1(clust, :))
                 ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
-                %
-                %             if gapdurs(gdindex)>0
-                %                 line([0 0],[ylim],'color','m')
-                %                 line([(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
-                %             end
             end
         end
         
@@ -1026,75 +1019,75 @@ drawnow
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % open .txt file for aldis
 
-txtfilename=sprintf('ForAldis_ILGPIAS_psthOE-%s-%s-%s-%s.txt', expdate, session, filenum, channel);
-godatadir(expdate, session, filenum);
-fid=fopen(txtfilename, 'w'); %'a'=open or create file for writing; append data to end of file
-fprintf(fid, '\n%s-%s-%s channel %s\n****************************',expdate,session,filenum, channel);
-fprintf(fid, '\nBin Centers\n');
-fprintf(fid, '\t%d',X-gapdelay);
-
-for clust=1:Nclusters
-    fprintf(fid, '\ncell %d of %d:\n\n', clust, Nclusters);
-    
-    if isempty (M1OFFtc)
-        fprintf(fid, '\nOFF psth is empty\n');
-    else
-        for paindex=1:numpulseamps
-            for gdindex=1:numgapdurs
-                
-                fprintf(fid, '\n\n%.0f ms Gap: Mean OFF Trials (%.0f)\n',gapdurs(gdindex),nrepsOFF(gdindex,paindex));
-                
-                for rep=1:nrepsOFF(gdindex,paindex)
-                    fprintf(fid,'\n');
-                    spiketimes1=M1OFFtc(clust, gdindex,paindex, rep).spiketimes;
-                    [N, x]=hist(spiketimes1, X);
-                    fprintf(fid,'\t%.0f', N);
-                end
-            end
-        end
-    end
-    
-    % ON
-    if isempty (M1ONtc)
-        fprintf(fid, '\nON psth is empty\n');
-    else
-        for paindex=1:numpulseamps
-            for gdindex=1:numgapdurs
-                
-                fprintf(fid, '\n\n%.0f ms Gap: Mean ON Trials (%.0f)\n',gapdurs(gdindex),nrepsOFF(gdindex,paindex));
-                
-                for rep=1:nrepsON(gdindex,paindex)
-                    fprintf(fid,'\n');
-                    spiketimes1=M1ONtc(clust, gdindex,paindex, rep).spiketimes;
-                    [N, x]=hist(spiketimes1, X);
-                    fprintf(fid,'\t%.0f', N);
-                end
-            end
-        end
-    end
-    %         % Mean ON
-    %         for paindex=1:numpulseamps
-    %             for gdindex=1:numgapdurs
-    %
-    %                 fprintf(fid, '\n%.0f ms Gap: Mean ON Trials (%.0f)\n',gapdurs(gdindex),nrepsON(gdindex,paindex));
-    %
-    %                 for rep=1:nrepsON(gdindex,paindex)
-    %                     fprintf(fid,'\n');
-    %                     spiketimes1=M1ONtc(gdindex,paindex, rep).spiketimes;
-    %                     X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
-    %                     [N, x]=hist(spiketimes1, X);
-    %                     fprintf(fid,'\t%.0f', N);
-    %                 end
-    %
-    %             end
-    %         end
-    
-    
-    fprintf(fid, '\n');
-end
-fprintf(fid, '\n');
-fclose(fid);
-fprintf('\nwrote psth bin values to text file %s', txtfilename);
-fprintf('\n\n');
+% txtfilename=sprintf('ForAldis_ILGPIAS_psthOE-%s-%s-%s-%s.txt', expdate, session, filenum, channel);
+% godatadir(expdate, session, filenum);
+% fid=fopen(txtfilename, 'w'); %'a'=open or create file for writing; append data to end of file
+% fprintf(fid, '\n%s-%s-%s channel %s\n****************************',expdate,session,filenum, channel);
+% fprintf(fid, '\nBin Centers\n');
+% fprintf(fid, '\t%d',X-gapdelay);
+% 
+% for clust=1:Nclusters
+%     fprintf(fid, '\ncell %d of %d:\n\n', clust, Nclusters);
+%     
+%     if isempty (M1OFFtc)
+%         fprintf(fid, '\nOFF psth is empty\n');
+%     else
+%         for paindex=1:numpulseamps
+%             for gdindex=1:numgapdurs
+%                 
+%                 fprintf(fid, '\n\n%.0f ms Gap: Mean OFF Trials (%.0f)\n',gapdurs(gdindex),nrepsOFF(gdindex,paindex));
+%                 
+%                 for rep=1:nrepsOFF(gdindex,paindex)
+%                     fprintf(fid,'\n');
+%                     spiketimes1=M1OFFtc(clust, gdindex,paindex, rep).spiketimes;
+%                     [N, x]=hist(spiketimes1, X);
+%                     fprintf(fid,'\t%.0f', N);
+%                 end
+%             end
+%         end
+%     end
+%     
+%     % ON
+%     if isempty (M1ONtc)
+%         fprintf(fid, '\nON psth is empty\n');
+%     else
+%         for paindex=1:numpulseamps
+%             for gdindex=1:numgapdurs
+%                 
+%                 fprintf(fid, '\n\n%.0f ms Gap: Mean ON Trials (%.0f)\n',gapdurs(gdindex),nrepsOFF(gdindex,paindex));
+%                 
+%                 for rep=1:nrepsON(gdindex,paindex)
+%                     fprintf(fid,'\n');
+%                     spiketimes1=M1ONtc(clust, gdindex,paindex, rep).spiketimes;
+%                     [N, x]=hist(spiketimes1, X);
+%                     fprintf(fid,'\t%.0f', N);
+%                 end
+%             end
+%         end
+%     end
+%     %         % Mean ON
+%     %         for paindex=1:numpulseamps
+%     %             for gdindex=1:numgapdurs
+%     %
+%     %                 fprintf(fid, '\n%.0f ms Gap: Mean ON Trials (%.0f)\n',gapdurs(gdindex),nrepsON(gdindex,paindex));
+%     %
+%     %                 for rep=1:nrepsON(gdindex,paindex)
+%     %                     fprintf(fid,'\n');
+%     %                     spiketimes1=M1ONtc(gdindex,paindex, rep).spiketimes;
+%     %                     X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+%     %                     [N, x]=hist(spiketimes1, X);
+%     %                     fprintf(fid,'\t%.0f', N);
+%     %                 end
+%     %
+%     %             end
+%     %         end
+%     
+%     
+%     fprintf(fid, '\n');
+% end
+% fprintf(fid, '\n');
+% fclose(fid);
+% fprintf('\nwrote psth bin values to text file %s', txtfilename);
+% fprintf('\n\n');
 
 
