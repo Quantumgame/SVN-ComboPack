@@ -337,6 +337,7 @@ M1spontOFF=[];
 mM1spontOFF=[];
 sM1spontOFF=[];
 semM1spontOFF=[];
+dur=max([durs 100]);
 
 inRange=zeros(1, Nclusters);
 %extract the traces into a big matrix M
@@ -406,16 +407,32 @@ for i=1:length(event)
                 for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
                     st=spiketimes(clust).spiketimes;
                     spiketimes1=st(st>start & st<stop); % spiketimes in region
+                    spiketimes2=st(st>pos & st<(pos+.150)); %ON responses, 150 ms after the onset
+                    if dur>25
+                        spiketimes3=st(st>(pos+dur/1000) & st<(pos+dur/1000+.2)); % OFF response 200 ms after the end of the stimulus
+                        spiketimes4=st(st>(pos+.1) & st<(pos+dur/1000)); % Continuous response 100 ms- end
+                    else
+                        spiketimes3=[];
+                        spiketimes4=[];
+                    end
+                        
                     spikecount=length(spiketimes1); % No. of spikes fired in response to this rep of this stim.
                     inRange(clust)=inRange(clust)+ spikecount; %accumulate total spikecount in region
                     spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
+                    spiketimes2=(spiketimes2-pos)*1000;
+                    spiketimes3=(spiketimes3-pos)*1000;
+                    spiketimes4=(spiketimes4-pos)*1000;
                     spont_spikecount=length(find(st<start & st>(start-(stop-start))));
+                    
                     % No. spikes in a region of same length preceding response window
                     if aopulseon
                         if clust==1
                             nrepsON(findex, aindex, dindex)=nrepsON(findex, aindex, dindex)+1;
                         end
                         M1ONp(clust, findex,aindex,dindex, nrepsON(findex, aindex, dindex)).spiketimes=spiketimes1; % Spike times
+                        M1ONp2(clust, findex,aindex,dindex, nrepsON(findex, aindex, dindex)).spiketimes=spiketimes2;
+                        M1ONp3(clust, findex,aindex,dindex, nrepsON(findex, aindex, dindex)).spiketimes=spiketimes3;
+                        M1ONp4(clust, findex,aindex,dindex, nrepsON(findex, aindex, dindex)).spiketimes=spiketimes4;
                         M1ONspikecounts(clust, findex,aindex,dindex,nrepsON(findex, aindex, dindex))=spikecount; % No. of spikes
                         M1spontON(clust, findex,aindex,dindex, nrepsON(findex, aindex, dindex))=spont_spikecount; % No. of spikes in spont window, for each presentation.
                         % Could save actual spont spiketimes here, in addition
@@ -426,6 +443,9 @@ for i=1:length(event)
                             nrepsOFF(findex, aindex, dindex)=nrepsOFF(findex, aindex, dindex)+1;
                         end
                         M1OFFp(clust, findex,aindex,dindex, nrepsOFF(findex, aindex, dindex)).spiketimes=spiketimes1;
+                        M1OFFp2(clust, findex,aindex,dindex, nrepsOFF(findex, aindex, dindex)).spiketimes=spiketimes2;
+                        M1OFFp3(clust, findex,aindex,dindex, nrepsOFF(findex, aindex, dindex)).spiketimes=spiketimes3;
+                        M1OFFp4(clust, findex,aindex,dindex, nrepsOFF(findex, aindex, dindex)).spiketimes=spiketimes4;
                         M1OFFspikecounts(clust, findex,aindex,dindex,nrepsOFF(findex, aindex, dindex))=spikecount;
                         M1spontOFF(clust, findex,aindex,dindex, nrepsOFF(findex, aindex, dindex))=spont_spikecount;
                         
@@ -452,22 +472,39 @@ for dindex=1:length(durs); % Hardcoded.
                 
                 % on
                 spiketimesON=[];
+                spiketimesON2=[];
+                spiketimesON3=[];
+                spiketimesON4=[];
                 spikecountsON=[];
                 for rep=1:nrepsON(findex, aindex, dindex)
                     spiketimesON=[spiketimesON M1ONp(clust, findex, aindex, dindex, rep).spiketimes];
+                    spiketimesON2=[spiketimesON2 M1ONp2(clust, findex, aindex, dindex, rep).spiketimes]; %ON
+                    spiketimesON3=[spiketimesON3 M1ONp3(clust, findex, aindex, dindex, rep).spiketimes]; %OFF
+                    spiketimesON4=[spiketimesON4 M1ONp4(clust, findex, aindex, dindex, rep).spiketimes]; %Co
                     % Accumulate spike times for all presentations of each
                     % laser/f/a combo.
                 end
                 
                 % All spiketimes for a given f/a/d combo, for psth:
                 mM1ONp(clust, findex, aindex, dindex).spiketimes=spiketimesON;
+                mM1ONp2(clust, findex, aindex, dindex).spiketimes=spiketimesON2;
+                mM1ONp3(clust, findex, aindex, dindex).spiketimes=spiketimesON3;
+                mM1ONp4(clust, findex, aindex, dindex).spiketimes=spiketimesON4;
                 
                 % off
                 spiketimesOFF=[];
+                spiketimesOFF2=[];
+                spiketimesOFF3=[];
                 for rep=1:nrepsOFF(findex, aindex, dindex)
                     spiketimesOFF=[spiketimesOFF M1OFFp(clust, findex, aindex, dindex, rep).spiketimes];
+                    spiketimesOFF2=[spiketimesOFF2 M1OFFp2(clust, findex, aindex, dindex, rep).spiketimes];
+                    spiketimesOFF3=[spiketimesOFF3 M1OFFp3(clust, findex, aindex, dindex, rep).spiketimes];
+                    spiketimesOFF4=[spiketimesOFF4 M1OFFp4(clust, findex, aindex, dindex, rep).spiketimes];
                 end
                 mM1OFFp(clust, findex, aindex, dindex).spiketimes=spiketimesOFF;
+                mM1OFFp2(clust, findex, aindex, dindex).spiketimes=spiketimesOFF2;
+                mM1OFFp3(clust, findex, aindex, dindex).spiketimes=spiketimesOFF3;
+                mM1OFFp4(clust, findex, aindex, dindex).spiketimes=spiketimesOFF4;
             end
         end
     end
@@ -1098,6 +1135,18 @@ out.M1OFFp=squeeze(M1OFFp(cell,:,:,:,:)); % All spiketimes, trial-by-trial.
 out.M1ONp=squeeze(M1ONp(cell,:,:,:,:));
 out.mM1OFFp=squeeze(mM1OFFp(cell,:,:)); % Accumulated spike times for *all* presentations of each laser/f/a combo.
 out.mM1ONp=squeeze(mM1ONp(cell,:,:));
+out.M1OFFp2=squeeze(M1OFFp2(cell,:,:,:,:)); % All spiketimes, trial-by-trial, ON
+out.M1ONp2=squeeze(M1ONp2(cell,:,:,:,:));
+out.mM1OFFp2=squeeze(mM1OFFp2(cell,:,:)); % Accumulated spike times for *all* presentations of each laser/f/a combo.
+out.mM1ONp2=squeeze(mM1ONp2(cell,:,:));
+out.M1OFFp3=squeeze(M1OFFp3(cell,:,:,:,:)); % All spiketimes, trial-by-trial, 
+out.M1ONp3=squeeze(M1ONp3(cell,:,:,:,:));
+out.mM1OFFp3=squeeze(mM1OFFp3(cell,:,:)); % Accumulated spike times OFF
+out.mM1ONp3=squeeze(mM1ONp3(cell,:,:));
+out.M1OFFp4=squeeze(M1OFFp4(cell,:,:,:,:)); % All spiketimes, trial-by-trial.
+out.M1ONp4=squeeze(M1ONp4(cell,:,:,:,:));
+out.mM1OFFp4=squeeze(mM1OFFp4(cell,:,:)); % Accumulated spike times Continuous
+out.mM1ONp4=squeeze(mM1ONp4(cell,:,:));
 out.mM1ONspikecount=squeeze(mM1ONspikecount(cell,:,:)); % Mean spikecount for each laser/f/a combo.
 out.sM1ONspikecount=squeeze(sM1ONspikecount(cell,:,:));
 out.semM1ONspikecount=squeeze(semM1ONspikecount(cell,:,:));
@@ -1123,7 +1172,7 @@ out.oepathname=oepathname;
 out.OEdatafile=OEdatafile;
 out.isi=isi;
 out.spiketimes=spiketimes;
-out.inRange=inRange(cell,:);
+out.inRange=inRange(cell);
 out.M1ONspikecounts=squeeze(M1ONspikecounts(cell,:,:,:,:));
 out.M1OFFspikecounts=squeeze(M1OFFspikecounts(cell,:,:,:,:));
     outfilename=sprintf('out%sArch_TC%s-%s-%s-%d',channel,expdate,session, filenum, cell);
