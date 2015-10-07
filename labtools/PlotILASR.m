@@ -66,6 +66,7 @@ if xlimits(1)>-100
     error('xlimits(1) must be <= -100 ms otherwise some functions below will fail')
 end
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 lostat1=[]; %discard data after this position (in samples), -1 to skip
 % For marking where a cell is lost

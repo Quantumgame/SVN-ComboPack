@@ -81,7 +81,7 @@ numpulseamps=length(pulseamps);
 
 gapdursstring='';
 for i=1:numgapdurs
-    gapdursstring=[gapdursstring, sprintf('%d-', gapdurs(i))];
+    gapdursstring=[gapdursstring, sprintf('%g-', gapdurs(i))];
 end
 gapdursstring=gapdursstring(1:end-1); %remove trailing -
 
@@ -106,7 +106,7 @@ end
 
 %put into stimuli structure
 stimuli(1).type='exper2 stimulus protocol';
-stimuli(1).param.name= sprintf('GPIAS-na%ddB-nf%dHz-nbw-%soct-gd%sms-pd%dms-pa%sdb-soa%dms(%s)-r%d-iti%d-itivar%d-%dreps',...
+stimuli(1).param.name= sprintf('GPIAS-na%ddB-nf%dHz-nbw-%soct-gd%sms-pd%dms-pa%sdb-soa%dms(%s)-r%d-iti%d-itivar%d-%dreps.mat',...
     noiseamp, noisefreq, bandwidthstring, gapdursstring, round(pulsedur), pulseampsstring, soa,soaflag, round(ramp), isi,round(100*isi_var), nrepeats);
 
 stimuli(1).param.description=sprintf('Gap Induced Pre-Pulse Inhibition of Startle Response stimulus protocol noise amplitude:%ddB, noise center frequency: %dHz, noise bandwidth %soct, gap duration: %sms, gapdelay: %dms, pulse duration%dms pulse amplitude:%sdb SOA:%dms (%s) ramp:%dms iti:%dms iti-var: %.1f %drepeats',...

@@ -67,7 +67,7 @@ filename=stimuli(1).param.name;
 nn=1;
 
 for nn=1:length(rand_prepulseamps)
-    stimuli(nn+1).type='ASR';
+    stimuli(nn+1).type='NBASR';
     stimuli(nn+1).param.prepulsedur=prepulsedur;
     stimuli(nn+1).param.prepulseamp=rand_prepulseamps(nn);
     stimuli(nn+1).param.prepulsefreq=prepulsefreq;

@@ -62,7 +62,7 @@ else
 end
 
 if isempty(xlimits)
-    xlimits=[-200 450]; % default x limits for axis
+    xlimits=[-400 450]; % default x limits for axis
 end
 if xlimits(1)>-100
     error('xlimits(1) must be <= -100 ms otherwise some functions below will fail')
@@ -723,7 +723,7 @@ fprintf('\ngap %d: PostStartleWindow: %d %d', gapdurs(gdindex), PostStartleWindo
                             line([-gapdurs(gdindex) 0],[0 0],'color','m','linewidth',10);
                     end                    
                     % add the startle stimulus in magenta
-                    line([soa soa+pulsedur],[0 0],'color','m','linewidth',10);
+                    line([soa soa+pulsedur],[0 0],'color','g','linewidth',10);
                     
                     sumtrace=sumtrace./nrepsOFF(gdindex, paindex);
                     trace2=[0 sumtrace' 0];
@@ -757,8 +757,8 @@ fprintf('\ngap %d: PostStartleWindow: %d %d', gapdurs(gdindex), PostStartleWindo
                     plot(t, abs(trace1), 'r');
                     
                     % add the actual integration windows in grey
-                    plot(t([PreStartleWindow(1) PreStartleWindow(2)]), -.1*diff(ylimits)+0*t([PreStartleWindow(1) PreStartleWindow(2)]), 'color',[.8 .8 .8], 'linewidth', 4);
-                    plot(t([PostStartleWindow(1) PostStartleWindow(2)]), -.1*diff(ylimits)+0*t([PostStartleWindow(1) PostStartleWindow(2)]), 'color',[.8 .8 .8], 'linewidth', 4);
+%                    plot(t([PreStartleWindow(1) PreStartleWindow(2)]), -.1*diff(ylimits)+0*t([PreStartleWindow(1) PreStartleWindow(2)]), 'color',[.8 .8 .8], 'linewidth', 4);
+%                    plot(t([PostStartleWindow(1) PostStartleWindow(2)]), -.1*diff(ylimits)+0*t([PostStartleWindow(1) PostStartleWindow(2)]), 'color',[.8 .8 .8], 'linewidth', 4);
                     %         ch=get(gca, 'children');
                     %         set(gca, 'children', ch([3:length(ch)-1 1 2 length(ch)]));
                     
@@ -822,11 +822,11 @@ fprintf('\ngap %d: PostStartleWindow: %d %d', gapdurs(gdindex), PostStartleWindo
                     end
                     
                     
-                    % add the startle stimulus in magenta
+                    % add the startle stimulus in red
                     if length(pulsedurs)~=1
                         warning('This function only knows how to plot one pulsedur') %#ok
                     elseif length(pulsedurs)==1
-                        line([soa soa+pulsedurs],[0 0],'color','m','linewidth',10);
+                        line([soa soa+pulsedurs],[0 0],'color','g','linewidth',10);
                     end
                     
                     sumtrace=sumtrace./nrepsON(gdindex, paindex);
@@ -917,12 +917,12 @@ fprintf('\ngap %d: PostStartleWindow: %d %d', gapdurs(gdindex), PostStartleWindo
     end
     
     figure;hold on
-    errorbar(nanmean(squeeze(LaserOFFstartle(:,paindex,:))'),nanstd(squeeze(LaserOFFstartle(:,paindex,:))')/sqrt(size(LaserOFFstartle,3)), 'k-o')
-%    errorbar(nanmedian(squeeze(LaserOFFstartle(:,paindex,:))'),nanstd(squeeze(LaserOFFstartle(:,paindex,:))')/sqrt(size(LaserOFFstartle,3)), 'k-o')
+%    errorbar(nanmean(squeeze(LaserOFFstartle(:,paindex,:))'),nanstd(squeeze(LaserOFFstartle(:,paindex,:))')/sqrt(size(LaserOFFstartle,3)), 'k-o')
+    errorbar(nanmedian(squeeze(LaserOFFstartle(:,paindex,:))'),nanstd(squeeze(LaserOFFstartle(:,paindex,:))')/sqrt(size(LaserOFFstartle,3)), 'k-o')
     set(gca, 'xtick', 1:numgapdurs)
     set(gca, 'xticklabel', gapdurs)
-    errorbar(nanmean(squeeze(LaserONstartle(:,paindex,:))'),nanstd(squeeze(LaserONstartle(:,paindex,:))')/sqrt(size(LaserONstartle,3)), 'c-o')
-%    errorbar(nanmedian(squeeze(LaserONstartle(:,paindex,:))'),nanstd(squeeze(LaserONstartle(:,paindex,:))')/sqrt(size(LaserONstartle,3)), 'c-o')
+%    errorbar(nanmean(squeeze(LaserONstartle(:,paindex,:))'),nanstd(squeeze(LaserONstartle(:,paindex,:))')/sqrt(size(LaserONstartle,3)), 'c-o')
+    errorbar(nanmedian(squeeze(LaserONstartle(:,paindex,:))'),nanstd(squeeze(LaserONstartle(:,paindex,:))')/sqrt(size(LaserONstartle,3)), 'c-o')
     set(gca, 'xtick', 1:numgapdurs)
     set(gca, 'xticklabel', gapdurs)
     title ('LaserON/OFF startle')
