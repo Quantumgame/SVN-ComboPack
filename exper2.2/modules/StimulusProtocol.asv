@@ -1,9 +1,14 @@
 function varargout=StimulusProtocol(varargin)
 
 % Plays a bunch of different stimuli stored in a .mat file ('protocol')
+%now has the capability to load files programatically
+%call StimulusProtocol('load', fullfilename)
+%where fullfilename includes the absolute path (e.g. 'D:\lab\exper2.2\protocols\Tuning Curve protocols\tuning-curve-tones-20f_1000-20000Hz-1a_80-80dB-1d_400ms-isi500ms.mat'
+%mw 09.24.13
 
 %ISI works by setting the stimulusProtocolTimerDelay to
-%stimulus.param.duration/1000 + stimulus.param.next/1000 
+%stimulus.param.duration/1000 + stimulus.param.next/1000
+
 
 global exper pref shared stimulusProtocolTimer stimulusProtocolTimerDelay
 
@@ -89,11 +94,32 @@ switch action
         end
 
     case 'load'
-        currentdir=pwd;
+
+        %adding capability to push files programatically
+        %call StimulusProtocol('load', 'fullfilename')
+        %where fullfilename includes the absolute path (e.g. 'D:\lab\exper2.2\protocols\Tuning Curve protocols\tuning-curve-tones-20f_1000-20000Hz-1a_80-80dB-1d_400ms-isi500ms.mat'  
+
+        if nargin==2
+            if varargin{2}
+                try
+                    [pathname, filename,ext] = fileparts(varargin{2});
+                end
+            end
+        else
+            
+            currentdir=pwd;
             cd(pref.stimuli);
-        end
-        [filename, pathname] = uigetfile('*.mat', 'Pick a protocol file');
-        cd(currentdir);
+            %         if strcmp(pref.username,'mak')
+            %             cd('Michael')
+            %         else
+            if strcmp(pref.username,'ira')
+               % cd('Iryna')
+            elseif strcmp(pref.username,'teg')
+                cd('Taryn')
+            end
+            [filename, pathname] = uigetfile('*.mat', 'Pick a protocol file');
+            cd(currentdir);
+        end %if nargin==2
         if isequal(filename,0) || isequal(pathname,0)
             return;
         else
@@ -157,13 +183,13 @@ switch action
                         SetParam(me,'NRepeats',0);
 
                     else
-                        message(me,'Protocol already loaded');
+                        Message(me,'Protocol already loaded');
                     end
                 else
-                    message(me,'Not a valid protocol file');
+                    Message(me,'Not a valid protocol file');
                 end
             catch
-                message(me,'Can''t load the protocol file');
+                Message(me,'Can''t load the protocol file');
             end
         end
 
@@ -171,7 +197,7 @@ switch action
         protocol=GetParam(me,'Protocol');
         current=GetParam(me,'CurrentStimulus');
         nstimuli=GetParam(me,'NStimuli');
-        message(me,[num2str(current(protocol)) '/' num2str(nstimuli(protocol))]);
+        Message(me,[num2str(current(protocol)) '/' num2str(nstimuli(protocol))]);
         desc=GetParam(me,'Description');
         obj=findobj('tag','protocol_description');
         outstring=textwrap(obj(1),{desc{protocol}});
@@ -246,8 +272,8 @@ else
 end
 %fprintf('\nstimulusProtocolTimerDelay %.1f', stimulusProtocolTimerDelay)
 SendStimulus(stimulus);
-% message(me,[num2str(current(protocol)) '/' num2str(nstimuli(protocol))]);
-message(me,[num2str(current(protocol)) '/' num2str(nstimuli(protocol)) ', ' num2str(GetParam(me, 'NRepeats')) ' repeats' ]);
+% Message(me,[num2str(current(protocol)) '/' num2str(nstimuli(protocol))]);
+Message(me,[num2str(current(protocol)) '/' num2str(nstimuli(protocol)) ', ' num2str(GetParam(me, 'NRepeats')) ' repeats' ]);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Return the name of this file/module.

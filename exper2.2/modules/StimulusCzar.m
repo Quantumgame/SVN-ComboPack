@@ -436,6 +436,8 @@ elseif  isfield(stimulus.param, 'angle')
     Message(me,[' ', stimulus.type, ' ',int2str(stimulus.param.angle), ' deg'], 'append')
 elseif  isfield(stimulus.param, 'amplitude')
     Message(me,sprintf(' %s, %g',stimulus.type, stimulus.param.amplitude), 'append')
+elseif  isfield(stimulus.param, 'prepulsedur')
+    Message(me,sprintf(' %s, %g ms',stimulus.type, stimulus.param.prepulsedur), 'append')
 else
     Message(me,stimulus.type, 'append');
 end
@@ -527,25 +529,31 @@ if ~isempty(cal) %it will be empty if Init failed to load calibration
                     findex2=find(cal.logspacedfreqs==-1); %freq of -1 indicates white noise
                     atten=cal.atten(findex2);
                     stimparams{stimidx}.pulseamp=stimparams{stimidx}.pulseamp-atten;
-
+                    
                     Message(me, 'calibrated', 'append')
                 catch
                     Message(me, 'NOT calibrated', 'append')
                 end
-                case {'ASR'} %startle pulse (use whitenoise calibration)
+            case {'ASR'} %startle pulse (use whitenoise calibration)
+                try
+                    findex=find(cal.logspacedfreqs==-1); %freq of -1 indicates white noise
+                    atten=cal.atten(findex);
+                    stimparams{stimidx}.prepulseamp=stimparams{stimidx}.prepulseamp-atten;
+                    stimparams{stimidx}.pulseamp=stimparams{stimidx}.pulseamp-atten;
+                    
+                    Message(me, 'calibrated', 'append')
+                catch
+                    Message(me, 'NOT calibrated', 'append')
+                end
+            case {'NBASR'} %startle pulse (use whitenoise calibration)
                 %plus narrow-band noise pulse (use center frequency calibration)
-                
-                try % there is a bug here!!! mak 26June2012
-                    % findex finds the index before the index desired.
-                    % E.g., for 4000 Hz it gives 3364 Hz, although it's
-                    % only a difference of 4 dB
-                    findex=find(cal.logspacedfreqs<=stimparams{stimidx}.prepulsefreq, 1, 'last'); 
+                try %
+                    findex=find(cal.logspacedfreqs<=stimparams{stimidx}.prepulsefreq, 1, 'last');
                     atten=cal.atten(findex);
                     stimparams{stimidx}.prepulseamp=stimparams{stimidx}.prepulseamp-atten;
                     findex2=find(cal.logspacedfreqs==-1); %freq of -1 indicates white noise
                     atten=cal.atten(findex2);
                     stimparams{stimidx}.pulseamp=stimparams{stimidx}.pulseamp-atten;
-
                     Message(me, 'calibrated', 'append')
                 catch
                     Message(me, 'NOT calibrated', 'append')

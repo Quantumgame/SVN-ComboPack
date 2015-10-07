@@ -15,7 +15,12 @@ function out=StimulusCzar(varargin)
 
 %soundmethod is set in prefs mw 02082011
 
-global exper pref shared
+global exper pref shared calibrationmethod
+% calibrationmethod can be 'look-up' or 'inversefilter'
+% this determines whether sound level calibration uses the
+% standard look-up-table for tones and noise, or the new inverse adaptive filtering approach 
+%calibrationmethod='inversefilter'; 
+calibrationmethod='look-up';
 
 if nargin > 0
     action = lower(varargin{1});
@@ -121,7 +126,7 @@ InitParam(me,'stimulus_bytes','value',{});    % cell array that keeps track of s
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function SendStimulus(stimulus,trigger)
 % expects a structure in stimulus to send out
-global exper pref
+global exper pref calibrationmethod
 if ~isstruct(stimulus)
     Message(me,'Not a correct stimulus');
     return;
@@ -178,8 +183,9 @@ for stimidx=1:n                     % stimulus index
             end
             if notfile
                 %calibrate tone amplitudes
-                stimparams=CalibrateSound(stimparams, stimidx, stimtypes);
-
+                if strcmp(calibrationmethod, 'look-up')
+                    stimparams=CalibrateSound(stimparams, stimidx, stimtypes);
+                end
                 sample=feval(typefcn,stimparams{stimidx},samplerate);
             else
                 sample=load([pref.stimuli '\' stimparams{stimidx}.file]);    % we know this field exists. the path to filename is relative to pref.stimuli (=main stimuli directory)
@@ -194,6 +200,9 @@ for stimidx=1:n                     % stimulus index
                 % and loads the sound
                 %mw051308
 
+                if strcmp(calibrationmethod, 'inversefilter')
+                   sample= InverseFilter(sample, samplerate, stimparams{stimidx});
+                end
 
                 switch GetParam(me, 'soundmethod')
                     case 'PPAsound'
@@ -369,7 +378,8 @@ if trigger
     %extend it, I'm just using putvalue
 %for now, wrapping around at 255, but we could simply send 2 bytes in a row
 %to extend the range to a large number
-    binID = dec2binvec(mod(nstimulus, 255),8);
+    binID = dec2binvec(mod(nstimulus, 127),7);
+    binID=[1 binID]; %always have 1-line high to act as trigger, lines 2-8 are coding ID
     putvalue(exper.dio.dio.Line(1:8), binID)
     pause(.001);
     putvalue(exper.dio.dio.Line(1:8), 0)
@@ -543,6 +553,13 @@ if ~isempty(cal) %it will be empty if Init failed to load calibration
         end
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function samples=InverseFilter(samples, samplerate, stimparams);
+%stuff will go here eventually
+%mw 09-25-2014
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ResetMyVariables
 global pref
