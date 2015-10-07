@@ -28,7 +28,7 @@ global pref
 %                           between the onset of the gap and the onset of the startle, or else 'isi',
 %                           in which case soa specifies the time between gap offset and startle
 %                           onset. If anything other than 'isi' it will default to 'soa'.
-
+%
 %  Output:
 %  tone               -   the specified tone (empty if unsuccessful)
 %  
