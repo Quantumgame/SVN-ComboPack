@@ -37,7 +37,7 @@ function Make2ToneWNProtocol(numamplitudes, ...
 global pref
 if nargin~=11 error('\nMake2ToneProtocol: wrong number of arguments.'); end
 
-logspacedfreqs = logspace( log10(minfreq) , log10(maxfreq) , numfreqs );
+% logspacedfreqs = logspace( log10(minfreq) , log10(maxfreq) , numfreqs );
 linspacedamplitudes = linspace( minamplitude , maxamplitude , numamplitudes );
 linspacedprobeamplitudes = linspace( minprobeamplitude , maxprobeamplitude , numprobeamplitudes );
 
