@@ -11,6 +11,10 @@ username=pref.username;
 
 rig=pref.rig;
 
+if strcmp(pref.username, 'apw')
+    rig='rig5';
+end
+
 if nargin ~=3
     error('godatadir: wrong number of arguments');
 end
