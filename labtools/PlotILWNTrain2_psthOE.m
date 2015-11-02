@@ -8,6 +8,8 @@ function PlotILWNTrain2_psthOE(expdate, session, filenum, channel, varargin)
 dbstop if error
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 % sorter='simpleclust';
+save_outfile=1;
+
 if nargin==0
     fprintf('\nno input');
     return;
@@ -103,7 +105,7 @@ elseif nargin==8
 else
     error('PlotILWNTrain2_psthOE: wrong number of arguments');
 end
-
+save_outfile=1;
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %Get PPA lazer params
 
@@ -753,11 +755,21 @@ out.event=event;
 out.xlimits=xlimits;
 out.ylimits=ylimits;
 out.samprate=samprate;
+out.PPAstart=PPAstart;
+out.width=width;
+out.cluster=cell;
 
 
 outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-psth',channel,expdate,session, filenum);
 save (outfilename, 'out')
 fprintf('\n Saved to %s.\n', outfilename)
+
+
+if save_outfile==1
+cd('D:\lab\Somatostatin_project_shared_folder\Clicks\')
+outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+save(outfilename, 'out');
+fprintf('saved the outfile in Clicks folder'); %ira 7.29.15
 end
 
 

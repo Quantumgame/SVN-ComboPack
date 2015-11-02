@@ -25,7 +25,9 @@ sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 fprintf('\nsorter: %s', sorter)
 
 save_the_outfile=0; % saves an outfile in a specific locationt hat is synced with ira's macbook for analysis
-location='D:\lab\Somatostatin_project_shared_folder\Data';
+%location='d:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\Gap\';
+
+combine_ONOFF=0; %if you want to plot on and off trials together without splitting them
 
 refract=15;
 fs=12; %fontsize for figures
@@ -477,8 +479,50 @@ for paindex=1:numpulseamps;
     end
 end
 
-
-out.M1OFFtc = M1OFFtc;
+if save_the_outfile==1
+out.user=whoami;   
+out.expdate=expdate;
+out.session=session;
+out.filenum=filenum;
+out.tetrode=channel;
+out.cluster=cell;
+cell=str2num(cell);
+out.M1OFFtc = squeeze(M1OFFtc(cell,:,:,:));
+%out.M1ONtc = squeeze(M1ONtc(cell,:,:,:));
+%out.M1ONtc2 = squeeze(M1ONtc2(cell,:,:,:));
+out.M1OFFtc2 = squeeze(M1OFFtc2(cell,:,:,:));
+out.mM1OFFtc = squeeze(mM1OFFtc(cell,:));
+%out.mM1ONtc = squeeze(mM1ONtc(cell,:));
+out.mM1OFFtc2 = squeeze(mM1OFFtc2(cell,:));
+%out.mM1ONtc2 = squeeze(mM1ONtc2(cell,:));
+out.inRange=inRange(clust);
+out.binwidth=binwidth;
+out.samprate=samprate;
+out.numpulseamps = numpulseamps;
+out.numgapdurs = numgapdurs;
+out.pulseamps = pulseamps;
+out.gapdurs = gapdurs;
+out.gapdelay = gapdelay;
+out.Nclusters = Nclusters;
+out.nrepsOFF=nrepsOFF;
+%out.nrepsON=nrepsON;
+out.xlimits=xlimits;
+out.PPAstart=PPAstart;
+out.width=width;
+out.numpulses=numpulses;
+out.oepathname=oepathname;
+out.combine_ONOFF=combine_ONOFF;
+%out.OEdatafile=OEdatafile;
+out.isi=isi;
+out.quality=4;
+out.notes='tc2 is only 0-150 ms';
+    cd(location);
+    outfilename=sprintf('out%sILGPIAS-%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+    save (outfilename, 'out');
+    fprintf('saved the outfile in a synced folder');
+    save(outfilename, 'out')
+else
+    out.M1OFFtc = M1OFFtc;
 out.M1ONtc = M1ONtc;
 out.mM1OFFtc = mM1OFFtc;
 out.mM1ONtc = mM1ONtc;
@@ -500,48 +544,8 @@ godatadir(expdate, session, filenum)
 save(outfilename, 'out')
 fprintf('\nsaved to %s\n', outfilename);
 
-end 
-if save_the_outfile==1
-out.user=whoami;   
-out.expdate=expdate;
-out.session=session;
-out.filenum=filenum;
-out.tetrode=channel;
-out.cluster=cell;
-out.M1OFFtc = squeeze(M1OFFtc(cell,:,:,:));
-out.M1ONtc = squeeze(M1ONtc(cell,:,:,:));
-out.M1ONtc2 = squeeze(M1ONtc2(cell,:,:,:));
-out.M1OFFtc2 = squeeze(M1OFFtc2(cell,:,:,:));
-out.mM1OFFtc = squeeze(mM1OFFtc(cell,:));
-out.mM1ONtc = squeeze(mM1ONtc(cell,:));
-out.mM1OFFtc2 = squeeze(mM1OFFtc2(cell,:));
-out.mM1ONtc2 = squeeze(mM1ONtc2(cell,:));
-out.inRange=inRange(clust);
-out.binwidth=binwidth;
-out.samprate=samprate;
-out.numpulseamps = numpulseamps;
-out.numgapdurs = numgapdurs;
-out.pulseamps = pulseamps;
-out.gapdurs = gapdurs;
-out.gapdelay = gapdelay;
-out.Nclusters = Nclusters;
-out.nrepsOFF=nrepsOFF;
-out.nrepsON=nrepsON;
-out.xlimits=xlimits;
-out.PPAstart=PPAstart;
-out.width=width;
-out.numpulses=numpulses;
-out.oepathname=oepathname;
-%out.OEdatafile=OEdatafile;
-out.isi=isi;
-    cd(location);
-    outfilename=sprintf('out%sILGPIAS-%s-%s-%s-%d',channel,expdate,session, filenum, cell);
-    save (outfilename, 'out');
-    fprintf('saved the outfile in a synced folder');
-    save(outfilename, 'out')
-
 end
-
+end
 
 
 if ylimits==-1
@@ -573,8 +577,9 @@ else
         ylimits1(clust, :)=[ylimits];
     end
 end
-
+M1ONtc2=[];
 % Plotpsth ON
+if 0
 if ~isempty(cell)
     clust=cell;
     figure
@@ -591,7 +596,7 @@ if ~isempty(cell)
                 title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
             end
             
-            if ~isempty (M1ONtc2(clust,:)) & ~isempty (M1OFFtc2(clust,:))
+            if ~isempty (M1ONtc2) & ~isempty (M1OFFtc2(clust,:))
                 %only makes sense to do the t-test if you have both ON and
                 %OFF only in 0-150 ms window from gap termination
                 ONcounts=[mM1ONtc2(clust, gdindex,paindex).spiketimes];
@@ -741,11 +746,11 @@ for clust=1:Nclusters
     xlabel('ms')
 end %for clust
 end
-
+end
 % Plotpsth ON/OFF again, this time with rasters
-if 1
+if 0
     if ~isempty(cell)
-        clust=cell;
+        clust=str2num(cell);
                 figure
         for paindex=1:numpulseamps
             p=0;
@@ -909,7 +914,7 @@ end
 
 % Plot OFF trials
 if ~isempty(cell)
-        clust=cell;
+        clust=str2num(cell);
                 figure
         for paindex=1:numpulseamps
             p=0;
@@ -921,7 +926,7 @@ if ~isempty(cell)
                 hold on
                 
                 if p==1
-                    title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
+                    title(sprintf('%s-%s-%s, tetrode %s, cell %d, laser OFF',expdate,session,filenum, channel, clust))
                 end
                 
                 
@@ -980,6 +985,7 @@ if ~isempty(cell)
         end
         
         xlabel('ms')
+        set(gcf,'Position',[100 50 800 900]);
     else
     for clust=1:Nclusters
         figure
@@ -1055,6 +1061,66 @@ if ~isempty(cell)
     end %for clust
 end %if plot rasters
 drawnow
+
+if combine_ONOFF==1
+    fprintf('\n\nCombinging on and off trials!!\n\n')
+
+    for clust=1:Nclusters
+        figure
+        for paindex=1:numpulseamps
+            p=0;
+            subplot1(numgapdurs,1)
+            
+            for gdindex=1:numgapdurs
+                p=p+1;
+                subplot1(p)
+                hold on
+                
+                if p==1
+                    title(sprintf('%s-%s-%s, tetrode %s, cell %d, Green=Laser ON; Black=Laser OFF',expdate,session,filenum, channel, clust))
+                end
+                % plot off psth
+                offset=0;
+                yl=ylimits1(clust,:);
+                inc=(yl(2))/max(max(max(nrepsOFF)));
+                if ~isempty (mM1OFFtc)
+                    spiketimes1=[mM1OFFtc(clust, gdindex,paindex).spiketimes mM1ONtc(clust, gdindex,paindex).spiketimes] ;
+                    %                X=(xlimits(1)):binwidth:(xlimits(2)); %specify bin centers
+                    X=(xlimits(1)+gapdelay):binwidth:(xlimits(2)+gapdelay); %specify bin centers
+                    [N, x]=hist(spiketimes1, X);
+                    N=N./nrepsOFF(gdindex,paindex); % averaged across trials
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    bar(x-gapdelay, N,1,'facecolor',[0 0 0]);
+                end  
+                
+                for n=1:nrepsOFF(gdindex,paindex)
+                    spiketimes2= [M1OFFtc(clust, gdindex,paindex, n).spiketimes M1ONtc(clust, gdindex,paindex, n).spiketimes];
+                    offset=offset+inc;
+                    h=plot(spiketimes2-gapdelay, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                end   
+                
+                %plot stim
+            if gapdurs(gdindex)>0
+                line([0 0],[ylim],'color','m')
+                line(-[(gapdurs(gdindex)) (gapdurs(gdindex))],[ylim],'color','m')
+            end
+                
+                
+                xlim([(xlimits(1)) xlimits(2)])
+                %            xlim([(xlimits(1)+gapdelay) xlimits(2)+gapdelay])
+                %ylim(ylimits1(clust, :))
+                ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+
+            end
+        end
+    
+        xlabel('ms')
+    end
+    
+end
+end
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % open .txt file for aldis

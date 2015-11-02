@@ -379,7 +379,7 @@ end
 
 outfilename=sprintf('outOE%s_%s-%s-%s',channel, expdate, session, filenum);
 godatadir(expdate, session, filenum);
-save (outfilename, 'out')
+save(outfilename, 'out')
 try
 fprintf('\nOE recording was %d for this file', out.isrecording)
 end

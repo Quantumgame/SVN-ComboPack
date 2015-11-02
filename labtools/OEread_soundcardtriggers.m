@@ -7,7 +7,7 @@ function [soundcardtriggerPos]=OEread_soundcardtriggers(varargin)
 % [soundcardtriggerPos]=OEread_soundcardtriggers;
 % [soundcardtriggerPos]=OEread_soundcardtriggers(expdate, session filenum);
 
-filename='100_CH37.continuous';
+filename='100_ADC2.continuous';
 soundcardtriggerPos=[];
 
 if nargin==0
@@ -49,18 +49,26 @@ elseif nargin==3
             fprintf('\ncould not find exper structure. Cannot get OE file info.')
         end
     end
+    oepathname(1)='d';
+fprintf('\n changing drive from c to d in oepathname. the data has been moved\n');
     cd(oepathname)
     
 end
 
 dur=stimuli{1}.param.duration;
 isi=stimuli{2}.param.next;
-try
+
 [data, alltimestamps, info] = load_open_ephys_data(filename);
 samprate=info.header.sampleRate;
 [b,a]=butter(3, 100/15000, 'high');
 fdata=filtfilt(b,a,data); 
 thresh=20*std(fdata);%((max(data)-mean(data))/2.1);
+% thresh2=25*std(fdata);%
+% for i=1:length(fdata);
+%     if fdata(i)>thresh2
+%         fdata(i)=0;
+%     end
+% end
 thdata=fdata>thresh;
 sdata=sparse([0; diff(thdata)]);
 soundcardtriggerPos=find(sdata==1);
@@ -117,11 +125,12 @@ xlim([start stop])
 title(sprintf('OEread soundcardtriggers: only plotting %d seconds of data surrounding first soundcard trigger', sec_to_plot))
 
 fprintf('\nfound %d soundcard triggers\n', length(soundcardtriggerPos))
-catch
+
+
   if isempty(soundcardtriggerPos)
       fprintf('\n|n|nHelp!!!!!!!!!!!!!!!!    No soundcard triggers detected. Resorting to hardware triggers.\n\n')
   end
-end
+
 % catch
 %     fprintf('\nNo soundcard trigger file found. Resorting to hardware triggers.\n\n')
 % end

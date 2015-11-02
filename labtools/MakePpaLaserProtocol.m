@@ -201,7 +201,7 @@ else
 end
 
 fileNameNew=sprintf('ppalaser-IL-%d-%d-%d-%d-%s', pre, width, isi, numtones, tcFileName);
-folderPathNew='c:\lab\exper2.2\protocols\Arch Protocols\';
+folderPathNew='d:\lab\exper2.2\protocols\Arch Protocols\';
 % Outputs. ^^
 cd(folderPathNew);
 save(fileNameNew,'stimuli');

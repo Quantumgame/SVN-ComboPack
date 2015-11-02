@@ -13,6 +13,8 @@ function PlotTC_psthOE(expdate, session, filenum, channel, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
+location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\LongWN';
+save_outfile=0;
 % %sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
 % for i=1:length(recordings)
@@ -198,40 +200,40 @@ end
 first_sample_timestamp=OEget_first_sample_timestamp(oepathname); %in s
 
 %load spiketimes from clustered data
-%   switch sorter
-%        case 'simpleclust'
-%            OEdatafile=sprintf('ch%s_simpleclust.mat', channel);
-%            load(OEdatafile);
-%            Nclusters=features.Nclusters;
-%            for n=1:Nclusters
-%                spikeidx(n).spikeidx=find(features.clusters==n);%list of indexes for spikes in each cluster
-%                nspikes(n)=length(spikeidx(n).spikeidx);
-%                spiketimes(n).spiketimes=features.ts(spikeidx(n).spikeidx); %list of spiketimes in sec
-%                spiketimes(n).spiketimes=spiketimes(n).spiketimes-first_sample_timestamp;
-%            end
-%        case 'MClust'
-%MClust spiketime files are of the form simpleclustfname_1.t
-%there is one for each cluster
-basefn=sprintf(sprintf('ch%s_simpleclust_*.t', channel));
-d=dir(basefn);
-numclusters=size(d, 1);
-if numclusters==0 error('PlotMClustTC: no cluster files found');end
-for clustnum=1:numclusters
-    if clustnum<10
-        fn=sprintf('ch%s_simpleclust_0%d.t', channel, clustnum);
-    else
-        fn=sprintf('ch%s_simpleclust_%d.t', channel, clustnum);
-    end
-    fprintf('\nreading MClust output file %s cluster %d', fn, clustnum)
-    spiketimes(clustnum).spiketimes=read_MClust_output(fn)'/10000;
-    %correct for OE start time, so that time starts at 0
-    spiketimes(clustnum).spiketimes=spiketimes(clustnum).spiketimes-first_sample_timestamp;
-    
-    totalnumspikes(clustnum)=length(spiketimes(clustnum).spiketimes);
+switch sorter
+    case 'simpleclust'
+        OEdatafile=sprintf('ch%s_simpleclust.mat', channel);
+        load(OEdatafile);
+        Nclusters=features.Nclusters;
+        for n=1:Nclusters
+            spikeidx(n).spikeidx=find(features.clusters==n);%list of indexes for spikes in each cluster
+            nspikes(n)=length(spikeidx(n).spikeidx);
+            spiketimes(n).spiketimes=features.ts(spikeidx(n).spikeidx); %list of spiketimes in sec
+            spiketimes(n).spiketimes=spiketimes(n).spiketimes-first_sample_timestamp;
+        end
+    case 'MClust'
+        %MClust spiketime files are of the form simpleclustfname_1.t
+        %there is one for each cluster
+        basefn=sprintf(sprintf('ch%s_simpleclust_*.t', channel));
+        d=dir(basefn);
+        numclusters=size(d, 1);
+        if numclusters==0 error('PlotMClustTC: no cluster files found');end
+        for clustnum=1:numclusters
+            if clustnum<10
+                fn=sprintf('ch%s_simpleclust_0%d.t', channel, clustnum);
+            else
+                fn=sprintf('ch%s_simpleclust_%d.t', channel, clustnum);
+            end
+            fprintf('\nreading MClust output file %s cluster %d', fn, clustnum)
+            spiketimes(clustnum).spiketimes=read_MClust_output(fn)'/10000;
+            %correct for OE start time, so that time starts at 0
+            spiketimes(clustnum).spiketimes=spiketimes(clustnum).spiketimes-first_sample_timestamp;
+            
+            totalnumspikes(clustnum)=length(spiketimes(clustnum).spiketimes);
+        end
+        fprintf('\nsuccessfully loaded MClust spike data')
+        Nclusters=numclusters;
 end
-fprintf('\nsuccessfully loaded MClust spike data')
-Nclusters=numclusters;
-%    end
 
 try
     samprate=OEget_samplerate(oepathname);
@@ -367,7 +369,7 @@ for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
     fprintf('\ntotal num spikes: %d', length(spiketimes(clust).spiketimes))
     fprintf('\nIn range: %d', inRange(clust))
 end
-
+mM1=[];
 %accumulate across trials
 for dindex=[1:numdurs]
     for aindex=[numamps:-1:1]
@@ -421,7 +423,7 @@ end
 %plot ch1
 
 if ~isempty(cell)
-    clust=cell;
+    clust=str2num(cell);
     for dindex=[1:numdurs]
         figure
         p=0;
@@ -433,15 +435,28 @@ if ~isempty(cell)
                 hold on
                 spiketimes1=mM1(clust, findex, aindex, dindex).spiketimes;
                 X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                %             hist(spiketimes1, X);
                 [N, x]=hist(spiketimes1, X);
                 N=N./nreps(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
                 N=1000*N./binwidth; %normalize to spike rate in Hz
-                
+                    offset=0;
+                    yl=ylimits1(clust,:);
+                    inc=(yl(2))/max(max(max(nreps)));
+                    if rasters==1
+                        for n=1:nreps(findex, aindex, dindex)
+                            spiketimes2=M1(clust, findex, aindex, dindex, n).spiketimes;
+                            offset=offset+inc;
+                            
+                            h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+
+                        end
+                    end
                 bar(x, N,1);
                 line([0 0+durs(dindex)], [-.2 -.2], 'color', 'm', 'linewidth', 4)
                 line(xlimits, [0 0], 'color', 'k')
-                ylim(ylimits1(clust,:))
+                ylimits2(clust,2)=ylimits1(clust,2)*3;
+                ylimits2(clust,1)=-2;
+                ylim(ylimits2(clust,:))
+                
                 xlim(xlimits)
                 set(gca, 'fontsize', fs)
                 set(gca, 'xticklabel', '')
@@ -457,10 +472,13 @@ if ~isempty(cell)
             for findex=1:numfreqs
                 p=p+1;
                 subplot1(p)
-                if findex==1 && flabel==0;
+                if findex==1 && aindex==numamps;
                     T=text(xlimits(1)-diff(xlimits)/2, mean(ylimits), int2str(amps(aindex)));
                     set(T, 'HorizontalAlignment', 'right')
                     flabel=1;
+                    ylabel(sprintf('%.1f dB, FR (Hz)', amps(aindex)));
+                    set(gca, 'YTickLabelMode','auto');
+                    set(gca, 'XTickLabelMode','auto');
                 else
                     set(gca, 'xticklabel', '')
                 end
@@ -475,7 +493,8 @@ if ~isempty(cell)
             end
         end
         subplot1(ceil(numfreqs/3))
-        title(sprintf('%s-%s-%s cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, clust, durs(dindex), binwidth, inRange(clust)))
+        
+        title(sprintf('%s-%s-%s, tetrode %s,  cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, channel, clust, durs(dindex), binwidth, inRange(clust)))
     end
 else
     for dindex=[1:numdurs]
@@ -500,14 +519,17 @@ else
                         for n=1:nreps(findex, aindex, dindex)
                             spiketimes2=M1(clust, findex, aindex, dindex, n).spiketimes;
                             offset=offset+inc;
+                            
                             h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+
                         end
                     end
                     
-                    bar(x, N,1);
+                    b=bar(x, N,1);
                     line([0 0+durs(dindex)], [-.2 -.2], 'color', 'm', 'linewidth', 4)
                     line(xlimits, [0 0], 'color', 'k')
                     ylimits2(clust,2)=ylimits1(clust,2)*3;
+                    
                     ylim(ylimits2(clust,:))
                     xlim(xlimits)
                     set(gca, 'fontsize', fs)
@@ -525,10 +547,12 @@ else
                 for findex=1:numfreqs
                     p=p+1;
                     subplot1(p)
-                    if findex==1 && flabel==0;
+                    if findex==1 && aindex==numamps;
                         T=text(xlimits(1)-diff(xlimits)/2, mean(ylimits), int2str(amps(aindex)));
                         set(T, 'HorizontalAlignment', 'right')
-                        flabel=1;
+                        flabel=1;set(gca, 'XTickLabelMode','auto');
+                        set(gca, 'YTickLabelMode','auto');
+                        ylabel(sprintf('%.1f dB, FR (Hz)', amps(aindex)));
                     else
                         set(gca, 'xticklabel', '')
                     end
@@ -542,13 +566,53 @@ else
                 end
             end
             subplot1(ceil(numfreqs/3))
-            title(sprintf('%s-%s-%s cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, clust, durs(dindex), binwidth, inRange(clust)))
+            title(sprintf('%s-%s-%s tetrode %s, cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, channel, clust, durs(dindex), binwidth, inRange(clust)))
             
         end %for clust
     end %for dindex
 end %cell
+set(gcf,'Position',[100 100 800 900]);
 
-out.M1=M1;
+if save_outfile==1
+    clust=str2num(cell);
+    out.cell=cell;
+    out.M1=squeeze(M1(clust,:,:,:,:));
+out.mM1=squeeze(mM1(clust,:));
+out.expdate=expdate;
+out.filenum=filenum;
+out.session=session;
+out.datafile=datafile;
+out.eventsfile=eventsfile;
+out.stimfile=stimfile;
+out.freqs=freqs;
+out.amps=amps;
+out.durs=durs;
+out.nreps=nreps;
+out.numfreqs=numfreqs;
+out.numamps=numamps;
+out.numdurs=numdurs;
+out.event=event;
+out.xlimits=xlimits;
+out.ylimits=ylimits;
+out.samprate=samprate;
+out.channel=channel;
+out.Nclusters=Nclusters;
+out.nreps=nreps;
+out.expdate=expdate;
+out.session=session;
+out.filenum=filenum;
+%out.quality=4;
+try
+    out.isrecording=isrecording;
+end
+try
+    out.oepathname=oepathname;
+end
+cd(location);
+outfilename=sprintf('outTCOE%s_%s-%s-%s_%s',channel, expdate, session, filenum, cell);
+save(outfilename, 'out');
+else
+    out.M1=M1;
 out.mM1=mM1;
 out.expdate=expdate;
 out.filenum=filenum;
@@ -571,13 +635,19 @@ out.samprate=samprate;
 out.channel=channel;
 out.Nclusters=Nclusters;
 out.nreps=nreps;
+out.expdate=expdate;
+out.session=session;
+out.filenum=filenum;
 try
     out.isrecording=isrecording;
 end
 try
     out.oepathname=oepathname;
 end
-outfilename=sprintf('outTCOE%s_%s-%s-%s',channel, expdate, session, filenum);
+end
+
+outfilename=sprintf('outTCOE%s_%s-%s-%s_%s',channel, expdate, session, filenum, cell);
+
 godatadir(expdate, session, filenum);
 save (outfilename, 'out')
 fprintf('\n\n')

@@ -32,7 +32,6 @@ username=pref.username;
 % Defaults--
 nstd=7;
 binwidth=5;
-xlimits=[0 100]; % For plots & ttest.
 ylimits=[];
 
 if nargin==0
@@ -81,6 +80,7 @@ elseif nargin==8
     if isempty(nstd);nstd=7;end
     binwidth=varargin{7};
     if isempty(binwidth);binwidth=5;end
+    infor=varargin{8};
 else
     error('wrong number of arguments');
 end
@@ -147,7 +147,7 @@ alldurs=unique(alldurs);
 numdurs=length(durs);
 
 if isempty(xlimits)
-    xlimits=[0 100]; %x limits for axis
+    xlimits=[-100 max(alldurs)+100]; %x limits for axis
 end
 
 samprate=1e4;
@@ -222,6 +222,8 @@ M1spontOFF=[];
 mM1spontOFF=[];
 sM1spontOFF=[];
 semM1spontOFF=[];
+M1ONspikecounts=[];
+M1spontON=[];
 
 % Extract the traces into a big matrix M.
 j=0;
@@ -245,8 +247,11 @@ for i=1:length(event)
             if stop>lostat1
                 fprintf('\ndiscarding trace')
             else
-                
+                try
                 aopulseon=event(i).Param.AOPulseOn;
+                catch
+                    aopulseon=0;
+                end
                 
                 if strcmp(event(i).Type, 'tone')
                     freq=event(i).Param.frequency;
@@ -308,11 +313,19 @@ end
 % ON, evoked
 mM1ONspikecount=mean(M1ONspikecounts,4); % Mean spike count
 sM1ONspikecount=std(M1ONspikecounts,[],4); % Std of the above
-semM1ONspikecount=sM1ONspikecount./sqrt(nrepsON(:,:,1)); % Sem of the above
+try 
+    semM1ONspikecount=sM1ONspikecount./sqrt(nrepsON(:,:,1)); % Sem of the above
+catch
+    semM1ONspikecount=[];
+end
 % Spont
 mM1spontON=mean(M1spontON,4);
 sM1spontON=std(M1spontON,[],4);
+try
 semM1spontON=sM1spontON./sqrt(nrepsON(:,:,1));
+catch
+    semM1spontON=[];
+end
 
 % % OFF, evoked
 mM1OFFspikecount=mean(M1OFFspikecounts,4);
@@ -373,8 +386,8 @@ if isempty(ylimits)
     
 end
 %% ttest
-[h,pvalues]=ttest2(M1ONspikecounts,M1OFFspikecounts,[],[],[],4);
-alpha=0.05/(numamps*numfreqs);
+% [h,pvalues]=ttest2(M1ONspikecounts,M1OFFspikecounts,[],[],[],4);
+% alpha=0.05/(numamps*numfreqs);
 
 %% Plot psth, ON/OFF overlay
 
@@ -413,9 +426,9 @@ for dindex=1;
             ylim(ylimits)
             
             % Add stars for ttest.
-            if pvalues(findex,aindex)<alpha
-                text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
-            end
+%             if pvalues(findex,aindex)<alpha
+%                 text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
+%             end
             
         end
     end
@@ -608,8 +621,18 @@ out.freqs=freqs;
 out.nrepsON=nrepsON;
 out.nrepsOFF=nrepsOFF;
 out.xlimits=xlimits;
+out.durs=durs;
+if isempty(mM1spontON)
+    out.laser=0;
+else
+    out.laser=1;
+end
+out.CF=infor.CF;
+out.depth=infor.depth;
+out.notes=infor.notes;
 
-godatadir(expdate,session,filenum);
+%godatadir(expdate,session,filenum);
+cd('D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch');
 outfilename=sprintf('outArch_TC%s-%s-%s',expdate,session, filenum);
 save (outfilename, 'out')
 fprintf('\n Saved to %s.\n', outfilename)

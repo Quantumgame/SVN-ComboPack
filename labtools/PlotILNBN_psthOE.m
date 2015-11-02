@@ -20,6 +20,8 @@ sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 %         sorter=recordings(i).sorter;
 %     end
 % end
+
+save_outfile=0; %saves outfile into a folder which is synced with
 dbstop if error
 if nargin==0
     fprintf('\nno input');
@@ -344,7 +346,12 @@ try
 catch
     numbws=1;
 end
-
+try
+    [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+catch
+    ProcessData_single(expdate,session,filenum);
+    [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+end
 %delete
 % expectednumrepeats=ceil(length(allfreqs)/(numfreqs*numamps*numdurs));
 % M1=[];
@@ -617,243 +624,242 @@ else
     alpha=0.05/(numamps*numfreqs);
 end
 
-% Plot psth, ON/OFF overlay
-if ~isempty(cell)
-    clust=cell;
-    for dindex=1:numdurs;
-        
-        figure
-        p=0;
-        if numdurs~=1 %dealing with multiple durations when a silent stimulus is added
-            if dindex~=1
-                subplot1(numbws,numfreqs-1)
-            end
-            if dindex==1
-                subplot1(numamps-1,numfreqs-1)
-            end
-        else
-            subplot1(numbws,numfreqs-1)
-        end
-        
-        for bwindex=1:numbws
-            for findex=1:numfreqs
-                
-                for aindex=[1:numamps]
-                    
-                    %                 if bwindex==numbws
-                    %                     findex=1;
-                    %                 end
-                    if nrepsON(findex, aindex, bwindex, dindex)==0
-                        fprintf('\n no reps')
-                    else
-                        p=p+1;
-                        subplot1(p)
-                        hold on
-                        
-                        spiketimesON=mM1ONp(clust, findex, aindex, bwindex, dindex).spiketimes;
-                        spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
-                        X=xlimits(1):binwidth:xlimits(2); % specify bin centers
-                        
-                        [NON, xON]=hist(spiketimesON, X);
-                        [NOFF, xOFF]=hist(spiketimesOFF, X);
-                        
-                        NON=NON./nrepsON(findex, aindex, bwindex, dindex); %
-                        NON=1000*NON./binwidth; %normalize to spike rate in Hz
-                        NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
-                        NOFF=1000*NOFF./binwidth;
-                        
-                        bON=bar(xON, NON,1);
-                        hold on
-                        bOFF=bar(xOFF,NOFF,1);
-                        
-                        set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
-                        set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                        line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
-                        line(xlimits, [0 0], 'color', 'k')
-                        
-                        xlim(xlimits)
-                        ylim(ylimits1(clust,:))
-                        
-                        % Add stars for ttest.
-                        if pvalues(findex,aindex, bwindex)<alpha
-                            text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
-                        end
-                        
-                    end
-                end
-                if bwindex==numbws
-                    if numfreqs>2
-                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
-                        frequencies=num2str(freqs/1000, .1);
-                        text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
-                    else
-                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
-                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
-                    end
-                else
-                end
-                
-                set(gca, 'yticklabel', '')
-            end
-        end
-        % Label amps and freqs.
-        p=0;
-        if dindex==1
-            xlabel('Quiet white noise, 25 ms')
-            title(sprintf('%s-%s-%s: -1000 dB (Max reps ON=%.0f, OFF=%.0f cell # %.0f)',expdate,session, filenum, max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
-        else
-            
-            for bwindex=[1:numbws]
-                for findex=2:numfreqs
-                    p=p+1;
-                    subplot1(p)
-                    if findex==2
-                        T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
-                        set(T, 'HorizontalAlignment', 'right')
-                        
-                        if bwindex==1
-                            T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
-                            set(T, 'HorizontalAlignment', 'right')
-                        end
-                    else
-                        set(gca, 'xticklabel', '')
-                    end
-                    set(gca, 'xtickmode', 'auto')
-                    grid on
-                    
-                end
-                
-                subplot1(ceil(numfreqs/3))
-                
-                title(sprintf('%s-%s-%s: %.0f dB (Max reps ON=%.0f, OFF=%.0f cell number %.0f, )',expdate,session, filenum, amps(aindex), max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
-                
-                %                 pos=get(gcf, 'pos');
-                %                 pos(2)=pos(2)-600;
-                %                 pos(4)=pos(4)+600;
-                %                 set(gcf, 'pos', pos);
-                %                 text
-            end
-        end %dindex
-        %nclust
-    end
-    % Plot ON trials
-    
-else
-    for clust=1:Nclusters
-        for dindex=1:numdurs;
-            
-            figure
-            p=0;
-            if numdurs~=1 %dealing with multiple durations when a silent stimulus is added
-                if dindex~=1
-                    subplot1(numbws,numfreqs-1)
-                end
-                if dindex==1
-                    subplot1(numamps-1,numfreqs-1)
-                end
-            else
-                subplot1(numbws,numfreqs-1)
-            end
-            
-            for bwindex=1:numbws
-                for findex=1:numfreqs
-                    
-                    for aindex=[1:numamps]
-                        if nrepsON(findex, aindex, bwindex, dindex)==0
-                            fprintf('\n no reps')
-                        else
-                            p=p+1;
-                            subplot1(p)
-                            hold on
-                            
-                            spiketimesON=mM1ONp(clust, findex, aindex, bwindex, dindex).spiketimes;
-                            spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
-                            X=xlimits(1):binwidth:xlimits(2); % specify bin centers
-                            
-                            [NON, xON]=hist(spiketimesON, X);
-                            [NOFF, xOFF]=hist(spiketimesOFF, X);
-                            
-                            NON=NON./nrepsON(findex, aindex, bwindex, dindex); %
-                            NON=1000*NON./binwidth; %normalize to spike rate in Hz
-                            NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
-                            NOFF=1000*NOFF./binwidth;
-                            
-                            bON=bar(xON, NON,1);
-                            hold on
-                            bOFF=bar(xOFF,NOFF,1);
-                            
-                            set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
-                            set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                            line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
-                            line(xlimits, [0 0], 'color', 'k')
-                            
-                            xlim(xlimits)
-                            ylim(ylimits1(clust,:))
-                            
-                            % Add stars for ttest.
-                            if pvalues(findex,aindex, bwindex)<alpha
-                                text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
-                            end
-                            
-                        end
-                    end
-                    if bwindex==numbws
-                        if numfreqs>2
-                            vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
-                            frequencies=num2str(freqs/1000, .1);
-                            text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
-                        else
-                            vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
-                            text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
-                        end
-                    else
-                    end
-                    
-                    set(gca, 'yticklabel', '')
-                end
-            end
-            % Label amps and freqs.
-            p=0;
-            if dindex==1
-                xlabel('Quiet white noise, 25 ms')
-                title(sprintf('%s-%s-%s: -1000 dB (Max reps ON=%.0f, OFF=%.0f cell # %.0f)',expdate,session, filenum, max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
-            else
-                
-                for bwindex=[1:numbws]
-                    for findex=2:numfreqs
-                        p=p+1;
-                        subplot1(p)
-                        if findex==2
-                            T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
-                            set(T, 'HorizontalAlignment', 'right')
-                            
-                            if bwindex==1
-                                T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
-                                set(T, 'HorizontalAlignment', 'right')
-                            end
-                        else
-                            set(gca, 'xticklabel', '')
-                        end
-                        set(gca, 'xtickmode', 'auto')
-                        grid on
-                        
-                    end
-                    
-                    subplot1(ceil(numfreqs/3))
-                    
-                    title(sprintf('%s-%s-%s: %.0f dB (Max reps ON=%.0f, OFF=%.0f cell number %.0f, )',expdate,session, filenum, amps(aindex), max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
-                    
-                    %                 pos=get(gcf, 'pos');
-                    %                 pos(2)=pos(2)-600;
-                    %                 pos(4)=pos(4)+600;
-                    %                 set(gcf, 'pos', pos);
-                    %                 text
-                end
-            end %dindex
-            %nclust
-        end
-    end
-end
+% % Plot psth, ON/OFF overlay
+% if ~isempty(cell)
+%     clust=cell;
+%     for dindex=1:numdurs;
+%
+%         figure
+%         p=0;
+%         if numdurs~=1 %dealing with multiple durations when a silent stimulus is added
+%             if dindex~=1
+%                 subplot1(numbws,numfreqs-1)
+%             end
+%             if dindex==1
+%                 subplot1(numamps-1,numfreqs-1)
+%             end
+%         else
+%             subplot1(numbws,numfreqs-1)
+%         end
+%
+%         for bwindex=1:numbws
+%             for findex=1:numfreqs
+%
+%                 for aindex=[1:numamps]
+%
+%                     %                 if bwindex==numbws
+%                     %                     findex=1;
+%                     %                 end
+%                     if nrepsON(findex, aindex, bwindex, dindex)==0
+%                         fprintf('\n no reps')
+%                     else
+%                         p=p+1;
+%                         subplot1(p)
+%                         hold on
+%
+%                         spiketimesON=mM1ONp(clust, findex, aindex, bwindex, dindex).spiketimes;
+%                         spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
+%                         X=xlimits(1):binwidth:xlimits(2); % specify bin centers
+%
+%                         [NON, xON]=hist(spiketimesON, X);
+%                         [NOFF, xOFF]=hist(spiketimesOFF, X);
+%
+%                         NON=NON./nrepsON(findex, aindex, bwindex, dindex); %
+%                         NON=1000*NON./binwidth; %normalize to spike rate in Hz
+%                         NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
+%                         NOFF=1000*NOFF./binwidth;
+%
+%                         bON=bar(xON, NON,1);
+%                         hold on
+%                         bOFF=bar(xOFF,NOFF,1);
+%
+%                         set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
+%                         set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+%                         line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+%                         line(xlimits, [0 0], 'color', 'k')
+%
+%                         xlim(xlimits)
+%                         ylim(ylimits1(clust,:))
+%
+%                         % Add stars for ttest.
+%                         if pvalues(findex,aindex, bwindex)<alpha
+%                             text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
+%                         end
+%
+%                     end
+%                 end
+%                 if bwindex==numbws
+%                     if numfreqs>2
+%                         vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
+%                         frequencies=num2str(freqs/1000, .1);
+%                         text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
+%                     else
+%                         vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
+%                         text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
+%                     end
+%                 else
+%                 end
+%
+%                 set(gca, 'yticklabel', '')
+%             end
+%         end
+%         % Label amps and freqs.
+%         p=0;
+%         if dindex==1
+%             xlabel('Quiet white noise, 25 ms')
+%             title(sprintf('%s-%s-%s: -1000 dB (Max reps ON=%.0f, OFF=%.0f cell # %.0f)',expdate,session, filenum, max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
+%         else
+%
+%             for bwindex=[1:numbws]
+%                 for findex=2:numfreqs
+%                     p=p+1;
+%                     subplot1(p)
+%                     if findex==2
+%                         T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
+%                         set(T, 'HorizontalAlignment', 'right')
+%
+%                         if bwindex==1
+%                             T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
+%                             set(T, 'HorizontalAlignment', 'right')
+%                         end
+%                     else
+%                         set(gca, 'xticklabel', '')
+%                     end
+%                     set(gca, 'xtickmode', 'auto')
+%                     grid on
+%
+%                 end
+%
+%                 subplot1(ceil(numfreqs/3))
+%
+%                 title(sprintf('%s-%s-%s: %.0f dB (Max reps ON=%.0f, OFF=%.0f cell number %.0f, )',expdate,session, filenum, amps(aindex), max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
+%
+%                 %                 pos=get(gcf, 'pos');
+%                 %                 pos(2)=pos(2)-600;
+%                 %                 pos(4)=pos(4)+600;
+%                 %                 set(gcf, 'pos', pos);
+%                 %                 text
+%             end
+%         end %dindex
+%         %nclust
+%     end
+%     % Plot ON trials
+%
+% else
+%     for clust=1:Nclusters
+%         for dindex=1:numdurs;
+%
+%             figure
+%             p=0;
+%             if numdurs~=1 %dealing with multiple durations when a silent stimulus is added
+%                 if dindex~=1
+%                     subplot1(numbws,numfreqs-1)
+%                 end
+%                 if dindex==1
+%                     subplot1(numamps-1,numfreqs-1)
+%                 end
+%             else
+%                 subplot1(numbws,numfreqs-1)
+%             end
+%
+%             for bwindex=1:numbws
+%                 for findex=1:numfreqs
+%
+%                     for aindex=[1:numamps]
+%                         if nrepsON(findex, aindex, bwindex, dindex)==0
+%                             fprintf('\n no reps')
+%                         end
+%                             p=p+1;
+%                             subplot1(p)
+%                             hold on
+%
+%                             spiketimesON=mM1ONp(clust, findex, aindex, bwindex, dindex).spiketimes;
+%                             spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
+%                             X=xlimits(1):binwidth:xlimits(2); % specify bin centers
+%
+%                             [NON, xON]=hist(spiketimesON, X);
+%                             [NOFF, xOFF]=hist(spiketimesOFF, X);
+%
+%                             NON=NON./nrepsON(findex, aindex, bwindex, dindex); %
+%                             NON=1000*NON./binwidth; %normalize to spike rate in Hz
+%                             NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
+%                             NOFF=1000*NOFF./binwidth;
+%
+%                             bON=bar(xON, NON,1);
+%                             hold on
+%                             bOFF=bar(xOFF,NOFF,1);
+%
+%                             set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
+%                             set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+%                             line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+%                             line(xlimits, [0 0], 'color', 'k')
+%
+%                             xlim(xlimits)
+%                             ylim(ylimits1(clust,:))
+%
+%                             % Add stars for ttest.
+%                             if pvalues(findex,aindex, bwindex)<alpha
+%                                 text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
+%                             end
+%
+%                     end
+%                     if bwindex==numbws
+%                         if numfreqs>2
+%                             vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
+%                             frequencies=num2str(freqs/1000, .1);
+%                             text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
+%                         else
+%                             vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/4;
+%                             text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
+%                         end
+%                     else
+%                     end
+%
+%                     set(gca, 'yticklabel', '')
+%                 end
+%             end
+%             % Label amps and freqs.
+%             p=0;
+%             if dindex==1
+%                 xlabel('Quiet white noise, 25 ms')
+%                 title(sprintf('%s-%s-%s: -1000 dB (Max reps ON=%.0f, OFF=%.0f cell # %.0f)',expdate,session, filenum, max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
+%             else
+%
+%                 for bwindex=[1:numbws]
+%                     for findex=2:numfreqs
+%                         p=p+1;
+%                         subplot1(p)
+%                         if findex==2
+%                             T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
+%                             set(T, 'HorizontalAlignment', 'right')
+%
+%                             if bwindex==1
+%                                 T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
+%                                 set(T, 'HorizontalAlignment', 'right')
+%                             end
+%                         else
+%                             set(gca, 'xticklabel', '')
+%                         end
+%                         set(gca, 'xtickmode', 'auto')
+%                         grid on
+%
+%                     end
+%
+%                     subplot1(ceil(numfreqs/3))
+%
+%                     title(sprintf('%s-%s-%s: %.0f dB (Max reps ON=%.0f, OFF=%.0f cell number %.0f, )',expdate,session, filenum, amps(aindex), max(max(max(max(nrepsON)))),max(max(max(max(nrepsOFF)))), clust))
+%
+%                     %                 pos=get(gcf, 'pos');
+%                     %                 pos(2)=pos(2)-600;
+%                     %                 pos(4)=pos(4)+600;
+%                     %                 set(gcf, 'pos', pos);
+%                     %                 text
+%                 end
+%             end %dindex
+%             %nclust
+%         end
+%     end
+% end
 
 %Plot OFF trials only
 if ~isempty(cell)
@@ -881,87 +887,53 @@ if ~isempty(cell)
                     %                 if bwindex==numbws
                     %                     findex=1;
                     %                 end
-                    if nrepsON(findex, aindex, bwindex, dindex)==0
-                        fprintf('\n no reps')
-                    else
-                        p=p+1;
-                        subplot1(p)
-                        hold on
-                        
-                        spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
-                        X=xlimits(1):binwidth:xlimits(2); % specify bin centers
-                        [NOFF, xOFF]=hist(spiketimesOFF, X);
-                        
-                        NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
-                        NOFF=1000*NOFF./binwidth;
-                        
-                        bOFF=bar(xOFF,NOFF,1);
-                        
-                        set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                        line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
-                        line(xlimits, [0 0], 'color', 'k')
-                        
-                        xlim(xlimits)
-                        %ylim(ylimits1(clust,:))
-                        
-                        % Add stars for ttest.
-                        if pvalues(findex,aindex, bwindex)<alpha
-                            text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
-                        end
-                        
-                    end
-                end
-                if bwindex==numbws
-                    if numfreqs>2
-                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
-                        frequencies=num2str(freqs/1000, .1);
-                        text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
-                    elseif numfreqs==2
-                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
-                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(2)/1000))
-                    else
-                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
-                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
-                    end
-                else
-                end
-                
-                set(gca, 'yticklabel', '')
-            end
-        end
-        % Label amps and freqs.
-        p=0;
-        %         if dindex==1
-        %             xlabel('Quiet white noise, 25 ms')
-        %             subplot1(ceil(numfreqs/3))
-        %             title(sprintf('%s-%s-%s: -1000 dB (cell # %.0f, tetrode %s)',expdate,session, filenum, clust, channel))
-        %         else
-        
-        for bwindex=[1:numbws]
-            for findex=2:numfreqs
-                p=p+1;
-                subplot1(p)
-                if findex==2
-                    T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
-                    set(T, 'HorizontalAlignment', 'right')
+                    p=p+1;
+                    subplot1(p)
+                    hold on
                     
-                    if bwindex==1
-                        T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
-                        set(T, 'HorizontalAlignment', 'right')
+                    spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
+                    X=xlimits(1):binwidth:xlimits(2); % specify bin centers
+                    [NOFF, xOFF]=hist(spiketimesOFF, X);
+                    
+                    NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
+                    NOFF=1000*NOFF./binwidth;
+                    
+                    bOFF=bar(xOFF,NOFF,1);
+                    
+                    set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+                    line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+                    line(xlimits, [0 0], 'color', 'k')
+                    
+                    xlim(xlimits)
+                    %ylim(ylimits1(clust,:))
+                    
+                    % Add stars for ttest.
+                    if pvalues(findex,aindex, bwindex)<alpha
+                        text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
                     end
-                else
-                    set(gca, 'xticklabel', '')
+                    
                 end
-                set(gca, 'xtickmode', 'auto')
-                grid on
-                
+            end
+            if bwindex==numbws
+                if numfreqs>2
+                    vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                    frequencies=num2str(freqs/1000, .1);
+                    text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
+                elseif numfreqs==2
+                    vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                    text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(2)/1000))
+                else
+                    vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                    text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
+                end
+            else
             end
             
-            subplot1(ceil(numfreqs/3))
-            
-            title(sprintf('%s-%s-%s: %.0f dB (cell number %.0f, tetrode %s KMA)',expdate,session, filenum, amps(aindex), clust, channel))
+            set(gca, 'yticklabel', '')
         end
     end
+    
+    
 else
     for clust=1:Nclusters
         for dindex=1:numdurs;
@@ -980,50 +952,47 @@ else
             end
             
             for bwindex=1:numbws
-                for findex=1:numfreqs
-                    
+                 findex=2
                     for aindex=[1:numamps]
-                        if nrepsON(findex, aindex, bwindex, dindex)==0
-                            fprintf('\n no reps')
-                        else
-                            p=p+1;
-                            subplot1(p)
-                            hold on
-                            
-                            spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
-                            X=xlimits(1):binwidth:xlimits(2); % specify bin centers
-                            [NOFF, xOFF]=hist(spiketimesOFF, X);
-                            
-                            NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
-                            NOFF=1000*NOFF./binwidth;
-                            
-                            bOFF=bar(xOFF,NOFF,1);
-                            
-                            set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                            line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
-                            line(xlimits, [0 0], 'color', 'k')
-                            
-                            xlim(xlimits)
-                            if pvalues(findex,aindex, bwindex)<alpha
-                                text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
-                            end
-                            
+                        
+                        p=p+1;
+                        subplot1(p)
+                        hold on
+                        
+                        spiketimesOFF=mM1OFFp(clust, findex, aindex, bwindex, dindex).spiketimes;
+                        X=xlimits(1):binwidth:xlimits(2); % specify bin centers
+                        [NOFF, xOFF]=hist(spiketimesOFF, X);
+                        
+                        NOFF=NOFF./nrepsOFF(findex, aindex, bwindex, dindex);
+                        NOFF=1000*NOFF./binwidth;
+                        
+                        bOFF=bar(xOFF,NOFF,1);
+                        
+                        set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+                        line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+                        line(xlimits, [0 0], 'color', 'k')
+                        
+                        xlim(xlimits)
+                        if pvalues(findex,aindex, bwindex)<alpha
+                            text((xlimits(2)*.1),(ylimits(2)*.6),'*','fontsize',30,'color','r')
                         end
+                        
                     end
-                    if bwindex==numbws
-                        if numfreqs>2
-                            vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
-                            frequencies=num2str(freqs/1000, .1);
-                            text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
-                        elseif numfreqs==2
-                            vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
-                            text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(2)/1000))
-                        else
-                            vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
-                            text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
-                        end
+                
+                if bwindex==numbws
+                    if numfreqs>2
+                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                        frequencies=num2str(freqs/1000, .1);
+                        text(xlimits(2), vpos, sprintf('%s kHz', frequencies))
+                    elseif numfreqs==2
+                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(2)/1000))
                     else
+                        vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/8;
+                        text(mean(xlimits), vpos, sprintf('%0.1f kHz', freqs(findex)/1000))
                     end
+                else
+                    
                     
                     set(gca, 'yticklabel', '')
                 end
@@ -1031,31 +1000,31 @@ else
             % Label amps and freqs.
             p=0;
             
-            for bwindex=[1:numbws]
-                for findex=2:numfreqs
-                    p=p+1;
-                    subplot1(p)
-                    if findex==2
-                        T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
-                        set(T, 'HorizontalAlignment', 'right')
-                        
-                        if bwindex==1
-                            T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
-                            set(T, 'HorizontalAlignment', 'right')
-                        end
-                    else
-                        set(gca, 'xticklabel', '')
-                    end
-                    set(gca, 'xtickmode', 'auto')
-                    grid on
-                    
-                end
-                
-                subplot1(ceil(numfreqs/3))
-                
-                title(sprintf('%s-%s-%s: %.0f dB (cell number %.0f, tetrode %s KMA)',expdate,session, filenum, amps(aindex), clust, channel))
-                
-            end
+            %             for bwindex=[1:numbws]
+            %                 for findex=2:numfreqs
+            %                     p=p+1;
+            %                     subplot1(p)
+            %                     if findex==2
+            %                         T=text(xlimits(1)-diff(xlimits)/16, mean(ylimits), sprintf('%.1f', bws(bwindex)));
+            %                         set(T, 'HorizontalAlignment', 'right')
+            %
+            %                         if bwindex==1
+            %                             T=text(xlimits(1)-diff(xlimits)/16, ylimits1(clust,2), sprintf('BW\nOct'));
+            %                             set(T, 'HorizontalAlignment', 'right')
+            %                         end
+            %                     else
+            %                         set(gca, 'xticklabel', '')
+            %                     end
+            %                     set(gca, 'xtickmode', 'auto')
+            %                     grid on
+            %
+            %                 end
+            %
+            %                 subplot1(ceil(numfreqs/3))
+            %
+            %                 title(sprintf('%s-%s-%s: %.0f dB (cell number %.0f, tetrode %s KMA)',expdate,session, filenum, amps(aindex), clust, channel))
+            %
+            %             end
             %end %dindex
             %nclust
         end
@@ -1070,6 +1039,7 @@ out.M1OFFp=M1OFFp; % All spiketimes, trial-by-trial.
 out.M1ONp=M1ONp;
 out.mM1OFFp=mM1OFFp; % Accumulated spike times for *all* presentations of each laser/f/a combo.
 out.mM1ONp=mM1ONp;
+
 out.mM1ONspikecount=mM1ONspikecount; % Mean spikecount for each laser/f/a combo.
 out.sM1ONspikecount=sM1ONspikecount;
 out.semM1ONspikecount=semM1ONspikecount;
@@ -1096,14 +1066,22 @@ out.xlimits=xlimits;
 
 out.oepathname=oepathname;
 out.OEdatafile=OEdatafile;
+out.PPAstart=PPAstart;
+out.width=width;
+out.cluster=cell;
 
 godatadir(expdate,session,filenum);
 outfilename=sprintf('out%sArchNBN%s-%s-%s',channel,expdate,session, filenum);
 save (outfilename, 'out')
 fprintf('\n Saved to %s.\n', outfilename)
 
-
-
+if save_outfile==1
+    cd('D:\lab\Somatostatin_project_shared_folder\NBN\');
+    outfilename=sprintf('out%sArchNBN%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+    save(outfilename, 'out');
+    fprintf('saved the outfile in NBN folder'); %ira 7.29.15
+    
+end
 
 fprintf('\n\n')
 end

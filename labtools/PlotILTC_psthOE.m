@@ -1,4 +1,4 @@
- function PlotILTC_psthOE(expdate, session, filenum, channel, varargin)
+function PlotILTC_psthOE(expdate, session, filenum, channel, varargin)
 % plots psth tuning curve for spike data from Open Ephys/SimpleClust
 % interleaved laser ON and OFF trials, PPA_laser signal expected on 100_CH36
 % usage: PlotILTC_psthOE(expdate, session, filenum, channel number, [xlimits], [ylimits], [binwidth],cell)
@@ -16,8 +16,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
-save_the_outfile=1; % saves an outfile in a specific locationt hat is synced with ira's macbook for analysis
-location='D:\lab\Somatostatin_project_shared_folder\Data';
+save_the_outfile=0; % saves an outfile in a specific locationt that is synced with ira's macbook for analysis
+location='d:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\ChRSom\';
+combine_ONOFF=1;
 
 % sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
@@ -126,7 +127,7 @@ end
 %Get PPA lazer params
 
 try
-[on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
+    [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
 catch
     ProcessData_single(expdate,session,filenum);
     [on, PPAstart, width, numpulses, isi]=getPPALaserParams(expdate,session,filenum);
@@ -183,18 +184,21 @@ try
     oepathname=getOEdatapath(expdate, session, filenum);
     cd(oepathname);
 catch
-    cd('C:\Program Files\Open Ephys')
-    switch sorter
-        case 'MClust'
-            [OEdatafile, oepathname] = uigetfile('*.t', 'pick an MClust output file (*.t)');
-            if isequal(OEdatafile,0) || isequal(oepathname,0)
-                return;
-            else
-                cd(oepathname)
-            end
-        case 'simpleclust'
-            [OEdatafile, oepathname] = uigetfile('*simpleclust.mat', 'pick a simpleclust.mat file');
-    end
+    %     cd('C:\Program Files\Open Ephys')
+    %     switch sorter
+    %         case 'MClust'
+    %             [OEdatafile, oepathname] = uigetfile('*.t', 'pick an MClust output file (*.t)');
+    %             if isequal(OEdatafile,0) || isequal(oepathname,0)
+    %                 return;
+    %             else
+    %                 cd(oepathname)
+    %             end
+    %         case 'simpleclust'
+    %             [OEdatafile, oepathname] = uigetfile('*simpleclust.mat', 'pick a simpleclust.mat file');
+    %     end
+    oepathname(1)='d';
+    fprintf('\n Switching from Drive C to Drive D. C is no longer on this computer\n. Data was copied to drive D\n'); %ira
+    cd(oepathname);
 end
 
 first_sample_timestamp=OEget_first_sample_timestamp(oepathname); %in s
@@ -301,6 +305,12 @@ for i=1:length(event)
         allbws(j)=event(i).Param.bandwidthOct;
         allamps(j)=event(i).Param.amplitude;
         alldurs(j)=event(i).Param.duration;
+    elseif strcmp(event(i).Type, 'amtone')
+        j=j+1;
+        allfreqs(j)=event(i).Param.frequency;
+        allamps(j)=event(i).Param.amplitude;
+        alldurs(j)=event(i).Param.duration;
+        allbws(j)=0;
     end
     
 end
@@ -344,17 +354,14 @@ inRange=zeros(1, Nclusters);
 j=0;
 
 for i=1:length(event)
-    if strcmp(event(i).Type, 'tone') | strcmp(event(i).Type, 'tonetrain') | strcmp(event(i).Type, 'grating') | strcmp(event(i).Type, 'whitenoise') | strcmp(event(i).Type, 'clicktrain') | strcmp(event(i).Type, 'noise')
-        if isfield(event(i), 'soundcardtriggerPos')
+    if strcmp(event(i).Type, 'tone') | strcmp(event(i).Type, 'tonetrain') | strcmp(event(i).Type, 'grating') | strcmp(event(i).Type, 'whitenoise') | strcmp(event(i).Type, 'clicktrain') | strcmp(event(i).Type, 'noise') | strcmp(event(i).Type, 'amtone') | strcmp(event(i).Type, 'fmtone')
+        if  isfield(event(i), 'soundcardtriggerPos')
             pos=event(i).soundcardtriggerPos/samprate;
-            if isempty(pos) & ~isempty(event(i).Position)
-                pos=event(i).Position;
-                fprintf('\nWARNING! Missing a soundcard trigger. Using hardware trigger instead.')
-                
-            end
-        else
-            pos=event(i).Position; %in sec
-            fprintf('noSCT %d ',event(i).Param.AOPulseOn )
+        end
+        if isempty(pos) & ~isempty(event(i).Position)
+            pos=event(i).Position;
+            fprintf('\nWARNING! Missing a soundcard trigger. Using hardware trigger instead.')
+          
         end
         
         start=(pos+xlimits(1)*1e-3); %in sec
@@ -369,30 +376,50 @@ for i=1:length(event)
                     freq=event(i).Param.frequency;
                     dur=event(i).Param.duration;
                     bw=0;
-                elseif strcmp(event(i).Type, 'fmtone')
-                    freq=event(i).Param.carrier_frequency;
-                    dur=event1(i).Param.duration;
-                    bw=0;
+                    modfreq=0;
+                    moddepth=0;
                 elseif  strcmp(event(i).Type, 'tonetrain')
                     freq=event(i).Param.frequency;
                     dur=event(i).Param.toneduration;
                     bw=0;
+                    modfreq=0;
+                    moddepth=0;
                 elseif  strcmp(event(i).Type, 'grating')
                     freq=event(i).Param.angle*1000;
                     dur=event(i).Param.duration;
                     bw=0;
+                    modfreq=0;
+                    moddepth=0;
                 elseif strcmp(event(i).Type, 'whitenoise')
                     dur=event(i).Param.duration;
                     freq=-1;
                     bw=inf;
+                    modfreq=0;
+                    moddepth=0;
                 elseif strcmp(event(i).Type, 'clicktrain')
                     dur=event(i).Param.clickduration;
                     freq=-1;
                     bw=0;
+                    modfreq=0;
+                    moddepth=0;
                 elseif strcmp(event(i).Type, 'noise')
                     dur=event(i).Param.duration;
                     bw=event(i).Param.bandwidthOct;
                     freq=event(i).Param.center_frequency;
+                    modfreq=0;
+                    moddepth=0;
+                elseif strcmp(event(i).Type, 'amtone')
+                    dur=event(i).Param.duration;
+                    freq=event(i).Param.frequency;
+                    modfreq=event(i).Param.modulation_frequency;
+                    moddepth=event(i).Param.modulation_depth;
+                    bw=0;
+                elseif strcmp(event(i).Type, 'fmtone')
+                    dur=event(i).Param.duration;
+                    freq=event(i).Param.carrier_frequency;
+                    modfreq=event(i).Param.modulation_frequency;
+                    moddepth=1;
+                    bw=0;
                 end
                 try
                     amp=event(i).Param.amplitude;
@@ -415,7 +442,7 @@ for i=1:length(event)
                         spiketimes3=[];
                         spiketimes4=[];
                     end
-                        
+                    
                     spikecount=length(spiketimes1); % No. of spikes fired in response to this rep of this stim.
                     inRange(clust)=inRange(clust)+ spikecount; %accumulate total spikecount in region
                     spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
@@ -478,9 +505,9 @@ for dindex=1:length(durs); % Hardcoded.
                 spikecountsON=[];
                 for rep=1:nrepsON(findex, aindex, dindex)
                     spiketimesON=[spiketimesON M1ONp(clust, findex, aindex, dindex, rep).spiketimes];
-                    spiketimesON2=[spiketimesON2 M1ONp2(clust, findex, aindex, dindex, rep).spiketimes]; %ON
-                    spiketimesON3=[spiketimesON3 M1ONp3(clust, findex, aindex, dindex, rep).spiketimes]; %OFF
-                    spiketimesON4=[spiketimesON4 M1ONp4(clust, findex, aindex, dindex, rep).spiketimes]; %Co
+                    %                     spiketimesON2=[spiketimesON2 M1ONp2(clust, findex, aindex, dindex, rep).spiketimes]; %ON
+                    %                     spiketimesON3=[spiketimesON3 M1ONp3(clust, findex, aindex, dindex, rep).spiketimes]; %OFF
+                    %                     spiketimesON4=[spiketimesON4 M1ONp4(clust, findex, aindex, dindex, rep).spiketimes]; %Co
                     % Accumulate spike times for all presentations of each
                     % laser/f/a combo.
                 end
@@ -495,6 +522,8 @@ for dindex=1:length(durs); % Hardcoded.
                 spiketimesOFF=[];
                 spiketimesOFF2=[];
                 spiketimesOFF3=[];
+                spiketimesOFF4=[];
+                spikecountsOFF=[];
                 for rep=1:nrepsOFF(findex, aindex, dindex)
                     spiketimesOFF=[spiketimesOFF M1OFFp(clust, findex, aindex, dindex, rep).spiketimes];
                     spiketimesOFF2=[spiketimesOFF2 M1OFFp2(clust, findex, aindex, dindex, rep).spiketimes];
@@ -511,9 +540,9 @@ for dindex=1:length(durs); % Hardcoded.
 end
 
 dindex=1;
-
+m=mM1ONp.spiketimes;
 % ON, evoked
-if isempty(mM1ONp) %no laser pulses in this file
+if isempty(m) %no laser pulses in this file
     mM1ONspikecount=[];
     sM1ONspikecount=[];
     semM1ONspikecount=[];
@@ -560,14 +589,14 @@ if ylimits==-1
                 X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                 [N, x]=hist(st, X);
                 N=N./nrepsON(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
-                                N=1000*N./binwidth; %normalize to spike rate in Hz
+                N=1000*N./binwidth; %normalize to spike rate in Hz
                 ymax= max(ymax,max(N));
                 
                 st=mM1OFFp(clust, findex, aindex, dindex).spiketimes;
                 X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                 [N, x]=hist(st, X);
-                N=N./nrepsON(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
-                                 N=1000*N./binwidth; %normalize to spike rate in Hz
+                N=N./nrepsOFF(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
+                N=1000*N./binwidth; %normalize to spike rate in Hz
                 ymax= max(ymax,max(N));
             end
         end
@@ -580,13 +609,14 @@ else
 end
 
 
+
 % ttest
-if isempty(mM1ONspikecount) %no laser pulses in this file
-    pvalues=nan(size(nrepsON));alpha=[];
-else
-    [h,pvalues]=ttest2(M1ONspikecounts,M1OFFspikecounts,[],[],[],5);
-    alpha=0.05/(numamps*numfreqs);
-end
+% if isempty(mM1ONspikecount) %no laser pulses in this file
+%     pvalues=nan(size(nrepsON));alpha=[];
+% else
+%     [h,pvalues]=ttest2(M1ONspikecounts,M1OFFspikecounts,[],[],[],5);
+%     alpha=0.05/(numamps*numfreqs);
+% end
 
 % Plot psth, ON/OFF overlay
 
@@ -602,7 +632,7 @@ if ~isempty(cell)
                 p=p+1;
                 subplot1(p)
                 hold on
-
+                
                 spiketimesON=mM1ONp(clust, findex, aindex, dindex).spiketimes;
                 spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex).spiketimes;
                 
@@ -621,18 +651,18 @@ if ~isempty(cell)
                 offset=0;
                 yl=ylimits1(clust,:);
                 inc=(yl(2))/max(max(max(nrepsOFF)));
-                    if rasters==1
+                if rasters==1
                     for n=1:nrepsOFF(findex, aindex, dindex)
-                    spiketimes2=M1OFFp(clust, findex, aindex, dindex, n).spiketimes;
-                    offset=offset+inc;
-                    h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                        spiketimes2=M1OFFp(clust, findex, aindex, dindex, n).spiketimes;
+                        offset=offset+inc;
+                        h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
                     end
                     for n=1:nrepsON(findex, aindex, dindex)
-                    spiketimes2=M1ONp(clust, findex, aindex, dindex, n).spiketimes;
-                    offset=offset+inc;
-                    h=plot(spiketimes2, ylimits1(clust,2)+ones(size(spiketimes2))+offset, '.g');
+                        spiketimes2=M1ONp(clust, findex, aindex, dindex, n).spiketimes;
+                        offset=offset+inc;
+                        h=plot(spiketimes2, ylimits1(clust,2)+ones(size(spiketimes2))+offset, '.g');
                     end
-                    end
+                end
                 
                 
                 set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
@@ -645,17 +675,17 @@ if ~isempty(cell)
                 
                 xlim(xlimits)
                 if rasters==1
-                ylimits2(clust,2)=ylimits1(clust,2)*3;
-                ylim(ylimits2(clust,:))
+                    ylimits2(clust,2)=ylimits1(clust,2)*3;
+                    ylim(ylimits2(clust,:))
                 else
                     ylim(ylimits1(clust,:));
                 end
                 
                 % Add stars for ttest.
-                if pvalues(clust,findex,aindex)<alpha
-                    text((xlimits(2)*.1),(ylimits1(clust,2)*.6),'*','fontsize',30,'color','r')
-                    fprintf('On trial is significantly different from OFF trial, freg= %.2f, amp= %.2f', freqs(findex), amps(aindex));
-                end
+                %                 if pvalues(clust,findex,aindex)<alpha
+                %                     text((xlimits(2)*.1),(ylimits1(clust,2)*.6),'*','fontsize',30,'color','r');
+                %                     fprintf('On trial is significantly different from OFF trial, freg= %.2f, amp= %.2f', freqs(findex), amps(aindex));
+                %                 end
                 
             end
         end
@@ -692,6 +722,12 @@ if ~isempty(cell)
                     title(sprintf('%s-%s-%s cell %d: ON & OFF trials (Min reps = %.0f ON, %.0f OFF) %.1f-%.1f kHz @ %.0f-%.0f dB',...
                         expdate,session,filenum,clust,min(min(min(nrepsON))),min(min(min(nrepsOFF))),freqs(1)/1000,...
                         freqs(end)/1000,amps(1),amps(end)))
+                    if modfreq~=0
+                        title(sprintf('%s-%s-%s cell %d: ON & OFF trials %.1f-%.1f kHz @ %.0f-%.0f dB, mod freq=%d, mod depth= %d',...
+                            expdate,session,filenum,clust,min(min(min(nrepsON))),min(min(min(nrepsOFF))),freqs(1)/1000,...
+                            freqs(end)/1000,amps(1),amps(end), modfreq, moddepth))
+                        
+                    end
                 end
             end
         end
@@ -702,17 +738,18 @@ if ~isempty(cell)
 else
     for dindex=1:length(durs);
         for clust=1:Nclusters
-           
+            
             figure
+            
             p=0;
             subplot1(numamps,numfreqs)
             for aindex=numamps:-1:1
                 for findex=1:numfreqs
-                     offset=0;
+                    offset=0;
                     p=p+1;
                     subplot1(p)
                     hold on
-                                    
+                    
                     yl=ylimits1(clust,:);
                     inc=(yl(2))/max(max(max(nrepsOFF)));
                     spiketimesON=mM1ONp(clust, findex, aindex, dindex).spiketimes;
@@ -734,6 +771,11 @@ else
                     
                     set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                     set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+                    if clust==4
+                        set(bOFF, 'facecolor', [.5 0 0],'edgecolor', [.5 0 0]);
+                        set(bON, 'facecolor', [0 0 .5],'edgecolor', [0 0 .5]);
+                    end
+                    
                     line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
                     if aindex==1 && findex==1
                         line([PPAstart width+PPAstart], [-.05 -.05], 'color', 'c', 'linewidth', 2)
@@ -747,11 +789,17 @@ else
                             spiketimes2=M1OFFp(clust, findex, aindex, dindex, n).spiketimes;
                             offset=offset+inc;
                             h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                            if clust==4
+                                h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.r');
+                            end
                         end
                         for n=1:nrepsON(findex, aindex, dindex)
                             spiketimes2=M1ONp(clust, findex, aindex, dindex, n).spiketimes;
                             offset=offset+inc;
                             h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.g');
+                            if clust==4
+                                h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.r');
+                            end
                         end
                     end
                     
@@ -762,9 +810,9 @@ else
                     ylim(ylimits2(clust,:))
                     
                     % Add stars for ttest.
-                    if pvalues(findex,aindex)<alpha
-                        text((xlimits(2)*.1),(ylimits1(clust,2)*.6),'*','fontsize',30,'color','r')
-                    end
+                    %                     if pvalues(findex,aindex)<alpha
+                    %                         text((xlimits(2)*.1),(ylimits1(clust,2)*.6),'*','fontsize',30,'color','r')
+                    %                     end
                     
                 end
             end
@@ -840,7 +888,7 @@ if ~isempty(cell)
                 NON=1000*NON./binwidth; %normalize to spike rate in Hz
                 bON=bar(xON, NON,1);
                 
-         
+                
                 set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                 line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
                 if aindex==1 && findex==1
@@ -902,10 +950,10 @@ else
                     hold on
                     spiketimesON=mM1ONp(clust, findex, aindex, dindex).spiketimes; % All spiketimes.
                     X=xlimits(1):binwidth:xlimits(2); % Histogram w/specified bin centers
-                [NON, xON]=hist(spiketimesON, X);
-                NON=NON./nrepsON(findex, aindex, dindex); % Bin count / # trials
-                NON=1000*NON./binwidth; %normalize to spike rate in Hz
-                bON=bar(xON, NON,1);
+                    [NON, xON]=hist(spiketimesON, X);
+                    NON=NON./nrepsON(findex, aindex, dindex); % Bin count / # trials
+                    NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                    bON=bar(xON, NON,1);
                     set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                     line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
                     if aindex==1 && findex==1
@@ -973,7 +1021,7 @@ if ~isempty(cell)
                 X=xlimits(1):binwidth:xlimits(2); % specify bin centers
                 [NOFF, xOFF]=hist(spiketimesOFF, X);
                 NOFF=NOFF./nrepsOFF(findex, aindex, dindex);
-                 NOFF=1000*NOFF./binwidth; %normalize to spike rate in Hz
+                NOFF=1000*NOFF./binwidth; %normalize to spike rate in Hz
                 bOFF=bar(xOFF, NOFF,1);
                 set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
                 line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
@@ -1082,6 +1130,106 @@ else
         end %dindex
     end %clust
 end
+
+
+%%
+if combine_ONOFF==1
+    for dindex=1:length(durs);
+        for clust=1:Nclusters;
+            figure
+            p=0;
+            subplot1(numamps,numfreqs)
+            for aindex=numamps:-1:1
+                for findex=1:numfreqs
+                    p=p+1;
+                    subplot1(p)
+                    hold on
+                    
+                    spiketimes=[mM1ONp(clust, findex, aindex, dindex).spiketimes mM1OFFp(clust, findex, aindex, dindex).spiketimes];
+                    
+                    
+                    X=xlimits(1):binwidth:xlimits(2);
+                    [N, x]=hist(spiketimes, X);
+                    
+                    N=N./nrepsON(findex, aindex, dindex); %
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    
+                    
+                    b=bar(x, N,1);
+                    hold on
+                    offset=0;
+                    yl=ylimits1(clust,:);
+                    inc=(yl(2))/max(max(max(nrepsOFF)));
+                    if rasters==1
+                        for n=1:nrepsOFF(findex, aindex, dindex)
+                            spiketimes2=[M1OFFp(clust, findex, aindex, dindex, n).spiketimes M1ONp(clust, findex, aindex, dindex, n).spiketimes];
+                            offset=offset+inc;
+                            h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                        end
+                    end
+                    
+                    
+                    
+                    set(b, 'facecolor', 'none','edgecolor', [0 0 0]);
+                    line([0 0+durs(dindex)], [-.01 -.01], 'color', 'm', 'linewidth', 2)
+                    if aindex==1 && findex==1
+                        line([PPAstart width+PPAstart], [-.05 -.05], 'color', 'c', 'linewidth', 2)
+                    end
+                    line(xlimits, [0 0], 'color', 'k')
+                    
+                    xlim(xlimits)
+                    if rasters==1
+                        ylimits2(clust,2)=ylimits1(clust,2)*3;
+                        ylim(ylimits2(clust,:))
+                    else
+                        ylim(ylimits1(clust,:));
+                    end
+                    
+                end
+            end
+            
+            % Label amps and freqs.
+            p=0;
+            for aindex=[numamps:-1:1]
+                for findex=1:numfreqs
+                    p=p+1;
+                    subplot1(p)
+                    if findex==1
+                        ylabel(sprintf('%.0f',amps(aindex)))
+                        if aindex~=1
+                            set(gca, 'yticklabel', '')
+                        end
+                    end
+                    vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/10;
+                    if aindex==1 && findex~=1
+                        text(mean(xlimits), vpos, sprintf('%.1f', freqs(findex)/1000))
+                        set(gca,'xticklabel','')
+                    end
+                    grid off
+                    box off
+                    if aindex==1 && findex==1
+                        axis on
+                        set(gca,'xtick',xlimits)
+                        set(gca,'xticklabel',{xlimits})
+                        xlabel('Time (ms)');
+                        ylabel('F.R. (Hz)');
+                    else
+                        set(gca, 'yticklabel', '')
+                    end
+                    if aindex==numamps && findex==round(numfreqs/2)
+                        title(sprintf('%s-%s-%s cell %d: ON & OFF trials combined %.1f-%.1f kHz @ %.0f-%.0f dB',...
+                            expdate,session,filenum,clust,freqs(1)/1000,...
+                            freqs(end)/1000,amps(1),amps(end)))
+                    end
+                end
+            end
+            subplot1(ceil(numfreqs/3))
+            
+            
+        end % dindex
+    end
+end
+
 %% Save it to an outfile!
 
 % Evoked spikes.
@@ -1125,56 +1273,58 @@ save (outfilename, 'out')
 
 
 if save_the_outfile==1
-out.user=whoami;   
-out.expdate=expdate;
-out.session=session;
-out.filenum=filenum;
-out.tetrode=channel;
-out.cluster=cell;
-out.M1OFFp=squeeze(M1OFFp(cell,:,:,:,:)); % All spiketimes, trial-by-trial.
-out.M1ONp=squeeze(M1ONp(cell,:,:,:,:));
-out.mM1OFFp=squeeze(mM1OFFp(cell,:,:)); % Accumulated spike times for *all* presentations of each laser/f/a combo.
-out.mM1ONp=squeeze(mM1ONp(cell,:,:));
-out.M1OFFp2=squeeze(M1OFFp2(cell,:,:,:,:)); % All spiketimes, trial-by-trial, ON
-out.M1ONp2=squeeze(M1ONp2(cell,:,:,:,:));
-out.mM1OFFp2=squeeze(mM1OFFp2(cell,:,:)); % Accumulated spike times for *all* presentations of each laser/f/a combo.
-out.mM1ONp2=squeeze(mM1ONp2(cell,:,:));
-out.M1OFFp3=squeeze(M1OFFp3(cell,:,:,:,:)); % All spiketimes, trial-by-trial, 
-out.M1ONp3=squeeze(M1ONp3(cell,:,:,:,:));
-out.mM1OFFp3=squeeze(mM1OFFp3(cell,:,:)); % Accumulated spike times OFF
-out.mM1ONp3=squeeze(mM1ONp3(cell,:,:));
-out.M1OFFp4=squeeze(M1OFFp4(cell,:,:,:,:)); % All spiketimes, trial-by-trial.
-out.M1ONp4=squeeze(M1ONp4(cell,:,:,:,:));
-out.mM1OFFp4=squeeze(mM1OFFp4(cell,:,:)); % Accumulated spike times Continuous
-out.mM1ONp4=squeeze(mM1ONp4(cell,:,:));
-out.mM1ONspikecount=squeeze(mM1ONspikecount(cell,:,:)); % Mean spikecount for each laser/f/a combo.
-out.sM1ONspikecount=squeeze(sM1ONspikecount(cell,:,:));
-out.semM1ONspikecount=squeeze(semM1ONspikecount(cell,:,:));
-out.mM1OFFspikecount=squeeze(mM1OFFspikecount(cell,:,:));
-out.sM1OFFspikecount=squeeze(sM1OFFspikecount(cell,:,:));
-out.semM1OFFspikecount=squeeze(semM1OFFspikecount(cell,:,:));
-% Spont spikes.
-out.mM1spontON=squeeze(mM1spontON(cell,:,:));
-out.sM1spontON=squeeze(sM1spontON(cell,:,:));
-out.semM1spontON=squeeze(semM1spontON(cell,:,:));
-out.mM1spontOFF=squeeze(mM1spontOFF(cell,:,:));
-out.sM1spontOFF=squeeze(sM1spontOFF(cell,:,:));
-out.semM1spontOFF=squeeze(semM1spontOFF(cell,:,:));
-out.amps=amps;
-out.freqs=freqs;
-out.nrepsON=nrepsON;
-out.nrepsOFF=nrepsOFF;
-out.xlimits=xlimits;
-out.PPAstart=PPAstart;
-out.width=width;
-out.numpulses=numpulses;
-out.oepathname=oepathname;
-out.OEdatafile=OEdatafile;
-out.isi=isi;
-out.spiketimes=spiketimes;
-out.inRange=inRange(cell);
-out.M1ONspikecounts=squeeze(M1ONspikecounts(cell,:,:,:,:));
-out.M1OFFspikecounts=squeeze(M1OFFspikecounts(cell,:,:,:,:));
+    out.user=whoami;
+    out.expdate=expdate;
+    out.session=session;
+    out.filenum=filenum;
+    out.tetrode=channel;
+    out.cluster=cell;
+    out.M1OFFp=squeeze(M1OFFp(cell,:,:,:,:)); % All spiketimes, trial-by-trial.
+    out.M1ONp=squeeze(M1ONp(cell,:,:,:,:));
+    out.mM1OFFp=squeeze(mM1OFFp(cell,:,:)); % Accumulated spike times for *all* presentations of each laser/f/a combo.
+    out.mM1ONp=squeeze(mM1ONp(cell,:,:));
+    out.M1OFFp2=squeeze(M1OFFp2(cell,:,:,:,:)); % All spiketimes, trial-by-trial, ON
+    out.M1ONp2=squeeze(M1ONp2(cell,:,:,:,:));
+    out.mM1OFFp2=squeeze(mM1OFFp2(cell,:,:)); % Accumulated spike times for *all* presentations of each laser/f/a combo.
+    out.mM1ONp2=squeeze(mM1ONp2(cell,:,:));
+    out.M1OFFp3=squeeze(M1OFFp3(cell,:,:,:,:)); % All spiketimes, trial-by-trial,
+    out.M1ONp3=squeeze(M1ONp3(cell,:,:,:,:));
+    out.mM1OFFp3=squeeze(mM1OFFp3(cell,:,:)); % Accumulated spike times OFF
+    out.mM1ONp3=squeeze(mM1ONp3(cell,:,:));
+    out.M1OFFp4=squeeze(M1OFFp4(cell,:,:,:,:)); % All spiketimes, trial-by-trial.
+    out.M1ONp4=squeeze(M1ONp4(cell,:,:,:,:));
+    out.mM1OFFp4=squeeze(mM1OFFp4(cell,:,:)); % Accumulated spike times Continuous
+    out.mM1ONp4=squeeze(mM1ONp4(cell,:,:));
+%     out.mM1ONspikecount=squeeze(mM1ONspikecount(cell,:,:)); % Mean spikecount for each laser/f/a combo.
+%     out.sM1ONspikecount=squeeze(sM1ONspikecount(cell,:,:));
+%     out.semM1ONspikecount=squeeze(semM1ONspikecount(cell,:,:));
+%     out.mM1OFFspikecount=squeeze(mM1OFFspikecount(cell,:,:));
+%     out.sM1OFFspikecount=squeeze(sM1OFFspikecount(cell,:,:));
+%     out.semM1OFFspikecount=squeeze(semM1OFFspikecount(cell,:,:));
+%   Spont spikes.
+%     out.mM1spontON=squeeze(mM1spontON(cell,:,:));
+%     out.sM1spontON=squeeze(sM1spontON(cell,:,:));
+%     out.semM1spontON=squeeze(semM1spontON(cell,:,:));
+%     out.mM1spontOFF=squeeze(mM1spontOFF(cell,:,:));
+%     out.sM1spontOFF=squeeze(sM1spontOFF(cell,:,:));
+%     out.semM1spontOFF=squeeze(semM1spontOFF(cell,:,:));
+    out.amps=amps;
+    out.freqs=freqs;
+    out.combine_ONOFF=combine_ONOFF;
+    out.nrepsON=nrepsON;
+    out.nrepsOFF=nrepsOFF;
+    out.xlimits=xlimits;
+    out.PPAstart=PPAstart;
+    out.width=width;
+    out.numpulses=numpulses;
+    out.oepathname=oepathname;
+    out.OEdatafile=OEdatafile;
+    out.isi=isi;
+    out.spiketimes=spiketimes;
+    out.inRange=inRange(cell);
+    
+    %out.M1ONspikecounts=squeeze(M1ONspikecounts(cell,:,:,:,:));
+    out.M1OFFspikecounts=squeeze(M1OFFspikecounts(cell,:,:,:,:));
     outfilename=sprintf('out%sArch_TC%s-%s-%s-%d',channel,expdate,session, filenum, cell);
     cd(location);
     save (outfilename, 'out');

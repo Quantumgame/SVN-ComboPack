@@ -35,7 +35,8 @@ if ~strcmp('char',class(channel))
     channel=num2str(channel);
     %error('Channel number argument must be a string!')
 end
-
+high_pass_cutoff=400;
+[a,b]=butter(1, high_pass_cutoff/(30e3/2), 'high');
 fprintf('\nusing xlimits [%d-%d]', xlimits(1), xlimits(2))
 gogetdata(expdate,session,filenum);
 outfilename=sprintf('outOE%s_%s-%s-%s.mat',channel, expdate, session, filenum);
@@ -272,6 +273,7 @@ if isempty(ylimits)
         for aindex=numamps:-1:1
             for findex=1:numfreqs
                 trace1=squeeze(mM1(findex, aindex, dindex, :));
+%                 trace1=filtfilt(b,a,trace1);
                 trace1=trace1-mean(trace1(1:100));
                 if min([trace1])<ylimits(1); ylimits(1)=min([trace1]);end
                 if max([trace1])>ylimits(2); ylimits(2)=max([trace1]);end
@@ -300,6 +302,8 @@ for dindex=1:numdurs
             
             trace1=trace1 -mean(trace1(1:10));
             trace2=trace2-mean(trace2(1:10));
+%             trace1=filtfilt(b,a,trace1);
+%             trace2=filtfilt(b,a,trace2);
             t=1:length(trace1);
             t=1000*t/out.samprate; %convert to ms
             t=t+out.xlimits(1); %correct for xlim in original processing call
@@ -348,7 +352,9 @@ for dindex=1:numdurs
             p=p+1;
             subplot1(p)
             trace1=squeeze(mM1OFF(findex, aindex, dindex, :));
+%             trace1=filtfilt(b,a,trace1);
             trace1=trace1 -mean(trace1(1:100));
+            
             t=1:length(trace1);
             t=1000*t/out.samprate; %convert to ms
             t=t+out.xlimits(1); %correct for xlim in original processing call
@@ -403,6 +409,7 @@ for dindex=1:numdurs
             axis off
             
             trace1=squeeze(mM1ON(findex, aindex, dindex, :));
+%             trace1=filtfilt(b,a,trace1);
             trace1=trace1 -mean(trace1(1:100));
             t=1:length(trace1);
            t=1000*t/out.samprate; %convert to ms

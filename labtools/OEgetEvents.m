@@ -26,6 +26,8 @@ end
 
 %correct for OE start time, so that time starts at 0
 oepathname=getOEdatapath(expdate, session, filenum);
+oepathname(1)='d';
+fprintf('\n changing drive from c to d in oepathname. the data has been moved\n');
 first_sample_timestamp=OEget_first_sample_timestamp(oepathname); %in s
 timestamps=timestamps-first_sample_timestamp;
 

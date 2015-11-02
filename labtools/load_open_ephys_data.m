@@ -65,7 +65,7 @@ RECORD_MARKER_V0 = [0 0 0 0 0 0 0 0 0 255]';
 %preallocated numbers are changed to maximize processing speed and avoid
 %HELP MEMORY. ira 02.17.14
 % constants for pre-allocating matrices:
-MAX_NUMBER_OF_SPIKES = 1e3; %used to be 1e6
+MAX_NUMBER_OF_SPIKES = 1e6; %used to be 1e6
 MAX_NUMBER_OF_RECORDS = 1e4; %used to be 1e4
 MAX_NUMBER_OF_CONTINUOUS_SAMPLES = 1e8;%11e6; %used to be 10e6
 MAX_NUMBER_OF_EVENTS = 1e6; %used to be 1e6

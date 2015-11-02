@@ -20,6 +20,7 @@ elseif nargin==3
     filenum=varargin{3};
     
 oepathname=getOEdatapath(expdate, session, filenum)
+
 cd(oepathname)
 %     %get OE data path from exper
 %     gorawdatadir(expdate, session, filenum)
