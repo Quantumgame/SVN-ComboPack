@@ -41,30 +41,28 @@ if nargin~=11 error('\nMake2ToneProtocol: wrong number of arguments.'); end
 linspacedamplitudes = linspace( minamplitude , maxamplitude , numamplitudes );
 linspacedprobeamplitudes = linspace( minprobeamplitude , maxprobeamplitude , numprobeamplitudes );
 
-[Amplitudes,Freqs,ProbeAmps]=meshgrid( linspacedamplitudes , logspacedfreqs,linspacedprobeamplitudes );
-neworder=randperm( numfreqs * numamplitudes *numprobeamplitudes );
+[Amplitudes,ProbeAmps]=meshgrid( linspacedamplitudes ,linspacedprobeamplitudes );
+neworder=randperm( numamplitudes *numprobeamplitudes );
 amplitudes=zeros(1,length(neworder)*nrepeats);
-freqs=zeros(1,length(neworder)*nrepeats);
 probeamps=zeros(1,length(neworder)*nrepeats);
 
-tdur=numprobeamplitudes* numfreqs * numamplitudes*(2*duration+isi+SOA)/1000;%duration per repeat
+tdur=numprobeamplitudes * numamplitudes*(2*duration+isi+SOA)/1000;%duration per repeat
 
 for nn=1:nrepeats
-    neworder=randperm( numfreqs * numamplitudes *numprobeamplitudes );
+    neworder=randperm( numamplitudes *numprobeamplitudes );
     amplitudes( prod(size(Amplitudes))*(nn-1) + (1:prod(size(Amplitudes))) ) = Amplitudes( neworder );
-    freqs( prod(size(Freqs))*(nn-1) + (1:prod(size(Freqs))) ) = Freqs( neworder );
     probeamps( prod(size(ProbeAmps))*(nn-1) + (1:prod(size(ProbeAmps))) ) = ProbeAmps( neworder );
 end
 
 %put into stimuli structure
 stimuli(1).type='exper2 stimulus protocol';
-stimuli(1).param.name= sprintf('2TP-%df(%d-%d)-%da(%d-%d)-%dms-pf%d-%dpa(%d-%d)-SOA%d',...
-    numfreqs,minfreq,maxfreq, numamplitudes,minamplitude, maxamplitude, duration,...
-    probefreq, numprobeamplitudes, minprobeamplitude, maxprobeamplitude, SOA);
+stimuli(1).param.name= sprintf('2TPWN-%da(%d-%d)-%dms-%dpa(%d-%d)-SOA%d',...
+    numamplitudes,minamplitude, maxamplitude, duration,...
+    numprobeamplitudes, minprobeamplitude, maxprobeamplitude, SOA);
 stimuli(1).param.description=sprintf(...
-    '2Tone Protocol, %d freq. (%d-%dkHz), %d ampl. (%d-%d dB SPL), %dms duration, %d probefreq, %d probe ampl ((%d-%d dB SPL), %dSOA', ...
-    numfreqs, minfreq, maxfreq, numamplitudes,minamplitude, maxamplitude, duration, ...
-    probefreq, numprobeamplitudes, minprobeamplitude, maxprobeamplitude, SOA);
+    '2ToneWN Protocol, %d ampl. (%d-%d dB SPL), %dms duration, %d probe ampl (%d-%d dB SPL), %dSOA', ...
+     numamplitudes,minamplitude, maxamplitude, duration, ...
+     numprobeamplitudes, minprobeamplitude, maxprobeamplitude, SOA);
 % filename=sprintf('2TP-%df(%d-%d)-%da(%d-%d)-%dms-pf%d-%dpa(%d-%d)-SOA%d',...
 %     numfreqs,minfreq,maxfreq, numamplitudes,minamplitude, maxamplitude, duration,...
 %     probefreq, numprobeamplitudes, minprobeamplitude, maxprobeamplitude, SOA);
@@ -77,8 +75,8 @@ probeamps2=ProbeAmps2(neworder2);
 nn=1;
 for k=1:length(probeamps2)
     nn=nn+1;
-    stimuli(nn).type='tone';
-    stimuli(nn).param.frequency=probefreq;
+    stimuli(nn).type='whitenoise';
+    stimuli(nn).param.frequency=-1;
     stimuli(nn).param.amplitude=probeamps2(k);
     stimuli(nn).param.duration=duration;
     stimuli(nn).param.ramp=ramp;
@@ -88,19 +86,22 @@ end
 for k=1:length(amplitudes)
     nn=nn+1;
     stimuli(nn).type='2tone';
-    stimuli(nn).param.frequency=freqs(k);
+    stimuli(nn).param.frequency=-1;
     stimuli(nn).param.amplitude=amplitudes(k);
     stimuli(nn).param.duration=duration;
     stimuli(nn).param.ramp=ramp;
     stimuli(nn).param.next=isi;
-    stimuli(nn).param.probefreq=probefreq;
+    stimuli(nn).param.probefreq=-1;
     stimuli(nn).param.probeamp=probeamps(k);
     stimuli(nn).param.SOA=SOA;
 end
 
 
-prefs
+Prefs
 cd(pref.stimuli) %where stimulus protocols are saved
+if exist('2Tone Protocols')~=7
+ mkdir('2Tone Protocols')
+end
 cd('2Tone Protocols')
 save(filename, 'stimuli')
 
