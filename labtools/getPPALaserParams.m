@@ -16,7 +16,7 @@ global pref
 if isempty(pref) Prefs; end
 
 try
-    raw_data_dir=sprintf('%s\\Data-%s-backup\\%s-%s', pref.home, username, expdate, username);
+    raw_data_dir=sprintf('%s\\Data-%s\\%s-%s', pref.home, username, expdate, username);
     sessdir=sprintf('%s-%s-%s',expdate, username, session);
     
     cd(raw_data_dir)
