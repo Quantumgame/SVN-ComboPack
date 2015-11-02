@@ -78,7 +78,7 @@ ai.Channel(:).UnitsRange=[-1 1]; %changed to -1 to 1 for wav file format
 ai.TriggerType='Immediate'; %goes as soon as you start ai
 set(ai, 'samplerate', aisamprate);
 ai.SamplesPerTrigger=inf;
-
+ai.LoggingMode='Disk'; %default "Memory" runs out of memory after about 2 minutes
 
 %store ai in guidata
 mydata = guidata(hObject);
@@ -118,19 +118,38 @@ mydata = guidata(hObject);
 ai=mydata.ai;
 stop(ai);
 fprintf('\nstopped')
+SamplesAcquired=get(ai, 'SamplesAcquired');
 
 %get data 
 mydata = guidata(hObject);
 ai=mydata.ai;
 Fs=get(ai, 'samplerate');
-SamplesAvailable=get(ai, 'SamplesAvailable');
-data=getdata(ai, SamplesAvailable);
+%SamplesAvailable=get(ai, 'SamplesAvailable');
+%data=getdata(ai, SamplesAvailable); %(this was for log to memory)
+SamplesAcquired=get(ai, 'SamplesAcquired');
+data=daqread('logfile.daq'); 
 mydata.data=data;
+mydata.SamplesAcquired=SamplesAcquired;
 guidata(hObject, mydata);
+fprintf('\nread data')
 
+fprintf('\nplotting...')
 %plot data
-h=findobj('type', 'axes', 'tag', 'PlotWindow');
-plot(data);
+% try
+%     h=findobj('type', 'axes', 'tag', 'PlotWindow');
+%     % plot(data);
+%     win=1024; noverlap=0; nfft=512;
+%     nfft=4096
+%     figure; hold on; %plots data on a separate figure, ira 08.17.15
+%     spectrogram(data, win, noverlap, nfft, Fs, 'yaxis');
+% catch
+%     fprintf('\ncould not plot. error message:')
+%     lasterr
+%     %if you get out of memory errors, try increasing win size to 2^12 or
+%     %higher, and lowering nfft to 256 vs. win=1024 and nfft =512.
+% end
+
+
 
 % --- Executes on button press in Save.
 function Save_Callback(hObject, eventdata, handles)
@@ -141,9 +160,14 @@ mydata = guidata(hObject);
 data=mydata.data;
 ai=mydata.ai;
 Fs=get(ai, 'samplerate');
+wd=pwd;
 try
-    cd C:\lab\Conor
+    cd D:\lab\
 end
 [filename, pathname] = uiputfile('*.wav', 'Save wav file as...');
 cd(pathname)
 wavwrite(data, Fs, 16, filename);
+cd(wd)
+delete('logfile.daq')
+cd(pathname)
+fprintf('\nsaved wav file and deleted daqfile.')
