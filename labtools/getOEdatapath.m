@@ -30,3 +30,5 @@ function [oepathname isrecording]=getOEdatapath(expdate, session, filenum)
             fprintf('\ncould not find exper structure. Cannot get OE file info.')
         end
     end
+oepathname(1)=pref.openephysdrive;
+fprintf('\n changing drive to %s in oepathname. the data has been moved\n', pref.openephysdrive);
