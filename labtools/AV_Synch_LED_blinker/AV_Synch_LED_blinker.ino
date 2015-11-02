@@ -8,8 +8,9 @@
 int i=0;
 int led = 13;
 int IRled = 9;
-int duration = 10; //in ms
+int duration = 20; //in ms
 int interval = 10000; //in ms
+int freq = 5000; //in hz
 
 void setup() 
 { 
@@ -28,7 +29,7 @@ void loop()
   {
     digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
     digitalWrite(IRled, HIGH);   // turn the LED on (HIGH is the voltage level)
-    tone(8, 2000);
+    tone(8, freq);
 delay(duration);
     digitalWrite(led, LOW);   // turn the LED on (HIGH is the voltage level)
     digitalWrite(IRled, LOW);   // turn the LED on (HIGH is the voltage level)
