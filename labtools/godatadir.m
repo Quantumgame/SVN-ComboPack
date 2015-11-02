@@ -74,17 +74,20 @@ if exist(expdir, 'dir')==7
     end
 
 else
-    if isfield(pref, 'mkdir')
-        if pref.mkdir
-            mkdir(expdir)
-            cd(expdir)
-            mkdir(sessdir)
-            cd(sessdir)
-            fprintf('\ncreated directories %s and %s', expdir, session)
-        else error('\ndirectory %s not found', expdir)
-        end
-    else error('directory %s not found', expdir)
-    end
+%     if isfield(pref, 'mkdir')
+%         if pref.mkdir
+%             mkdir(expdir)
+%             cd(expdir)
+%             mkdir(sessdir)
+%             cd(sessdir)
+%             fprintf('\ncreated directories %s and %s', expdir, session)
+%         else error('\ndirectory %s not found', expdir)
+%         end
+%     else error('directory %s not found', expdir)
+%     end
+if strcmp(username, 'apw') || strcmp(username, 'ira')
+    godatadirbak(expdate, session, filenum)
+end
 end
 
 
