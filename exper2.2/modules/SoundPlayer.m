@@ -142,7 +142,7 @@ switch action
             '', ...
             'Sinusoidal FM uses tone array frequencies as carrier frequencies.', ...
             'Modulation Frequency is in Hz, (e.g. 4 Hz)', ...
-            'Modulation Depth is in Hz (e.g. 1 kHz) (I should really change this to octaves)', ...
+            'Modulation Depth is in octaves. It is symmetrical in Hz, but asymmetrical in octaves. The Hz change is given by the lower (smaller) octave direction.', ...
             'Sinusoidal AM uses tone array frequencies as carrier frequencies, including WN if selected.', ...
             'Modulation Frequency is in Hz, (e.g. 4 Hz)', ...
             'Modulation Depth is 0-100% (e.g. 100%)', ...
@@ -291,7 +291,9 @@ end
                 param.carrier_phase=0;
                 param.modulation_phase=0;
                 param.modulation_frequency= GetParam(me,'ModFreq');
-                param.modulation_index=GetParam(me,'ModDepth');
+                    ModDepthOctaves=GetParam(me,'ModDepth');
+                    fc=param.carrier_frequency;
+                    param.modulation_index=fc-fc/(2^ModDepthOctaves);
             elseif freqs(n)~=-1 & GetParam(me, 'ModMenu')==3 %AM tone
                 stimuli(n).type='amtone';
                 param.carrier_frequency=freqs(n);
@@ -338,7 +340,9 @@ end
                     param.carrier_phase=0;
                     param.modulation_phase=0;
                     param.modulation_frequency= GetParam(me,'ModFreq');
-                    param.modulation_index=GetParam(me,'ModDepth');
+                    ModDepthOctaves=GetParam(me,'ModDepth');
+                    fc=param.carrier_frequency;
+                    param.modulation_index=fc-fc/(2^ModDepthOctaves);
                 elseif logspacedfreqs(findex)~=-1 & GetParam(me, 'ModMenu')==3 %AM tone
                     stimuli(n).type='amtone';
                     param.carrier_frequency=logspacedfreqs(findex);
