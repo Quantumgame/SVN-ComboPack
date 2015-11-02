@@ -4,6 +4,7 @@ function tone=MakeTone(varargin)
 
 % Note: this was the original header
 %function tone=MakeTone(frequency,attenuation,duration,samplerate,ramp)
+%last update: mw 10.30.2015 to allow use of whitenoise when freq==-1
 
 global pref
 
@@ -55,11 +56,16 @@ SOA=params.SOA;
 
 %     amplitude=10*(10.^((-attenuation)/20));
 %    amplitude=10*(10.^((amplitude-pref.maxSPL)/20)); %in volts (-10<x<10), i.e. pref.maxSPL=+_10V
-%masker tone
+
+%masker 
 amplitude=1*(10.^((amplitude-pref.maxSPL)/20)); %in volts (-1<x<1), i.e. pref.maxSPL=+_1V
 duration_s=duration/1000;                     % adjust the duration to seconds
 t=0:1/samplerate:duration_s;                  % length of the sampled trial
-masker=amplitude*sin(frequency*2*pi*t);       % the new tone itself
+if frequency==-1 %white noise
+    noise=amplitude.*randn(1,round(duration*samplerate)+1);       % corresponds to t=0:1/samplerate:duration;
+else %tone
+    masker=amplitude*sin(frequency*2*pi*t);       % the new tone itself
+end
 if ramp>0
     [edge,ledge]=MakeEdge(ramp,samplerate);     % prepare the edges
     masker(1:ledge)=masker(1:ledge).*fliplr(edge);
@@ -69,10 +75,15 @@ end
 %SOA interval
 SOA_silence=zeros(1, samplerate*(SOA-duration)/1000);
 
-%probe tone
+%probe 
 probeamp=1*(10.^((probeamp-pref.maxSPL)/20)); %in volts (-1<x<1), i.e. pref.maxSPL=+_1V
 t=0:1/samplerate:duration_s;                  % length of the sampled trial
-probe=probeamp*sin(probefreq*2*pi*t);       % the new tone itself
+
+if frequency==-1 %white noise
+    probe=probeamp.*randn(1,round(duration*samplerate)+1);       % corresponds to t=0:1/samplerate:duration;
+else %tone
+    probe=probeamp*sin(probefreq*2*pi*t);       % the new tone itself
+end
 if ramp>0
     [edge,ledge]=MakeEdge(ramp,samplerate);     % prepare the edges
     probe(1:ledge)=probe(1:ledge).*fliplr(edge);
