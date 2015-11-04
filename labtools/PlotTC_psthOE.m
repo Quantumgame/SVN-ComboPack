@@ -118,7 +118,7 @@ else
     error('Wrong number of arguments.');
 end
 
-lostat=-1; % Discard data after this position (in samples), -1 to skip
+
 fs=10; %fontsize
 
 gogetdata(expdate, session, filenum);
@@ -362,7 +362,7 @@ for i=1:length(event)
         end
     end
 end
-numreps=nreps;
+
 fprintf('\nmin num reps: %d\nmax num reps: %d', min(min(min(nreps))), max(max(max(nreps))))
 for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
     fprintf('\ncell %d:', clust)
@@ -519,7 +519,6 @@ else
                         for n=1:nreps(findex, aindex, dindex)
                             spiketimes2=M1(clust, findex, aindex, dindex, n).spiketimes;
                             offset=offset+inc;
-                            
                             h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
 
                         end

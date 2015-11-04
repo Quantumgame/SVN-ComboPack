@@ -62,7 +62,9 @@ amplitude=1*(10.^((amplitude-pref.maxSPL)/20)); %in volts (-1<x<1), i.e. pref.ma
 duration_s=duration/1000;                     % adjust the duration to seconds
 t=0:1/samplerate:duration_s;                  % length of the sampled trial
 if frequency==-1 %white noise
-    noise=amplitude.*randn(1,round(duration*samplerate)+1);       % corresponds to t=0:1/samplerate:duration;
+    noise=randn(1,round(duration_s*samplerate)+1);       % corresponds to t=0:1/samplerate:duration;
+    noise=noise./(max(abs(noise)));             % normalize, so we could fit to +/-10V
+    masker=amplitude.*noise;
 else %tone
     masker=amplitude*sin(frequency*2*pi*t);       % the new tone itself
 end
@@ -80,7 +82,9 @@ probeamp=1*(10.^((probeamp-pref.maxSPL)/20)); %in volts (-1<x<1), i.e. pref.maxS
 t=0:1/samplerate:duration_s;                  % length of the sampled trial
 
 if frequency==-1 %white noise
-    probe=probeamp.*randn(1,round(duration*samplerate)+1);       % corresponds to t=0:1/samplerate:duration;
+        noise=randn(1,round(duration_s*samplerate)+1);       % corresponds to t=0:1/samplerate:duration;
+        noise=noise./(max(abs(noise)));             % normalize, so we could fit to +/-10V
+        probe=probeamp.*noise;       % corresponds to t=0:1/samplerate:duration;
 else %tone
     probe=probeamp*sin(probefreq*2*pi*t);       % the new tone itself
 end

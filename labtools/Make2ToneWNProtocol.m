@@ -81,6 +81,7 @@ for k=1:length(probeamps2)
     stimuli(nn).param.duration=duration;
     stimuli(nn).param.ramp=ramp;
     stimuli(nn).param.next=isi;
+    stimuli(nn).param.SOA=SOA;
 end
 
 for k=1:length(amplitudes)
