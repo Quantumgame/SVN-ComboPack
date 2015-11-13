@@ -248,9 +248,7 @@ if isempty(event); fprintf('\nno tones\n'); return; end
 fprintf('\ncomputing tuning curve...');
 %
 
-if lostat==-1
-    lostat=inf;
-end
+
 fprintf('\nresponse window: %d to %d ms relative to tone onset',round(xlimits(1)), round(xlimits(2)));
 
 
@@ -319,9 +317,6 @@ for i=1:length(event)
         start=(pos+xlimits(1)*1e-3); %in sec
         stop=(pos+xlimits(2)*1e-3); %in sec
         if start>0 %(disallow negative start times)
-            if stop>lostat
-                fprintf('\ndiscarding trace')
-            else
                 if strcmp(event(i).Type, 'tone')
                     freq=event(i).Param.frequency;
                     dur=event(i).Param.duration;
@@ -358,7 +353,7 @@ for i=1:length(event)
                     spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
                     M1(clust, findex,aindex,dindex, nreps(findex, aindex, dindex)).spiketimes=spiketimes1;
                 end
-            end
+          
         end
     end
 end
@@ -619,7 +614,6 @@ out.session=session;
 out.datafile=datafile;
 out.eventsfile=eventsfile;
 out.stimfile=stimfile;
-out.lostat=lostat;
 out.freqs=freqs;
 out.amps=amps;
 out.durs=durs;

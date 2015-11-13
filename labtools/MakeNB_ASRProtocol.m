@@ -86,7 +86,7 @@ end
 if isfield(pref, 'stimuli')
     cd(pref.stimuli) %where stimulus protocols are saved
 else
-    cd('c:\lab\exper2.2\protocols')
+    cd('d:\lab\exper2.2\protocols')
 end
 cd('ASR Protocols')
 save(filename, 'stimuli')
