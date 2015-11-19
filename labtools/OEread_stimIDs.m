@@ -111,9 +111,9 @@ for i=1:length(uniqueTimestamps)
             if stimid(j)==stimid(j-1)+1
                 %OK
             else
-                if stimid(j)~=0
-                    warning(sprintf('non-sequential OE stimID bytes! there is a problem with stimID bytes, %d, bit number %d,%d',j, bv3, i))
-                end
+%                 if stimid(j)~=0
+%                     warning(sprintf('non-sequential OE stimID bytes! there is a problem with stimID bytes, %d, bit number %d,%d',j, bv3, i))
+%                 end
             end
         end
     end

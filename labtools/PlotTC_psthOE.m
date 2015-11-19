@@ -14,7 +14,7 @@ function PlotTC_psthOE(expdate, session, filenum, channel, varargin)
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
 location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\LongWN';
-save_outfile=0;
+save_outfile=1;
 % %sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
 % for i=1:length(recordings)
@@ -317,43 +317,43 @@ for i=1:length(event)
         start=(pos+xlimits(1)*1e-3); %in sec
         stop=(pos+xlimits(2)*1e-3); %in sec
         if start>0 %(disallow negative start times)
-                if strcmp(event(i).Type, 'tone')
-                    freq=event(i).Param.frequency;
-                    dur=event(i).Param.duration;
-                elseif strcmp(event(i).Type, 'fmtone')
-                    freq=event(i).Param.carrier_frequency;
-                    dur=event1(i).Param.duration;
-                elseif  strcmp(event(i).Type, 'tonetrain')
-                    freq=event(i).Param.frequency;
-                    dur=event(i).Param.toneduration;
-                elseif  strcmp(event(i).Type, 'grating')
-                    freq=event(i).Param.angle*1000;
-                    dur=event(i).Param.duration;
-                elseif strcmp(event(i).Type, 'whitenoise')
-                    dur=event(i).Param.duration;
-                    freq=-1;
-                elseif strcmp(event(i).Type, 'clicktrain')
-                    dur=event(i).Param.clickduration;
-                    freq=-1;
-                end
-                try
-                    amp=event(i).Param.amplitude;
-                catch
-                    amp=event(i).Param.spatialfrequency;
-                end
-                %                 dur=event(i).Param.duration;
-                findex= find(freqs==freq);
-                aindex= find(amps==amp);
-                dindex= find(durs==dur);
-                nreps(findex, aindex, dindex)=nreps(findex, aindex, dindex)+1;
-                for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
-                    st=spiketimes(clust).spiketimes;
-                    spiketimes1=st(st>start & st<stop); % spiketimes in region
-                    inRange(clust)=inRange(clust)+ length(spiketimes1);
-                    spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
-                    M1(clust, findex,aindex,dindex, nreps(findex, aindex, dindex)).spiketimes=spiketimes1;
-                end
-          
+            if strcmp(event(i).Type, 'tone')
+                freq=event(i).Param.frequency;
+                dur=event(i).Param.duration;
+            elseif strcmp(event(i).Type, 'fmtone')
+                freq=event(i).Param.carrier_frequency;
+                dur=event1(i).Param.duration;
+            elseif  strcmp(event(i).Type, 'tonetrain')
+                freq=event(i).Param.frequency;
+                dur=event(i).Param.toneduration;
+            elseif  strcmp(event(i).Type, 'grating')
+                freq=event(i).Param.angle*1000;
+                dur=event(i).Param.duration;
+            elseif strcmp(event(i).Type, 'whitenoise')
+                dur=event(i).Param.duration;
+                freq=-1;
+            elseif strcmp(event(i).Type, 'clicktrain')
+                dur=event(i).Param.clickduration;
+                freq=-1;
+            end
+            try
+                amp=event(i).Param.amplitude;
+            catch
+                amp=event(i).Param.spatialfrequency;
+            end
+            %                 dur=event(i).Param.duration;
+            findex= find(freqs==freq);
+            aindex= find(amps==amp);
+            dindex= find(durs==dur);
+            nreps(findex, aindex, dindex)=nreps(findex, aindex, dindex)+1;
+            for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
+                st=spiketimes(clust).spiketimes;
+                spiketimes1=st(st>start & st<stop); % spiketimes in region
+                inRange(clust)=inRange(clust)+ length(spiketimes1);
+                spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
+                M1(clust, findex,aindex,dindex, nreps(findex, aindex, dindex)).spiketimes=spiketimes1;
+            end
+            
         end
     end
 end
@@ -419,13 +419,16 @@ end
 
 if ~isempty(cell)
     clust=str2num(cell);
-    for dindex=[1:numdurs]
-        figure
-        p=0;
-        subplot1(numamps,numfreqs)
+    figure; p=0;
+        if numdurs==1
+            subplot1(numamps,numfreqs)
+        else
+            subplot1(numdurs, numamps)
+        end
+        for dindex=[1:numdurs]
         for aindex=[numamps:-1:1]
             for findex=1:numfreqs
-                p=p+1;
+                        p=p+1;
                 subplot1(p)
                 hold on
                 spiketimes1=mM1(clust, findex, aindex, dindex).spiketimes;
@@ -433,18 +436,18 @@ if ~isempty(cell)
                 [N, x]=hist(spiketimes1, X);
                 N=N./nreps(findex, aindex, dindex); %normalize to spike rate (averaged across trials)
                 N=1000*N./binwidth; %normalize to spike rate in Hz
-                    offset=0;
-                    yl=ylimits1(clust,:);
-                    inc=(yl(2))/max(max(max(nreps)));
-                    if rasters==1
-                        for n=1:nreps(findex, aindex, dindex)
-                            spiketimes2=M1(clust, findex, aindex, dindex, n).spiketimes;
-                            offset=offset+inc;
-                            
-                            h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
-
-                        end
+                offset=0;
+                yl=ylimits1(clust,:);
+                inc=(yl(2))/max(max(max(nreps)));
+                if rasters==1
+                    for n=1:nreps(findex, aindex, dindex)
+                        spiketimes2=M1(clust, findex, aindex, dindex, n).spiketimes;
+                        offset=offset+inc;
+                        
+                        h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                        
                     end
+                end
                 bar(x, N,1);
                 line([0 0+durs(dindex)], [-.2 -.2], 'color', 'm', 'linewidth', 4)
                 line(xlimits, [0 0], 'color', 'k')
@@ -460,18 +463,26 @@ if ~isempty(cell)
         end
         
         %label amps and freqs
-        p=0;
         flabel=0;
         alabel=0;
+        if numdurs==1
+            p=0;
+        end
         for aindex=[numamps:-1:1]
             for findex=1:numfreqs
-                p=p+1;
+                if numdurs==1
+                        p=p+1;
+                    end
                 subplot1(p)
                 if findex==1 && aindex==numamps;
                     T=text(xlimits(1)-diff(xlimits)/2, mean(ylimits), int2str(amps(aindex)));
                     set(T, 'HorizontalAlignment', 'right')
                     flabel=1;
-                    ylabel(sprintf('%.1f dB, FR (Hz)', amps(aindex)));
+                        if numdurs==1
+                            ylabel(sprintf('%.1f dB, FR (Hz)', amps(aindex)));
+                        else
+                            ylabel(sprintf('%.1f ms', durs(dindex)));
+                        end
                     set(gca, 'YTickLabelMode','auto');
                     set(gca, 'XTickLabelMode','auto');
                 else
@@ -479,7 +490,7 @@ if ~isempty(cell)
                 end
                 set(gca, 'xtickmode', 'auto')
                 grid off
-                if aindex==1 && alabel==0;
+                if aindex==1 && alabel==0 && dindex==numdurs;
                     vpos=ylimits1(clust,1)-diff(ylimits1(clust,:))/20;
                     text(mean(xlimits), vpos, sprintf('%.1f', freqs(findex)/1000))
                 else
@@ -492,14 +503,19 @@ if ~isempty(cell)
         title(sprintf('%s-%s-%s, tetrode %s,  cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, channel, clust, durs(dindex), binwidth, inRange(clust)))
     end
 else
-    for dindex=[1:numdurs]
-        for clust=1:Nclusters
-            figure
-            p=0;
+    
+    for clust=1:Nclusters
+        figure; p=0;
+        
+        if numdurs==1
             subplot1(numamps,numfreqs)
+        else
+            subplot1(numdurs, numamps)
+        end
+        for dindex=[1:numdurs]
             for aindex=[numamps:-1:1]
                 for findex=1:numfreqs
-                    p=p+1;
+                        p=p+1;
                     subplot1(p)
                     hold on
                     spiketimes1=mM1(clust, findex, aindex, dindex).spiketimes;
@@ -515,7 +531,7 @@ else
                             spiketimes2=M1(clust, findex, aindex, dindex, n).spiketimes;
                             offset=offset+inc;
                             h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
-
+                            
                         end
                     end
                     
@@ -534,19 +550,27 @@ else
             end
             
             %label amps and freqs
-            p=0;
+            if numdurs==1;
+                p=0;
+            end
             flabel=0;
             alabel=0;
             for aindex=[numamps:-1:1]
                 for findex=1:numfreqs
-                    p=p+1;
+                    if numdurs==1
+                        p=p+1;
+                    end
                     subplot1(p)
                     if findex==1 && aindex==numamps;
                         T=text(xlimits(1)-diff(xlimits)/2, mean(ylimits), int2str(amps(aindex)));
                         set(T, 'HorizontalAlignment', 'right')
                         flabel=1;set(gca, 'XTickLabelMode','auto');
                         set(gca, 'YTickLabelMode','auto');
-                        ylabel(sprintf('%.1f dB, FR (Hz)', amps(aindex)));
+                        if numdurs==1
+                            ylabel(sprintf('%.1f dB, FR (Hz)', amps(aindex)));
+                        else
+                            ylabel(sprintf('%.1f ms', durs(dindex)));
+                        end
                     else
                         set(gca, 'xticklabel', '')
                     end
@@ -560,8 +584,13 @@ else
                 end
             end
             subplot1(ceil(numfreqs/3))
-            title(sprintf('%s-%s-%s tetrode %s, cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, channel, clust, durs(dindex), binwidth, inRange(clust)))
-            
+            if numdurs==1
+                title(sprintf('%s-%s-%s tetrode %s, cell %d, dur=%d, %d ms bins, %d spikes',expdate,session, filenum, channel, clust, durs(dindex), binwidth, inRange(clust)))
+            else
+                if dindex==1
+                    title(sprintf('%s-%s-%s tetrode %s, cell %d,, %d ms bins, %d spikes',expdate,session, filenum, channel, clust, binwidth, inRange(clust)))
+                end
+            end
         end %for clust
     end %for dindex
 end %cell
@@ -571,72 +600,72 @@ if save_outfile==1
     clust=str2num(cell);
     out.cell=cell;
     out.M1=squeeze(M1(clust,:,:,:,:));
-out.mM1=squeeze(mM1(clust,:));
-out.expdate=expdate;
-out.filenum=filenum;
-out.session=session;
-out.datafile=datafile;
-out.eventsfile=eventsfile;
-out.stimfile=stimfile;
-out.freqs=freqs;
-out.amps=amps;
-out.durs=durs;
-out.nreps=nreps;
-out.numfreqs=numfreqs;
-out.numamps=numamps;
-out.numdurs=numdurs;
-out.event=event;
-out.xlimits=xlimits;
-out.ylimits=ylimits;
-out.samprate=samprate;
-out.channel=channel;
-out.Nclusters=Nclusters;
-out.nreps=nreps;
-out.expdate=expdate;
-out.session=session;
-out.filenum=filenum;
-%out.quality=4;
-try
-    out.isrecording=isrecording;
-end
-try
-    out.oepathname=oepathname;
-end
-cd(location);
-outfilename=sprintf('outTCOE%s_%s-%s-%s_%s',channel, expdate, session, filenum, cell);
-save(outfilename, 'out');
+    out.mM1=squeeze(mM1(clust,:));
+    out.expdate=expdate;
+    out.filenum=filenum;
+    out.session=session;
+    out.datafile=datafile;
+    out.eventsfile=eventsfile;
+    out.stimfile=stimfile;
+    out.freqs=freqs;
+    out.amps=amps;
+    out.durs=durs;
+    out.nreps=nreps;
+    out.numfreqs=numfreqs;
+    out.numamps=numamps;
+    out.numdurs=numdurs;
+    out.event=event;
+    out.xlimits=xlimits;
+    out.ylimits=ylimits;
+    out.samprate=samprate;
+    out.channel=channel;
+    out.Nclusters=Nclusters;
+    out.nreps=nreps;
+    out.expdate=expdate;
+    out.session=session;
+    out.filenum=filenum;
+    out.quality=3;
+    try
+        out.isrecording=isrecording;
+    end
+    try
+        out.oepathname=oepathname;
+    end
+    cd(location);
+    outfilename=sprintf('outTCOE%s_%s-%s-%s_%s',channel, expdate, session, filenum, cell);
+    save(outfilename, 'out');
 else
     out.M1=M1;
-out.mM1=mM1;
-out.expdate=expdate;
-out.filenum=filenum;
-out.session=session;
-out.datafile=datafile;
-out.eventsfile=eventsfile;
-out.stimfile=stimfile;
-out.freqs=freqs;
-out.amps=amps;
-out.durs=durs;
-out.nreps=nreps;
-out.numfreqs=numfreqs;
-out.numamps=numamps;
-out.numdurs=numdurs;
-out.event=event;
-out.xlimits=xlimits;
-out.ylimits=ylimits;
-out.samprate=samprate;
-out.channel=channel;
-out.Nclusters=Nclusters;
-out.nreps=nreps;
-out.expdate=expdate;
-out.session=session;
-out.filenum=filenum;
-try
-    out.isrecording=isrecording;
-end
-try
-    out.oepathname=oepathname;
-end
+    out.mM1=mM1;
+    out.expdate=expdate;
+    out.filenum=filenum;
+    out.session=session;
+    out.datafile=datafile;
+    out.eventsfile=eventsfile;
+    out.stimfile=stimfile;
+    out.freqs=freqs;
+    out.amps=amps;
+    out.durs=durs;
+    out.nreps=nreps;
+    out.numfreqs=numfreqs;
+    out.numamps=numamps;
+    out.numdurs=numdurs;
+    out.event=event;
+    out.xlimits=xlimits;
+    out.ylimits=ylimits;
+    out.samprate=samprate;
+    out.channel=channel;
+    out.Nclusters=Nclusters;
+    out.nreps=nreps;
+    out.expdate=expdate;
+    out.session=session;
+    out.filenum=filenum;
+    try
+        out.isrecording=isrecording;
+    end
+    try
+        out.oepathname=oepathname;
+    end
 end
 
 outfilename=sprintf('outTCOE%s_%s-%s-%s_%s',channel, expdate, session, filenum, cell);

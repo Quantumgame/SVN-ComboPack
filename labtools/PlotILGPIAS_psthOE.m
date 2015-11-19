@@ -24,8 +24,8 @@ sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 %sorter='simpleclust';
 fprintf('\nsorter: %s', sorter)
 
-save_the_outfile=0; % saves an outfile in a specific locationt hat is synced with ira's macbook for analysis
-%location='d:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\Gap\';
+save_the_outfile=1; % saves an outfile in a specific locationt hat is synced with ira's macbook for analysis
+location='d:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\Gap\';
 
 combine_ONOFF=0; %if you want to plot on and off trials together without splitting them
 
@@ -914,7 +914,7 @@ end
 
 % Plot OFF trials
 if ~isempty(cell)
-        clust=str2num(cell);
+    clust=cell;
                 figure
         for paindex=1:numpulseamps
             p=0;
