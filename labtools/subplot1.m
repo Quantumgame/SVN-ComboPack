@@ -109,7 +109,9 @@ switch MoveFoc
  case 1
     %--- move focus to subplot # ---
     H    = get(gcf,'Children');
-    Ptot = length(H);
+Ptot = sum(strcmp(get(H,'type'),'axes'));
+%mw 12.15.15 based on comment from Dave Van Tol on Matlab file exchange subplot1 page
+%    Ptot = length(H);
     if (length(M)==1),
        M    = Ptot - M + 1;
     elseif (length(M)==2),
