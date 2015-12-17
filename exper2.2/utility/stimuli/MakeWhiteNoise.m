@@ -34,8 +34,10 @@ else
     amplitude=params.attenuation;
 end
 ramp=params.ramp;
-
+if duration<2*ramp warning('duration too short for requested ramp');end
+    
 duration=duration/1000;                     % switch to seconds
+
 noise=randn(1,round(duration*samplerate)+1);       % corresponds to t=0:1/samplerate:duration;
 [edge,ledge]=MakeEdge(ramp,samplerate);     % and add the edge
 noise(1:ledge)=noise(1:ledge).*fliplr(edge);
