@@ -1,3 +1,4 @@
+
 function  PlotNS_OE(expdate, session, filenum, channel, varargin )
 %This is a plotting function for SPNoise stimuli recorded with an Open
 %Ephys system.
@@ -21,7 +22,7 @@ elseif nargin==3
     durs=getdurs(expdate, session, filenum);
     dur=max([durs 100]);
     xlimits=[-1000 dur+1000]; %x limits for axis
-    binwidth=5;
+    binwidth=15;
     promt=('please enter tetrode number: ');
     channel=input(promt,'s')
     if ~strcmp('char',class(channel))
@@ -32,7 +33,7 @@ elseif nargin==4
     durs=getdurs(expdate, session, filenum);
     dur=max([durs 100]);
     xlimits=[-1000 dur+1000]; %x limits for axis
-    binwidth=5;
+    binwidth=15;
     if ~strcmp('char',class(channel))
         channel=num2str(channel);
     end
@@ -47,7 +48,7 @@ elseif nargin==5
         channel=num2str(channel);
     end
     ylimits=-1;
-    binwidth=5;
+    binwidth=15;
 elseif nargin==6
     xlimits=varargin{1};
     if isempty(xlimits)
@@ -62,7 +63,7 @@ elseif nargin==6
     if isempty(ylimits)
         ylimits=-1;
     end
-    binwidth=5;
+    binwidth=15;
 elseif nargin==7
     xlimits=varargin{1};
     if isempty(xlimits)
@@ -79,7 +80,7 @@ elseif nargin==7
     end
     binwidth=varargin{3};
     if isempty(binwidth)
-        binwidth=5;
+        binwidth=15;
     end
 else
     error('Wrong number of arguments.');
@@ -234,11 +235,11 @@ for clust=1:Nclusters
     for eindex=1:numepochs
         p=p+1;
         subplot1( p)
-        spiketimes1=mM1(clust,eindex).spiketimes; %in ms
-        if xlimits(1)<0 %to align spikes with stimulus trace when xlimits(1)~=0 ira 06.04.14
-            start=abs(xlimits(1)+isi);
-            spiketimes1=spiketimes1-start;
-        end
+        spiketimes1=mM1(clust,eindex).spiketimes+1000; %in ms
+%         if xlimits(1)<0 %to align spikes with stimulus trace when xlimits(1)~=0 ira 06.04.14
+%             start=abs(xlimits(1)+isi);
+%             spiketimes1=spiketimes1-start;
+%         end
         if xlimits(1)>0
             start=xlimits(1)+isi;
             spiketimes1=spiketimes1-start;
@@ -254,7 +255,7 @@ for clust=1:Nclusters
         stimtrace=stimtrace./max(abs(stimtrace));
         stimtrace=stimtrace*.1*diff(ylimits);
         stimtrace=stimtrace+ylimits(1)+.1*diff(ylimits);
-        
+        stimtrace=stimtrace(isi:length(stimtrace)-1);
         
         t=1:length(stimtrace);
         t=1000*t/10e3; %sampling rate hard coded from exper

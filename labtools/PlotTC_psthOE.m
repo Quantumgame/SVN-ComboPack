@@ -14,7 +14,7 @@ function PlotTC_psthOE(expdate, session, filenum, channel, varargin)
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
 location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\LongWN';
-save_outfile=1;
+save_outfile=0;
 % %sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
 % for i=1:length(recordings)
@@ -182,6 +182,13 @@ end
 try
     oepathname=getOEdatapath(expdate, session, filenum);
     cd(oepathname);
+            t_filename=sprintf('ch%s_simpleclust_0%s.t', channel, cell);
+        if exist(t_filename)
+            go_on=1;
+        else
+            go_on=0;
+            fprintf('cluster %d on tetrode %s, %s-%s-%shas been deleted', channel, cell, expdate, session, filenum);
+        end
 catch
     cd('C:\Program Files\Open Ephys')
     switch sorter
@@ -297,6 +304,7 @@ numdurs=length(durs);
 expectednumrepeats=ceil(length(allfreqs)/(numfreqs*numamps*numdurs));
 M1=[];
 nreps=zeros(numfreqs, numamps, numdurs);
+
 
 inRange=zeros(1, Nclusters);
 %extract the traces into a big matrix M
@@ -597,7 +605,12 @@ end %cell
 set(gcf,'Position',[100 100 800 900]);
 
 if save_outfile==1
-    clust=str2num(cell);
+%     cd(location);
+%     outfilename=sprintf('outTCOE%s_%s-%s-%s_%s',channel, expdate, session, filenum, cell);
+%     clust=str2num(cell);
+%     load(outfilename)
+%     %quality=out.quality;
+    
     out.cell=cell;
     out.M1=squeeze(M1(clust,:,:,:,:));
     out.mM1=squeeze(mM1(clust,:));
@@ -624,7 +637,8 @@ if save_outfile==1
     out.expdate=expdate;
     out.session=session;
     out.filenum=filenum;
-    out.quality=3;
+    cd(oepathname);
+    out.quality=4;
     try
         out.isrecording=isrecording;
     end
@@ -673,4 +687,3 @@ outfilename=sprintf('outTCOE%s_%s-%s-%s_%s',channel, expdate, session, filenum, 
 godatadir(expdate, session, filenum);
 save (outfilename, 'out')
 fprintf('\n\n')
-

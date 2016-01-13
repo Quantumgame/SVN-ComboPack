@@ -70,7 +70,7 @@ if strcmp(soaflag, 'soa')
     end
 end
 
-if post_startle_duration==0 error('please use a finite post_startle_duration');end
+%if post_startle_duration==0 error('please use a finite post_startle_duration');end
 
 global pref
 if isempty(pref) Prefs;end

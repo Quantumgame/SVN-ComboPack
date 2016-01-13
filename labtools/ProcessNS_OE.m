@@ -14,7 +14,7 @@ elseif nargin==3
     ylimits=-1;
     prompt=('Please enter tetrode number: ');
     channel=input(prompt,'s') ;
-    binwidth=5;
+    binwidth=15;
 elseif nargin==4
     expdate=varargin{1};
     session=varargin{2};
@@ -24,7 +24,7 @@ elseif nargin==4
     ylimits=-1;
     prompt=('Please enter tetrode number: ');
     channel=input(prompt,'s') ;
-    binwidth=5;
+    binwidth=15;
 elseif nargin==5
     expdate=varargin{1};
     session=varargin{2};
@@ -34,7 +34,7 @@ elseif nargin==5
     ylimits=-1;
     prompt=('Please enter tetrode number: ');
     channel=input(prompt,'s') ;
-    binwidth=5;
+    binwidth=15;
 elseif nargin==6
     expdate=varargin{1};
     session=varargin{2};
@@ -42,7 +42,7 @@ elseif nargin==6
     channel=varargin{4};
     xlimits=varargin{5};
     ylimits=varargin{6};
-    binwidth=5;
+    binwidth=15;
 elseif nargin==7
     expdate=varargin{1};
     session=varargin{2};
@@ -113,8 +113,15 @@ OEeventsfile=strrep(eventsfile, 'AxopatchData1', 'OE');
 try
     oepathname=getOEdatapath(expdate, session, filenum);
     cd(oepathname);
+%                 t_filename=sprintf('ch%s_simpleclust_0%s.t', channel, cell);
+%         if exist(t_filename)
+%             go_on=1;
+%         else
+%             go_on=0;
+%             fprintf('cluster %d on tetrode %s, %s-%s-%shas been deleted', channel, cell, expdate, session, filenum);
+%         end
 catch
-    cd('C:\Program Files\Open Ephys')
+    cd('D:\Program Files\Open Ephys')
     switch sorter
         case 'MClust'
             [OEdatafile, oepathname] = uigetfile('*.t', 'pick an MClust output file (*.t)');

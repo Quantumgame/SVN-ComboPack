@@ -42,8 +42,8 @@ function MakeInterleavedArchProtocol(pre, width, isi, numtones)
 % MakeInterleavedArchProtocol(pre, width, isi)
 
 
-fprintf('\nThis function is no longer in use! Use MakePpaLaserProtocol().\n')
-return
+%fprintf('\nThis function is no longer in use! Use MakePpaLaserProtocol().\n')
+%return
 
 if nargin==0; fprintf('\nno input');return;end
 global pref

@@ -33,12 +33,12 @@ if ismac
             mkdir('blister')
             fprintf('\nattempting to mount backup file server...\n')
             
-%             note: this doesn't work for me, take a look at http://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-samba-connect-share.html
+            %             note: this doesn't work for me, take a look at http://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-samba-connect-share.html
             
             [status, result]=system('mount -t smbfs //lab@blister/Backup  /Volumes/blister');
             if ~status error(status);
             else
-            fprintf('\nsuccessfully mounted backup server')
+                fprintf('\nsuccessfully mounted backup server')
             end
             cd('/Volumes/blister')
         end
@@ -49,27 +49,35 @@ elseif ispc
 else error('cannot tell what kind of computer this is')
 end
 
-
+try
     cd(rig)
     cd(sprintf('Data-%s-processed', username))
     cd(sprintf('%s-%s',expdate, username))
     cd(sprintf('%s-%s-%s',expdate, username, session))
+catch
+    if strcmp(pref.username, 'ira') %added to plot data collected on rig 5 from rig1
+        cd('\\blister\backup')
+        cd('rig5')
+        cd(sprintf('Data-%s-processed', username))
+        cd(sprintf('%s-%s',expdate, username))
+        cd(sprintf('%s-%s-%s',expdate, username, session))
+    end
+end
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

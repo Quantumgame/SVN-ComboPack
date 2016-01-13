@@ -31,6 +31,5 @@ function [oepathname isrecording]=getOEdatapath(expdate, session, filenum)
         end
     end
     if strcmp(oepathname(1),'c')
-oepathname(1)=pref.openephysdrive;
-fprintf('\n changing drive to %s in oepathname. the data has been moved\n', pref.openephysdrive);
+oepathname(1)='d';
     end
