@@ -8,7 +8,8 @@ function Plot2toneTC_psth(expdate1, session1, filenum1, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 tracelength=2000; %in ms
 baseline=200; %in ms
-
+location='D:\lab\Data4Yashar\OnOn';
+%location='D:\lab\Data4Yashar\OffOn';
 global pref
 if isempty(pref) Prefs; end
 username=pref.username;

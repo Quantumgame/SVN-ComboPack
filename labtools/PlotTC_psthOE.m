@@ -13,8 +13,11 @@ function PlotTC_psthOE(expdate, session, filenum, channel, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
-location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\LongWN';
-save_outfile=0;
+%location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\LongWN';
+location='D:\lab\Data4Yashar\WNtones';
+location='D:\lab\Data4Yashar\LongTones';
+%location='D:\lab\Data4Yashar\TC';
+save_outfile=1;
 % %sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
 % for i=1:length(recordings)
@@ -611,12 +614,12 @@ if save_outfile==1
 %     load(outfilename)
 %     %quality=out.quality;
     
-    out.cell=cell;
+    out.expdate=expdate;
+    out.session=session;
+    out.filenum=filenum;
+    out.username=whoami;
     out.M1=squeeze(M1(clust,:,:,:,:));
     out.mM1=squeeze(mM1(clust,:));
-    out.expdate=expdate;
-    out.filenum=filenum;
-    out.session=session;
     out.datafile=datafile;
     out.eventsfile=eventsfile;
     out.stimfile=stimfile;
@@ -633,12 +636,9 @@ if save_outfile==1
     out.samprate=samprate;
     out.channel=channel;
     out.Nclusters=Nclusters;
+    out.cell=cell;
     out.nreps=nreps;
-    out.expdate=expdate;
-    out.session=session;
-    out.filenum=filenum;
-    cd(oepathname);
-    out.quality=4;
+    out.quality=3;
     try
         out.isrecording=isrecording;
     end
