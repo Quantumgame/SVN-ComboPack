@@ -526,7 +526,7 @@ out.oepathname=oepathname;
 out.combine_ONOFF=combine_ONOFF;
 %out.OEdatafile=OEdatafile;
 out.isi=isi;
-out.quality=3;
+out.quality=5;
 out.notes='tc2 is only 0-150 ms';
     cd(location);
     outfilename=sprintf('out%sILGPIAS-%s-%s-%s-%d',channel,expdate,session, filenum, cell);
