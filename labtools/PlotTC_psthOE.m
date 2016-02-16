@@ -17,7 +17,7 @@ rasters=1;
 location='D:\lab\Data4Yashar\WNtones';
 location='D:\lab\Data4Yashar\LongTones';
 %location='D:\lab\Data4Yashar\TC';
-save_outfile=1;
+save_outfile=0;
 % %sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
 % for i=1:length(recordings)
@@ -638,7 +638,7 @@ if save_outfile==1
     out.Nclusters=Nclusters;
     out.cell=cell;
     out.nreps=nreps;
-    out.quality=3;
+    out.quality=5;
     try
         out.isrecording=isrecording;
     end

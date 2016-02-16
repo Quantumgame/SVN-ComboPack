@@ -135,3 +135,4 @@ event=expLogTriggerEvents;
 godatadir(expdate, session, filenum)
 save(daqEventsName,'event');
 
+SEM=std(R)/sqrt(length(R))
