@@ -1,5 +1,5 @@
 function MakeOddballProtocol(numfreqs, minfreq, maxfreq, oddball_freq, include_whitenoise, numamplitudes, minamplitude, maxamplitude, ...
-    ntones, isi, toneduration, start, next, ramp, nrepeats)
+    ntones, isi, toneduration, start, ramp, nrepeats)
 %usage:  MakeOddballProtocol(numfreqs, minfreq, maxfreq, include_whitenoise, numamplitudes, minamplitude, maxamplitude, ...
 %    ntones, isi, toneduration, start, next, ramp, nrepeats)
 %creates an exper2 stimulus protocol file for an oddball type stimulus
@@ -21,6 +21,7 @@ function MakeOddballProtocol(numfreqs, minfreq, maxfreq, oddball_freq, include_w
 %   toneduration   -   duration of an individual tone (ms)
 %   start           -   start of the first tone after the trigger (ms)
 %   next            -   inter-tone-train-interval, i.e. when the next
+%   REMOVED FOR NOW IRA 03-04-16
 %                       tone train should follow the previous one (ms)
 %   ramp            -   rising/falling edge of individual tones
 %   nrepeats: number of repetitions (different pseudorandom orders for atten)
@@ -46,9 +47,10 @@ neworder=randperm( numfreqs * numamplitudes );
 amplitudes=zeros(size(neworder*nrepeats));
 freqs=zeros(size(neworder*nrepeats));
 
-tdur= numfreqs*numamplitudes*(next+start+toneduration+(ntones-1)*isi)/1000;%duration per repeat
-trainduration=(next+start+toneduration+(ntones-1)*isi);
-
+%tdur= numfreqs*numamplitudes*(next+start+toneduration+(ntones-1)*isi)/1000;%duration per repeat
+tdur= numfreqs*numamplitudes*(start+toneduration+(ntones-1)*isi)/1000;%duration per repeat
+%trainduration=(next+start+toneduration+(ntones-1)*isi);
+trainduration=(start+toneduration+(ntones-1)*isi);
 for nn=1:nrepeats
     neworder=randperm( numfreqs * numamplitudes );
     amplitudes( prod(size(Amplitudes))*(nn-1) + (1:prod(size(Amplitudes))) ) = Amplitudes( neworder );
@@ -72,26 +74,28 @@ for nn=2:(1+length(amplitudes))
         stimuli(nn).type='oddball';
         stimuli(nn).param.amplitude=amplitudes(nn-1);
         stimuli(nn).param.nclicks=ntones;
-        stimuli(nn).param.isi=isi;
+        %stimuli(nn).param.isi=isi;
         stimuli(nn).param.frequency=-1;
         stimuli(nn).param.oddball_frequency=oddball_freq;
         stimuli(nn).param.clickduration=toneduration;
         stimuli(nn).param.start=start;
-        stimuli(nn).param.next=next;
+        %stimuli(nn).param.next=next;
         stimuli(nn).param.ramp=ramp;
         stimuli(nn).param.duration=trainduration;
+        stimuli(nn).param.next=isi;
     else
         stimuli(nn).type='oddball';
         stimuli(nn).param.amplitude=amplitudes(nn-1);
         stimuli(nn).param.ntones=ntones;
-        stimuli(nn).param.isi=isi;
+        %stimuli(nn).param.isi=isi;
         stimuli(nn).param.frequency=freqs(nn-1);
         stimuli(nn).param.oddball_frequency=oddball_freq;
         stimuli(nn).param.toneduration=toneduration;
         stimuli(nn).param.start=start;
-        stimuli(nn).param.next=next;
+        %stimuli(nn).param.next=next;
         stimuli(nn).param.ramp=ramp;
         stimuli(nn).param.duration=trainduration;
+        stimuli(nn).param.next=isi;
     end
 end
 
