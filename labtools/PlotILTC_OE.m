@@ -38,7 +38,7 @@ end
 high_pass_cutoff=400;
 [a,b]=butter(1, high_pass_cutoff/(30e3/2), 'high');
 fprintf('\nusing xlimits [%d-%d]', xlimits(1), xlimits(2))
-gogetdata(expdate,session,filenum);
+godatadir(expdate,session,filenum);
 outfilename=sprintf('outOE%s_%s-%s-%s.mat',channel, expdate, session, filenum);
 %outfilename=sprintf('outOE%s-%s-%s.mat', expdate, session, filenum);
 if exist(outfilename,'file')
