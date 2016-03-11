@@ -171,17 +171,22 @@ for paindex=1:numpulseamps
     end
 end
 
-ylimmax=.0001;
-for paindex=1:numpulseamps
-    for gdindex=1:numgapdurs
-        spiketimes1=mM1(gdindex,paindex).spiketimes;
-        X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
-        [N, x]=hist(spiketimes1, X);
-        N=N./nreps(gdindex,paindex); % averaged across trials
-        if max(N)>ylimmax
-            ylimmax=max(N);
+if ylimits==-1
+    ylimmax=.0001;
+    for paindex=1:numpulseamps
+        for gdindex=1:numgapdurs
+            spiketimes1=mM1(gdindex,paindex).spiketimes;
+            X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
+            [N, x]=hist(spiketimes1, X);
+            N=N./nreps(gdindex,paindex); % averaged across trials
+            N=1000*N./binwidth; %normalize to spike rate in Hz
+            if max(N)>ylimmax
+                ylimmax=max(N);
+            end
         end
     end
+else
+    ylimmax=ylimits(2);
 end
 
 figure
@@ -191,6 +196,7 @@ for paindex=1:numpulseamps
     for gdindex=1:numgapdurs
         p=p+1;
         subplot1(p)
+        %figure
         hold on
         if p==1
             title(sprintf('%s-%s-%s',expdate,session,filenum))
@@ -199,28 +205,29 @@ for paindex=1:numpulseamps
         X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
         [N, x]=hist(spiketimes1, X);
         N=N./nreps(gdindex,paindex); % averaged across trials
+        N=1000*N./binwidth; %normalize to spike rate in Hz
         bar(x, N,1,'facecolor',[0 0 0]);
         line([0 gapdelay],[-.1 -.1],'color','m','linewidth',1.5)
         if gapdurs(gdindex)>0
             line([gapdelay+gapdurs(gdindex) max(duration)],[-.1 -.1],'color','m','linewidth',1.5) % Assuming a single duration.
         end
         yl=ylim;
-        offset=yl(2);
-         %plot rasters
-            inc=(ylimmax)/10;
-            for n=1:nreps(gdindex,paindex)
-                spiketimes2=M1(gdindex,paindex, n).spiketimes;
-                h=plot(spiketimes2, offset+ones(size(spiketimes2)), '.');
-                offset=offset+inc;
-                %                 set(h, 'markersize', 5)
-                set(h,'Color','k');
-            end
-            
+% % %         offset=ylimmax;
+% % %         %plot rasters
+% % %         inc=(ylimmax)/15;
+% % %         for n=1:nreps(gdindex,paindex)
+% % %             spiketimes2=M1(gdindex,paindex, n).spiketimes;
+% % %             h=plot(spiketimes2, offset+zeros(size(spiketimes2)), '.');
+% % %             offset=offset+inc;
+% % %             set(h, 'markersize', 15)
+% % %             set(h,'Color','k');
+% % %         end
+        
         xlim([(xlimits(1)) xlimits(2)])
-%        ylim([-.2 (2*ylimmax)])
-yl=ylim;
-yl(1)=-.2;
-ylim(yl);
+        %        ylim([-.2 (2*ylimmax)])
+        yl=ylim;
+        yl(1)=-.2;
+        ylim(yl);
         ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
         
     end
@@ -231,37 +238,37 @@ xlabel('ms')
 %plot stimulus as a sanity check
 if(0)
     figure
-for paindex=1:numpulseamps
-    p=0;
-    subplot1(numgapdurs,1)
-    for gdindex=1:numgapdurs
-        p=p+1;
-        subplot1(p)
-        hold on
-        if p==1
-            title(sprintf('%s-%s-%s',expdate,session,filenum))
+    for paindex=1:numpulseamps
+        p=0;
+        subplot1(numgapdurs,1)
+        for gdindex=1:numgapdurs
+            p=p+1;
+            subplot1(p)
+            hold on
+            if p==1
+                title(sprintf('%s-%s-%s',expdate,session,filenum))
+            end
+            spiketimes1=mM1(gdindex,paindex).spiketimes;
+            X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
+            [N, x]=hist(spiketimes1, X);
+            N=N./nreps(gdindex,paindex); % averaged across trials
+            bar(x, N,1,'facecolor',[0 0 0]);
+            line([ 0 gapdelay ],[-.1 -.1],'color','g','linewidth',1.5)
+            if gapdurs(gdindex)>0
+                line([gapdelay+gapdurs(gdindex) max(duration)],[-.1 -.1],'color','m','linewidth',1.5) % Assuming a single duration.
+            end
+            xlim([(xlimits(1)) xlimits(2)])
+            ylim([-.2 (1.1*ylimmax)])
+            ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
+            stimtrace=squeeze(M1stim(gdindex, paindex, nreps(gdindex, paindex),:));
+            stimtrace=.1*diff(ylim)*stimtrace./max(abs(stimtrace));
+            t=1:length(stimtrace);
+            t=t/10;t=t+xlimits(1);
+            plot(t, stimtrace, 'r')
         end
-        spiketimes1=mM1(gdindex,paindex).spiketimes;
-        X=(xlimits(1)+0):binwidth:(xlimits(2)+0); %specify bin centers
-        [N, x]=hist(spiketimes1, X);
-        N=N./nreps(gdindex,paindex); % averaged across trials
-        bar(x, N,1,'facecolor',[0 0 0]);
-        line([ 0 gapdelay ],[-.1 -.1],'color','g','linewidth',1.5)
-        if gapdurs(gdindex)>0
-            line([gapdelay+gapdurs(gdindex) max(duration)],[-.1 -.1],'color','m','linewidth',1.5) % Assuming a single duration.
-        end
-        xlim([(xlimits(1)) xlimits(2)])
-        ylim([-.2 (1.1*ylimmax)])
-        ylabel(sprintf('%.0f ms',gapdurs(gdindex)));
-        stimtrace=squeeze(M1stim(gdindex, paindex, nreps(gdindex, paindex),:));
-        stimtrace=.1*diff(ylim)*stimtrace./max(abs(stimtrace));
-        t=1:length(stimtrace);
-        t=t/10;t=t+xlimits(1);
-        plot(t, stimtrace, 'r')
     end
-end
-
-xlabel('ms')
+    
+    xlabel('ms')
 end
 
 end
