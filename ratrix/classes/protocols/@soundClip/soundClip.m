@@ -1,7 +1,7 @@
 function t=soundClip(varargin)
 % SOUNDCLIP  class constructor.
 % t = soundClip(name,type,[fundamentalFreqs],maxFreq)
-    %mw 02.06.2016 added speechWav stimuli
+
 % Set all attributes here, so they are all defined
 t.sampleRate = 88200;
 t.msLength = 500;
@@ -60,10 +60,10 @@ switch nargin
         end
         t.clip = [];
         % create object using specified values
-        if ismember(varargin{2},{'tone','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward', 'speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
-            if ~all(varargin{3}>0) 
+        if ismember(varargin{2},{'tone','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
+            %if ~all(varargin{3}>0) 
 %                error('pass in Freq  > 0') %commented out to allow isi of 0 
-            end 
+            %end 
             t.freq = varargin{3};
             switch(varargin{2})
                 case 'tone'
@@ -96,6 +96,9 @@ switch nargin
                 case 'phonemeWavReversedReward'
                     t.description = ['phonemeWavReversedReward'];
                     t.type = varargin{2}; 
+                case 'pulseAndNoise'
+                    t.description = ['pulseAndNoise'];
+                    t.type = varargin{2};
                 case 'speechWav'
                     t.description = ['speechWav'];
                     t.type = varargin{2}; 
@@ -160,6 +163,8 @@ switch nargin
             t.leftAmplitude = left{2};
             t.rightSoundClip = right{1};
             t.rightAmplitude = right{2};
+            %t.leftSoundClip.freq = left{3};
+            %t.rightSoundClip.freq = right{3};
             t.description = ['dualChannel soundclip with (Left: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  ...
                 ']; Right: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  '])' ];
             t.type = varargin{2};

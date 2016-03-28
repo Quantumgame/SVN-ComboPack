@@ -115,26 +115,6 @@ if strcmp(stimulus.soundType, 'phonemeWavReversedReward') %files specified in ge
 end
 
 
-if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to indicate sad/dad
-    
-    [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
-    %default case (e.g. rights==lefts )
-    
-    tones = [4000 13000];
-    
-    if lefts>rights %choose a left stim (wav1)
-        details.toneFreq = tones(1);
-    elseif rights>lefts %choose a right stim (wav2)
-        details.toneFreq = tones(2);
-    end
-    if lefts == rights %left
-        details.toneFreq = tones(1);
-    end
-    
-end
-
-
 if strcmp(stimulus.soundType, 'toneLaser') %files specified in getClip-just need to indicate sad/dad
     
     [lefts, rights] = getBalance(responsePorts,targetPorts);
@@ -157,6 +137,26 @@ if strcmp(stimulus.soundType, 'toneLaser') %files specified in getClip-just need
     end
     
 end
+
+if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to indicate sad/dad
+    
+    [lefts, rights] = getBalance(responsePorts,targetPorts);
+    
+    %default case (e.g. rights==lefts )
+    
+    tones = [4000 13000];
+    
+    if lefts>rights %choose a left stim (wav1)
+        details.toneFreq = tones(1);
+    elseif rights>lefts %choose a right stim (wav2)
+        details.toneFreq = tones(2);
+    end
+    if lefts == rights %left
+        details.toneFreq = tones(1);
+    end
+
+end
+
 
 if strcmp(stimulus.soundType, 'phonemeLaser') || strcmp(stimulus.soundType, 'phonemeLaserMulti') %laser assignment - random stimulus for laser trials
     

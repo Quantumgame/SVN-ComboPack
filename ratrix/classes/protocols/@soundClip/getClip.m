@@ -1,4 +1,5 @@
 function [c sampleRate s cacheUpdated]=getClip(s)
+global freqDurable;
 if isempty(s.clip)
     %disp(sprintf('caching %s',s.name))
 
@@ -165,14 +166,26 @@ if isempty(s.clip)
                 s.clip = sad.';
             end
             
-        case {'speechWav', 'speechWavLaser', 'speechWavLaserMulti', 'speechWavReversedReward'} %note reversed is not reversed here
-            [bah, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\bah.wav'); %left
-            [pah, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\pah.wav'); %right
-            if s.freq
-                s.clip = bah.';
-            else 
-                s.clip = pah.';
+       case 'pulseAndNoise'
+           s.numSamples = s.sampleRate*5;
+           pulse = randn(1,s.sampleRate*.025);
+           sustained = randn(1,s.numSamples-(s.sampleRate*.025))./4;
+           s.clip = horzcat(pulse,sustained);
+            
+       case {'speechWav', 'speechWavLaser', 'speechWavLaserMulti', 'speechWavReversedReward'} %note reversed is not reversed here
+            %Receive stim target from s.freq as described in calcStim
+            %freq is [consonant, speaker, vowel, recording]
+ 
+            map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
+            names = {'Jonny','temp','temp2'}; %Set other names when the stims are cut!!!
+            
+            if ~s.freq
+                s.freq = freqDurable;
             end
+            
+            filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(s.freq(2)),'\CV\',map(s.freq(1),s.freq(3)),'\',map(s.freq(1),s.freq(3)),num2str(s.freq(4)),'.wav'));
+            [aud, fs] = wavread(filen);
+            s.clip = aud.';
             
         case 'warblestackWav'  
             startsound=s.freq(1); %if 0, warble first, if 1, WN first

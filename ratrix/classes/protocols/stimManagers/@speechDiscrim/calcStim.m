@@ -2,6 +2,8 @@ function [stimulus,updateSM,resolutionIndex,preRequestStim,preResponseStim,discr
     details,interTrialLuminance,text,indexPulses,imagingTasks,sounds] =...
     calcStim(stimulus,trialManagerClass,allowRepeats,resolutions,displaySize,LUTbits,responsePorts,totalPorts,trialRecords,targetPorts,distractorPorts,details,text)
 
+global freqDurable;
+
 indexPulses=[];
 imagingTasks=[];
 
@@ -80,19 +82,50 @@ end
 
 details.toneFreq = [];
 
-if strcmp(stimulus.soundType, 'speechWav')  %files specified in getClip-just need to indicate sad/dad
-    %this code works for no laser condition - below for laser
+if strcmp(stimulus.soundType, 'speechWav') 
     [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
-    %default case (e.g. rights==lefts )
-    
-    if lefts>rights %choose a left stim (wav1)
-        details.toneFreq = 1;
-    elseif rights>lefts %choose a right stim (wav2)
-        details.toneFreq = 0;
+    switch stimulus.stimLevel %Choose stim, mapped in getClip
+        case 1 %base
+            r1 = 1; %One speaker (Jonny)
+            r2 = 1; %One Vowel Context (/I/)
+            r3 = 3; %One Recording (best of Jonny's /bI/)
+        case 2 %2 recordings
+            r1 = 1;
+            r2 = 1;
+            r3 = randi(2,1) + 1; %get recording 2 or 3
+        case 3 %2 vowels/2 recordings of /I/, one of /o/
+            r1 = 1;
+            r2 = randi(2,1);
+            if r2 == 2 
+                r3 = 3; %one recording of /o/
+            else
+                r3 = randi(2,1) + 1;
+            end
+        case 4 %2 speakers/2 vowels/2 recordings of prev speak,1 of new
+            r1 = randi(2,1);
+            r2 = randi(2,1);
+            if r1 == 2 %one recording if second speaker this time
+                r3 = 3;
+            else
+                r3 = randi(2,1) + 1;
+            end
+        case 5 %2 speakers/3 vowels/2 recordings of prev vowel, 1 of new.
+            r1 = randi(2,1);
+            r2 = randi(3,1);
+            if r2 == 3
+                r3 = 3;
+            else
+                r3 = randi(2,1) + 1;
+            end
     end
-    if lefts == rights %left
-        details.toneFreq = 1;
+    
+    if lefts >= rights %choose a left stim (/g/)
+        details.toneFreq = [1, r1, r2, r3];
+        freqDurable = [1, r1, r2, r3];
+
+    elseif rights>lefts %choose a right stim (/b/)
+        details.toneFreq = [2, r1, r2, r3];
+        freqDurable = [2, r1, r2, r3];
     end
 end
 
@@ -104,13 +137,20 @@ if strcmp(stimulus.soundType, 'speechWavReversedReward') %files specified in get
     
     %default case (e.g. rights==lefts )
     
-    if lefts>rights %choose a left stim (wav1)
-        details.toneFreq = 1;
-    elseif rights>lefts %choose a right stim (wav2)
-        details.toneFreq = 0;
-    end
-    if lefts == rights %left
-        details.toneFreq = 1;
+    %randomly choose stim, mapped in getClip
+    r1 = 1; %speaker, 1 for now, only Jonny
+    %r2 = randi(3,1); %vowel context
+   % r3 = randi(3,1); %recording
+   r2 = 1;
+   r3 = 3; %simplifying task -JLS030316
+    
+    if lefts >= rights %choose a left stim (/g/)
+        details.toneFreq = [1, r1, r2, r3];
+        freqDurable = [1, r1, r2, r3];
+
+    elseif rights>lefts %choose a right stim (/b/)
+        details.toneFreq = [2, r1, r2, r3];
+        freqDurable = [2, r1, r2, r3];
     end
 end
 
@@ -194,6 +234,8 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','allOctaves',[stimulus.freq],20000);
     case {'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'}
         sSound = soundClip('stimSoundBase',stimulus.soundType);
+        details.rightAmplitude = 10.^((40 - 80)/20);
+        details.leftAmplitude = 10.^((40 - 80)/20);
     case {'wmReadWav'}
         sSound = soundClip('stimSoundBase','wmReadWav', [details.toneFreq]);
     case {'speechWav'}
@@ -209,8 +251,9 @@ switch stimulus.soundType
     case {'toneLaser'}
         sSound = soundClip('stimSoundBase','toneLaser', [details.toneFreq]);
 end
-stimulus.stimSound = soundClip('stimSound','dualChannel',{sSound,details.leftAmplitude},{sSound,details.rightAmplitude});
+stimulus.stimSound = soundClip('stimSound','dualChannel',{sSound,details.leftAmplitude,details.toneFreq},{sSound,details.rightAmplitude,details.toneFreq});
 
+%modify penalty sound amplitude here
 
 %do not want this line when laser enabled!
 %parameterize it as "multi" and "reinforce"?

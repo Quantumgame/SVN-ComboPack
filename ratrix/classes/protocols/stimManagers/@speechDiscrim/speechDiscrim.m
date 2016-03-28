@@ -1,5 +1,5 @@
 function s=speechDiscrim(varargin)
-% intensityDiscrim class constructor.
+% speechDiscrim class constructor.
 % s =
 % intensityDiscrim(mean,soundParams,maxWidth,maxHeight,scaleFactor,interTrialLuminance)
 % mean normalized (0 <= value <= 1)
@@ -22,6 +22,7 @@ s.audioStimulus = true;
 s.soundType='';
 s.wav1='';
 s.wav2='';
+s.stimLevel = [];
         
 switch nargin
     case 0
@@ -58,6 +59,7 @@ switch nargin
         end
         
         s.freq=soundParams.freq;
+
         
         switch s.soundType
             case {'allOctaves','tritones'}
@@ -76,6 +78,7 @@ switch nargin
                 s.wav2 = soundParams.wav2;
                 
             case 'speechWav'
+                s.stimLevel = soundParams.stimLevel;
             
             case 'speechWavReversedReward'
                 
@@ -85,7 +88,6 @@ switch nargin
             otherwise
                 error('intensityDiscrim: soundType not recognized')
         end
-        
         s = class(s,'speechDiscrim',stimManager(varargin{3},varargin{4},varargin{5},varargin{6}));
         
     otherwise
