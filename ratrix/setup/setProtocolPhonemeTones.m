@@ -101,7 +101,7 @@ ts5 = trainingStep(lpTM  , phonemeStim, repeatIndefinitely(), noTimeOff(), svnRe
 percentCorrectionTrials=.5;
 lpTM2=nAFC(sm,percentCorrectionTrials,longPenalty,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
 
-ts6 = trainingStep(lpTM2  , phonemeStim, performanceCriterion(.85, int8(200)), noTimeOff(), svnRev,svnCheckMode);
+ts6 = trainingStep(lpTM2  , phonemeStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
 
 ts7 = trainingStep(lpTM  , phonemeStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
 

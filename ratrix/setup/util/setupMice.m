@@ -25,19 +25,22 @@ setupEnvironment
 %names = {'WMtest'}
 %names = {'20407'}
 %names = {'Mtest2'}
-names = {'LT.11_40trials', 'TT.7_40trials'}
-%names = {'F6193','F6145', 'F6304', 'F6308'}
+%names = {'PBtest'}
+%names = {'WSBtest'}
 %names = {'3579', '3580', '3578', '3582'}
 %names = {'70459' , '70461'}
 %names = {'3813', '3814', '3815'}
 %names = {'VD-47899', 'VD-51008'}
-%names = {'5620', '5622'}
-%names = {'TEST_LASER'}
-%names= {'6304', '6306','6308'}
-%names={'6193', '6145'}
+names = {'TT.11control', 'RT.7control'}
+%names = {'TESTCORRECTION'}
+%names = {'5917_LASER'}
+%names= {'5917LaserMulti'}
+%names={'Lasertest3'}
 %names={'PMultiLasertest'}
-%names={'faketest'}
-
+%names={'5625MultiIntLaser'}
+%names = {'5982RRLaserOut'}
+%names = {'new5919LaserOut', 'new5917Laser'}
+%names={'new5980RRLaserOut','new5982RRLaserOut'}
 lab = 'wehrCNM'
 
 switch lab
@@ -46,15 +49,13 @@ switch lab
         p = 'setProtocolWehr';
     case 'wehrCNM'
         %ratrixPath = 'C:\Users\nlab\Desktop\wehrData';
-        ratrixPath = 'C:\Users\nlab\Desktop\wehrData-conor';
-   %     p = 'setProtocolPhonemeReversedReward';
-        p = 'setProtocolPhonemeTones';
+        ratrixPath = 'C:\Users\nlab\Desktop\laserData';
+   %    p = 'setProtocolPhonemeLaserMultiInterval';
+        p = 'setProtocolTones';
  %p = 'setProtocolWMStackWarbleBackup'
  %       p = 'setProtocolWMStackWarble';
 % p='setProtocolWMToneWN'
-  %p = 'setProtocolWMToneWNVariableDelay'
- %p='setProtocolPhonemeTonesLaser'
-  %p='setProtocolPhonemeLaser'
+%  p = 'setProtocolWMToneWN'
     case 'niell'
         ratrixPath = 'C:\Users\nlab\Desktop\mouseData0512';
         p = 'setProtocolAbstOrient';

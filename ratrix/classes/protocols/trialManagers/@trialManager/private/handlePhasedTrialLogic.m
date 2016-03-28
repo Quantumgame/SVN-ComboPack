@@ -103,7 +103,7 @@ for gcInd=1:2:length(transitionCriterion)-1
                 duration = getDurations(stimManager);
                 isi=stimDetails.isi;
                 %frameWindowStart = (duration(2)+duration(3)/2)*30/1000;
-                frameWindowStart = (duration(2)+isi)*15/1000;
+                frameWindowStart = (duration(2)+isi)*30/1000;
                 if framesInPhase > frameWindowStart;
             newSpecInd = transitionCriterion{gcInd+1};
                 else 

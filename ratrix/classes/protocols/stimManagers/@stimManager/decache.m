@@ -1,2 +1,4 @@
 function s=decache(s)
-s.correctStim=[];
+if strmatch('correctStim',fieldnames(s))
+    s.correctStim=[];
+end
