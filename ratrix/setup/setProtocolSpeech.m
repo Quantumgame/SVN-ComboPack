@@ -166,10 +166,7 @@ nafc3 = nAFC(sm,pctCorrectTrials,largeReqRewards,eyeController,{'off'},dropFrame
 nafc4 = nAFC(sm,pctCorrectTrials,medRewards,eyeController,{'off'},dropFrames,'ptb','center');
 
 %Step 5 - long timeout
-nafc5 = nAFC(sm,pctCorrectTrials,smallRewardsLT,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
-
-%Step 6 - long timeout, smaller drinks
-nafc6 = nAFC(sm,pctCorrectTrials,smallRewardsLT,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
+nafc5 = nAFC(sm,pctCorrectTrials,medRewardsLT,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
 
 %Steps 7-10 use step 6's step manager
 
@@ -179,19 +176,18 @@ ts1  = trainingStep(fd1,   speechStim1, numTrialsDoneCriterion(10),           no
 ts2  = trainingStep(fd2,   speechStim1, numTrialsDoneCriterion(100),          noTimeOff(), svnRev,svnCheckMode); %Request Free Drinks
 ts3  = trainingStep(nafc3, speechStim1, numTrialsDoneCriterion(400),          noTimeOff(), svnRev,svnCheckMode); %Basic Task Intro
 ts4  = trainingStep(nafc4, speechStim1, numTrialsDoneCriterion(400),          noTimeOff(), svnRev,svnCheckMode); %No Req Reward
-ts5  = trainingStep(nafc5, speechStim1, performanceCriterion(.75,int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
-ts6  = trainingStep(nafc6, speechStim1, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Less Water
-ts7  = trainingStep(nafc6, speechStim2, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Harder task
-ts8  = trainingStep(nafc6, speechStim3, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %etc...
-ts9  = trainingStep(nafc6, speechStim4, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
-ts10 = trainingStep(nafc6, speechStim5, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
+ts5  = trainingStep(nafc5, speechStim1, performanceCriterion(.7,int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
+ts6  = trainingStep(nafc5, speechStim2, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Harder task
+ts7  = trainingStep(nafc5, speechStim3, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %etc...
+ts8  = trainingStep(nafc5, speechStim4, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
+ts9  = trainingStep(nafc5, speechStim5, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
 
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
-p=protocol('mouse speech discrimination',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10});
+p=protocol('mouse speech discrimination',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9});
 
 for i=1:length(subjIDs),
     subj=getSubjectFromID(r,subjIDs{i});
-    stepNum=uint8(2);
+    stepNum=uint8(5);
     [subj r]=setProtocolAndStep(subj,p,true,true,true,stepNum,r,'call to setProtocolSpeech','edf');
 end
 
