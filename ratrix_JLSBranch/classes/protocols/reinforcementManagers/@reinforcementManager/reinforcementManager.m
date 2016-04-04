@@ -59,11 +59,11 @@ switch nargin
             error('scalar must be >=0 and <=100')
         end
 
-        if isreal(r.fractionOpenTimeSoundIsOn) && isscalar(r.fractionOpenTimeSoundIsOn) &&  r.fractionOpenTimeSoundIsOn>=0 && r.fractionOpenTimeSoundIsOn<=1
-            %pass
-        else
-            error('fractionOpenTimeSoundIsOn must be >=0 and <=1')
-        end
+        %if isreal(r.fractionOpenTimeSoundIsOn) && isscalar(r.fractionOpenTimeSoundIsOn) &&  r.fractionOpenTimeSoundIsOn>=0 && r.fractionOpenTimeSoundIsOn<=1
+        %    %pass
+       % else
+        %   error('fractionOpenTimeSoundIsOn must be >=0 and <=1')
+        %end
 
         if isreal(r.fractionPenaltySoundIsOn) && isscalar(r.fractionPenaltySoundIsOn) && r.fractionPenaltySoundIsOn>=0 && r.fractionPenaltySoundIsOn<=1
             %pass

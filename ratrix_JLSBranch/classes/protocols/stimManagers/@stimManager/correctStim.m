@@ -8,12 +8,12 @@ function [out type startFrame scale numFrames] = correctStim(sm,numFrames,ifi,tm
 
 dur = getReinfAssocSecs(sm);
 
-if dur > 0 % && strcmp(class(tm),'nAFC')
+if dur > 0  % && strcmp(class(tm),'nAFC')
     out        = getStim       (sm.correctStim);
     type       = getStimType   (sm.correctStim);
     startFrame = lastFrame;    
     scale      = getScaleFactor(sm.correctStim);
-    numFrames  = ceil(dur/ifi);
+    %numFrames  = ceil(dur/ifi);
 else %old way
     out        = double(getInterTrialLuminance(sm));
     type       = 'static';
