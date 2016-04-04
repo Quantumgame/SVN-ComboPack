@@ -172,8 +172,10 @@ switch nargin
             t.leftAmplitude = left{2};
             t.rightSoundClip = right{1};
             t.rightAmplitude = right{2};
-            t.leftSoundClip.freq = left{3};
-            t.rightSoundClip.freq = right{3};
+            if length(left)>2
+                t.leftSoundClip.freq = left{3};
+                t.rightSoundClip.freq = right{3};
+            end
             t.description = ['dualChannel soundclip with (Left: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  ...
                 ']; Right: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  '])' ];
             t.type = varargin{2};
