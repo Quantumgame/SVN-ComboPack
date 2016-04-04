@@ -4,11 +4,7 @@ function t=soundClip(varargin)
 
 % Set all attributes here, so they are all defined
 t.sampleRate = 88200;
-if ~strcmp('duration',fieldnames(t))
-    t.msLength = 500;
-else
-    t.msLength = t.duration;
-end
+t.msLength = 500;
 t.msMinSoundDuration = 25;
 t.numSamples = t.sampleRate*t.msLength/1000;
 t.amplitude = 1.0; % Not currently specified by default
@@ -36,7 +32,7 @@ switch nargin
             error('Input argument is not a soundClip object')
         end
     case 2
-        if ismember(varargin{2},{'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty','pulse'})
+        if ismember(varargin{2},{'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'})
             t.fundamentalFreqs = [];
             t.maxFreq = 0;
             
@@ -64,12 +60,15 @@ switch nargin
         end
         t.clip = [];
         % create object using specified values
-        if ismember(varargin{2},{'tone','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
+        if ismember(varargin{2},{'tone','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
 
             t.freq = varargin{3};
             switch(varargin{2})
                 case 'tone'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
+                    t.type = varargin{2};
+                case 'toneThenSpeech'
+                    t.description = ['pure tone w phone after correct ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
                 case 'toneLaser'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
@@ -101,7 +100,7 @@ switch nargin
                 case 'phoneTone'
                     t.description = ['phoneTone'];
                     t.type = varargin{2};
-                    t.msLength = varargin{3}(2);
+                    t.msLength = varargin{3}(2)+500;
                     t.numSamples = t.sampleRate*t.msLength/1000;
                 case 'pulse'
                     t.description = ['pulse'];
@@ -109,8 +108,6 @@ switch nargin
                 case 'pulseAndNoise'
                     t.description = ['pulseAndNoise'];
                     t.type = varargin{2};
-                    t.msLength = varargin{3}.duration;
-                    t.numSamples = t.sampleRate*t.msLength/1000;
                 case 'speechWav'
                     t.description = ['speechWav'];
                     t.type = varargin{2}; 
@@ -175,8 +172,8 @@ switch nargin
             t.leftAmplitude = left{2};
             t.rightSoundClip = right{1};
             t.rightAmplitude = right{2};
-            %t.leftSoundClip.freq = left{3};
-            %t.rightSoundClip.freq = right{3};
+            t.leftSoundClip.freq = left{3};
+            t.rightSoundClip.freq = right{3};
             t.description = ['dualChannel soundclip with (Left: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  ...
                 ']; Right: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  '])' ];
             t.type = varargin{2};

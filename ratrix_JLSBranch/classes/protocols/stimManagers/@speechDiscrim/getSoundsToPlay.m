@@ -18,7 +18,16 @@ if stimDetails.overrideSoundCues && strcmp(phaseType,'discrim') && strcmp(trialM
     end
 end
 
-
+if strcmp(phaseType,'reinforced') && stepsInPhase <=0 && any(strcmp(trialManagerClass,{'ball','nAFC','goNoGo','oddManOut','cuedGoNoGo'}))
+    if ~all(cellfun(@isempty,soundsToPlay))
+        soundsToPlay={{},{}};
+    end
+    if trialDetails.correct
+        soundsToPlay{2}{end+1} = {'correctSound' msRewardSound};
+    else
+        soundsToPlay{2}{end+1} = {'wrongSound', msPenaltySound};
+    end
+end
 
 if stepsInPhase <= 0 && ...
         ((strcmp(phaseType,'discrim') && strcmp(trialManagerClass,'nAFC')))

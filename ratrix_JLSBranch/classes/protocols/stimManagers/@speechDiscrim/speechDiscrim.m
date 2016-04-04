@@ -59,6 +59,7 @@ switch nargin
         end
         
         s.freq=soundParams.freq;
+
         
         switch s.soundType
             case {'allOctaves','tritones'}
@@ -67,23 +68,27 @@ switch nargin
                 else
                     error('freq must be > 0')
                 end
+                
             case {'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'}
                 %no specific error checking here
-            case 'phoneTone'
-            case 'speechWav'
-                s.stimLevel = soundParams.stimLevel;
-            case 'speechWavReversedReward'
-            case 'speechWavLaser'
             case 'tone'
-            case 'toneLaser'
-            case 'speechWavLaserMulti'
+                
             case 'wmReadWav'
                 s.wav1 = soundParams.wav1;
                 s.wav2 = soundParams.wav2;
+                
+            case 'speechWav'
+                s.stimLevel = soundParams.stimLevel;
+            
+            case 'speechWavReversedReward'
+                
+            case 'speechWavLaser'
+            case 'toneThenSpeech'
+            case 'toneLaser'
+            case 'speechWavLaserMulti'
             otherwise
-                error('speechDiscrim: soundType not recognized')
+                error('intensityDiscrim: soundType not recognized')
         end
-        
         s = class(s,'speechDiscrim',stimManager(varargin{3},varargin{4},varargin{5},varargin{6}));
         
     otherwise
