@@ -147,6 +147,8 @@ if strcmp(stimulus.soundType, 'speechWavReversedReward') %files specified in get
     if lefts >= rights %choose a left stim (/g/)
         details.toneFreq = [1, r1, r2, r3];
         freqDurable = [1, r1, r2, r3];
+    end
+end
 
 if strcmp(stimulus.soundType, 'tone')
     %Do not use w/ speechdiscrim tone training, use toneThenSpeech below
