@@ -31,7 +31,8 @@ setupEnvironment
 %names = {'70459' , '70461'}
 %names = {'3813', '3814', '3815'}
 %names = {'VD-47899', 'VD-51008'}
-names = {'TT.11control', 'RT.7control'}
+%names = {'TT.11control', 'RT.7control'}
+names = {'speechTest'};
 %names = {'TESTCORRECTION'}
 %names = {'5917_LASER'}
 %names= {'5917LaserMulti'}
@@ -51,7 +52,7 @@ switch lab
         %ratrixPath = 'C:\Users\nlab\Desktop\wehrData';
         ratrixPath = 'C:\Users\nlab\Desktop\laserData';
    %    p = 'setProtocolPhonemeLaserMultiInterval';
-        p = 'setProtocolTones';
+        p = 'setProtocolSpeech';
  %p = 'setProtocolWMStackWarbleBackup'
  %       p = 'setProtocolWMStackWarble';
 % p='setProtocolWMToneWN'

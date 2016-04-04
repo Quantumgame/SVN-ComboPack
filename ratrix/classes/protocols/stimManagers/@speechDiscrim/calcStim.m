@@ -148,30 +148,45 @@ if strcmp(stimulus.soundType, 'speechWavReversedReward') %files specified in get
         details.toneFreq = [1, r1, r2, r3];
         freqDurable = [1, r1, r2, r3];
 
-    elseif rights>lefts %choose a right stim (/b/)
-        details.toneFreq = [2, r1, r2, r3];
-        freqDurable = [2, r1, r2, r3];
-    end
-end
-
-
-if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to indicate sad/dad
-    
+if strcmp(stimulus.soundType, 'tone')
+    %Do not use w/ speechdiscrim tone training, use toneThenSpeech below
     [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
+    updateSM=1;
     %default case (e.g. rights==lefts )
     
     tones = [4000 13000];
     
-    if lefts>rights %choose a left stim (wav1)
+    if lefts>=rights %choose a left stim (wav1)
         details.toneFreq = tones(1);
     elseif rights>lefts %choose a right stim (wav2)
         details.toneFreq = tones(2);
     end
-    if lefts == rights %left
-        details.toneFreq = tones(1);
-    end
     
+end
+
+if strcmp(stimulus.soundType, 'toneThenSpeech')
+    %For when only tone in discrim phase, phoneme will be played as
+    %'correct sound' if used w/ soundmanager "makeSpeechSM_PhonCorrect"
+    %Also need to calc phone. params and store them in freqDurable for
+    %getClip, otherwise doesn't know what freq means what phoneme
+    [lefts, rights] = getBalance(responsePorts,targetPorts);
+    updateSM=1;
+    %default case (e.g. rights==lefts )
+    
+    tones = [4000 13000];
+    
+    %Always have lvl.1 speech difficulty settings in this type
+    r1 = 1; %One speaker (Jonny)
+    r2 = 1; %One Vowel Context (/I/)
+    r3 = 3; %One Recording (best of Jonny's /bI/)
+    
+    if lefts>=rights %choose a left stim (wav1)
+        details.toneFreq = tones(1);
+        freqDurable = [1, r1, r2, r3];
+    elseif rights>lefts %choose a right stim (wav2)
+        details.toneFreq = tones(2);
+        freqDurable = [2, r1, r2, r3];
+    end
 end
 
 
@@ -188,25 +203,26 @@ if strcmp(stimulus.soundType, 'toneLaser') %files specified in getClip-just need
     elseif rights>lefts %choose a right stim (wav2)
         details.toneFreq = tones(2);
     end
-    if lefts == rights %left
-        details.toneFreq = tones(1);
+    pctcorrex = mean(correx);
+    
+    duration = [];
+    if pctcorrex < .5 %Calc length of tone. 
+        duration = 500;
+    elseif pctcorrex>=.5 & pctcorrex<.6
+        duration = 300;
+    elseif pctcorrex>=.6 & pctcorrex<.7
+        duration = 100;
+    elseif pctcorrex>=.7
+        duration = 0;
+    else     
+        duration = 300;
     end
     
-    if details.laserON
-        details.toneFreq=RandSample(tones);
-    end
+    stimulus.duration = duration+500; %Total clip will be dur+500 ms long b/c adding phoneme
     
-end
-
-if strcmp(stimulus.soundType, 'speechLaser') || strcmp(stimulus.soundType, 'speechLaserMulti') %laser assignment - random stimulus for laser trials
-    
-    
-    [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
-    %default case (e.g. rights==lefts )
-    
-    if lefts>rights %choose a left stim (wav1)
-        details.toneFreq = 1;
+    if lefts>=rights %choose a left stim (wav1)
+        details.toneFreq = [1, duration];
+        freqDurable = [1,duration];
     elseif rights>lefts %choose a right stim (wav2)
         details.toneFreq = 0;
     end
@@ -248,12 +264,14 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','speechWavReversedReward', [details.toneFreq]);
     case {'tone'}
         sSound = soundClip('stimSoundBase','tone', [details.toneFreq]);
+    case {'toneThenSpeech'}
+        sSound = soundClip('stimSoundBase','toneThenSpeech', [details.toneFreq]);
     case {'toneLaser'}
         sSound = soundClip('stimSoundBase','toneLaser', [details.toneFreq]);
 end
 stimulus.stimSound = soundClip('stimSound','dualChannel',{sSound,details.leftAmplitude,details.toneFreq},{sSound,details.rightAmplitude,details.toneFreq});
 
-%modify penalty sound amplitude here
+
 
 %do not want this line when laser enabled!
 %parameterize it as "multi" and "reinforce"?
