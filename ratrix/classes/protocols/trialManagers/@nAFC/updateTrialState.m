@@ -89,9 +89,15 @@ if ~isempty(phaseType) && strcmp(phaseType,'reinforced') && ~isempty(correct) &&
         
         if window>0
             if isempty(framesUntilTransition)
-                framesUntilTransition = ceil((rewardSizeULorMS/1000)/ifi);
+                if msRewardSound > 2*rewardSizeULorMS
+                    framesUntilTransition = ceil((msRewardSound/1000)/ifi);
+                    numCorrectFrames=ceil((msRewardSound/1000)/ifi);
+                else
+                    framesUntilTransition = ceil((rewardSizeULorMS/1000)/ifi);
+                    numCorrectFrames=ceil((rewardSizeULorMS/1000)/ifi);
+                end
             end
-            numCorrectFrames=ceil((rewardSizeULorMS/1000)/ifi);
+            
             
         elseif strcmp(getDisplayMethod(tm),'LED')
             if isempty(framesUntilTransition)

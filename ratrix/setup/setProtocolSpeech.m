@@ -75,28 +75,46 @@ amplitude             = 10.^((ampsdB -maxSPL)/20); %amplitudes = line level, 0 t
 soundParams.amp       = amplitude; %for intensityDisrim
 noiseParams.amp       = amplitude;
 
-% Reinforcement Parameters
+% Make Stimuli - Tones
+toneParams.soundType  = 'toneThenSpeech'; %Need to calc phone at same time as freq
+toneParams.freq       = [];
+toneParams.duration   = 500;
+toneParams.amp        = amplitude;
+
+% Make Stimuli - Tones & Speech
+phTParams.soundType  = 'phoneTone';
+phTParams.freq       = [];
+phTParams.duration   = 1000;
+phTParams.amp        = amplitude;
+
+% Set parameters
+% reinforcement
 largeReward        = 80;
-medReward          = 60;
+medReward          = 55;
 smallReward        = 40;
 noReward           = 0;
 requestMode        = 'first';
 msShortPenalty     = 2000;
 msLongPenalty      = 5000;
 fractionSoundOn    = 1;
+fractionSoundOnPT  = 500/medReward;%Got this to work by playing with the msRewardSound option in updateTrialState
 fractionPenaltyOn  = 1;
 scalar             = 1;
 msAirpuff          = msShortPenalty;
 allowRepeats       = false;
 % nAFC specific parameters
 pctCorrectTrials   = .5;
-maxWidth           = 1920;
+maxWidth           = 1920; %Leftovers from vision days, dk what these do but if they're not there nothing works.
 maxHeight          = 1080;
 interTrialLum      = .5;
 scaleFactor        = 0;
 eyeController      = [];
 dropFrames         = false;
 
+% Class Stim Managers, first for phonemes & tones - Phase sounds
+% determined in the modified speech manager (makeSpeechSM_PhonCorrect)
+STStim1 = speechDiscrim(interTrialLum,toneParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+STStim2 = speechDiscrim(interTrialLum,phTParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,7 +146,7 @@ sm=makeSpeechSoundManager(noiseParams);
 largeReqRewards = constantReinforcement(largeReward,largeReward,...
     requestMode,msShortPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
 medReqRewards = constantReinforcement(medReward,medReward,...
-    requestMode,msShortPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
+    requestMode,msShortPenalty,fractionSoundOnPT,fractionPenaltyOn,scalar,msAirpuff);
 smallReqRewards = constantReinforcement(smallReward,smallReward,...
     requestMode,msShortPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
 %w/o request rewards
@@ -136,6 +154,9 @@ largeRewards = constantReinforcement(largeReward,noReward,...
     requestMode,msShortPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
 medRewards = constantReinforcement(medReward,noReward,...
     requestMode,msShortPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
+medRewardsPT = constantReinforcement(medReward,noReward,...
+    requestMode,msShortPenalty,fractionSoundOnPT,fractionPenaltyOn,scalar,msAirpuff);
+
 smallRewards = constantReinforcement(smallReward,noReward,...
     requestMode,msShortPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
 %w/o request rewards and long timeout
@@ -143,6 +164,8 @@ largeRewardsLT = constantReinforcement(largeReward,noReward,...
     requestMode,msLongPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
 medRewardsLT = constantReinforcement(medReward,noReward,...
     requestMode,msLongPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
+medRewardsLTPT = constantReinforcement(medReward,noReward,...
+    requestMode,msLongPenalty,fractionSoundOnPT,fractionPenaltyOn,scalar,msAirpuff);
 smallRewardsLT = constantReinforcement(smallReward,noReward,...
     requestMode,msLongPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
 
@@ -159,31 +182,31 @@ fd1 = freeDrinks(sm,freeDrinkLikelihood,allowRepeats,largeReqRewards);
 freeDrinkLikelihood=0;
 fd2 = freeDrinks(sm,freeDrinkLikelihood,allowRepeats,medReqRewards);
 
-%Step 3 - task w/ request reward
-nafc3 = nAFC(sm,pctCorrectTrials,largeReqRewards,eyeController,{'off'},dropFrames,'ptb','center'); 
+%Step 2 - Tone&Phoneme task w/ request reward
+nafc2 = nAFC(sm2,pctCorrectionTrials,medReqRewards,eyeController,{'off'},dropFrames,'ptb','center');  
 
-%Step 4 - no request reward
-nafc4 = nAFC(sm,pctCorrectTrials,medRewards,eyeController,{'off'},dropFrames,'ptb','center');
+%Step 3 - Tone&Phoneme task w/o req reward
+nafc3 = nAFC(sm2,pctCorrectionTrials,medRewardsPT,eyeController,{'off'},dropFrames,'ptb','center');
 
-%Step 5 - long timeout
-nafc5 = nAFC(sm,pctCorrectTrials,medRewardsLT,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
+%Step 4 - Tone&Phoneme task w/ phoneme played after tone
+nafc4 = nAFC(sm,pctCorrectionTrials,medRewardsLTPT,eyeController,{'off'},dropFrames,'ptb','center');
 
 %Steps 7-10 use step 6's step manager
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Make Trial managers
-ts1  = trainingStep(fd1,   speechStim1, numTrialsDoneCriterion(10),           noTimeOff(), svnRev,svnCheckMode); %Auto Free Drinks
-ts2  = trainingStep(fd2,   speechStim1, numTrialsDoneCriterion(100),          noTimeOff(), svnRev,svnCheckMode); %Request Free Drinks
-ts3  = trainingStep(nafc3, speechStim1, numTrialsDoneCriterion(400),          noTimeOff(), svnRev,svnCheckMode); %Basic Task Intro
-ts4  = trainingStep(nafc4, speechStim1, numTrialsDoneCriterion(400),          noTimeOff(), svnRev,svnCheckMode); %No Req Reward
-ts5  = trainingStep(nafc5, speechStim1, performanceCriterion(.7,int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
-ts6  = trainingStep(nafc5, speechStim2, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Harder task
-ts7  = trainingStep(nafc5, speechStim3, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %etc...
-ts8  = trainingStep(nafc5, speechStim4, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
-ts9  = trainingStep(nafc5, speechStim5, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
+%Make Training Steps
+ts1  = trainingStep(fd,    STStim1    , rateCriterion(20,1)                ,  noTimeOff(), svnRev,svnCheckMode); %Request Free Drinks
+ts2  = trainingStep(nafc2, STStim1    , rateCriterion(20,1)                ,  noTimeOff(), svnRev,svnCheckMode); %PhonTones Req Rwds
+ts3  = trainingStep(nafc3, STStim1    , performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %PhonTones w/o req
+ts4  = trainingStep(nafc4, STStim2    , performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Phoneme after tone
+ts5  = trainingStep(nafc6, speechStim1, performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
+ts6  = trainingStep(nafc6, speechStim2, performanceCriterion(.7, int8(150)),  noTimeOff(), svnRev,svnCheckMode); %Harder task
+ts7  = trainingStep(nafc6, speechStim3, performanceCriterion(.7, int8(175)),  noTimeOff(), svnRev,svnCheckMode); %etc...
+ts8  = trainingStep(nafc6, speechStim4, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
+ts9  = trainingStep(nafc6, speechStim5, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
-p=protocol('mouse speech discrimination',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9});
+p=protocol('mouse speech discrimination ',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9});
 
 for i=1:length(subjIDs),
     subj=getSubjectFromID(r,subjIDs{i});
