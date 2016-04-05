@@ -192,7 +192,7 @@ if strcmp(stimulus.soundType, 'toneThenSpeech')
 end
 
 
-if strcmp(stimulus.soundType, 'toneLaser') %files specified in getClip-just need to indicate sad/dad
+if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need to indicate sad/dad
     
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     
@@ -226,16 +226,11 @@ if strcmp(stimulus.soundType, 'toneLaser') %files specified in getClip-just need
         details.toneFreq = [1, duration];
         freqDurable = [1,duration];
     elseif rights>lefts %choose a right stim (wav2)
-        details.toneFreq = 0;
+        details.toneFreq = [2, duration];
+        freqDurable = [2, duration];
     end
+   
     
-    if lefts == rights %left
-        details.toneFreq = 1;
-    end
-    
-    if details.laserON %randomly reward by choosing random stimulus
-        details.toneFreq=RandSample(0:1);
-    end
     
     
 end

@@ -190,8 +190,8 @@ nafc4 = nAFC(sm,pctCorrectTrials,medRewardsLT,eyeController,{'off'},dropFrames,'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Make Training Steps
-ts1  = trainingStep(fd,    STStim1    , rateCriterion(20,1)                ,  noTimeOff(), svnRev,svnCheckMode); %Request Free Drinks
-ts2  = trainingStep(nafc2, STStim1    , rateCriterion(20,1)                ,  noTimeOff(), svnRev,svnCheckMode); %PhonTones Req Rwds
+ts1  = trainingStep(fd,    STStim1    , numTrialsDoneCriterion(100)        ,  noTimeOff(), svnRev,svnCheckMode); %Request Free Drinks
+ts2  = trainingStep(nafc2, STStim1    , numTrialsDoneCriterion(200)        ,  noTimeOff(), svnRev,svnCheckMode); %PhonTones Req Rwds
 ts3  = trainingStep(nafc3, STStim1    , performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %PhonTones w/o req
 ts4  = trainingStep(nafc4, STStim2    , performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Phoneme after tone
 ts5  = trainingStep(nafc4, speechStim1, performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
