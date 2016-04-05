@@ -140,6 +140,7 @@ for i = 1:5
 end
 % Make Trial Sound Manager
 sm=makeSpeechSoundManager(noiseParams);
+sm2=makeSpeechSM_PhonCorrect(soundParams,noiseParams);
 
 %Make Reinforcement Managers 
 %w/o request rewards
@@ -171,27 +172,21 @@ smallRewardsLT = constantReinforcement(smallReward,noReward,...
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Make Step Managers
-%Need to make small water punishment steps
 
 %Step 1
-%Have to edit freedrinklikelihood parameter to not dispense if no lick
-freeDrinkLikelihood=0.0004; %p per frame
-fd1 = freeDrinks(sm,freeDrinkLikelihood,allowRepeats,largeReqRewards);
-
-%Step 2
 freeDrinkLikelihood=0;
-fd2 = freeDrinks(sm,freeDrinkLikelihood,allowRepeats,medReqRewards);
+fd = freeDrinks(sm,freeDrinkLikelihood,allowRepeats,medReqRewards);
 
 %Step 2 - Tone&Phoneme task w/ request reward
-nafc2 = nAFC(sm2,pctCorrectionTrials,medReqRewards,eyeController,{'off'},dropFrames,'ptb','center');  
+nafc2 = nAFC(sm2,pctCorrectTrials,medReqRewards,eyeController,{'off'},dropFrames,'ptb','center');  
 
 %Step 3 - Tone&Phoneme task w/o req reward
-nafc3 = nAFC(sm2,pctCorrectionTrials,medRewardsPT,eyeController,{'off'},dropFrames,'ptb','center');
+nafc3 = nAFC(sm2,pctCorrectTrials,medRewardsPT,eyeController,{'off'},dropFrames,'ptb','center');
 
 %Step 4 - Tone&Phoneme task w/ phoneme played after tone
-nafc4 = nAFC(sm,pctCorrectionTrials,medRewardsLTPT,eyeController,{'off'},dropFrames,'ptb','center');
+nafc4 = nAFC(sm,pctCorrectTrials,medRewardsLT,eyeController,{'off'},dropFrames,'ptb','center');
 
-%Steps 7-10 use step 6's step manager
+%Steps 5-9 use step 6's step manager
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Make Training Steps
@@ -199,18 +194,18 @@ ts1  = trainingStep(fd,    STStim1    , rateCriterion(20,1)                ,  no
 ts2  = trainingStep(nafc2, STStim1    , rateCriterion(20,1)                ,  noTimeOff(), svnRev,svnCheckMode); %PhonTones Req Rwds
 ts3  = trainingStep(nafc3, STStim1    , performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %PhonTones w/o req
 ts4  = trainingStep(nafc4, STStim2    , performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Phoneme after tone
-ts5  = trainingStep(nafc6, speechStim1, performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
-ts6  = trainingStep(nafc6, speechStim2, performanceCriterion(.7, int8(150)),  noTimeOff(), svnRev,svnCheckMode); %Harder task
-ts7  = trainingStep(nafc6, speechStim3, performanceCriterion(.7, int8(175)),  noTimeOff(), svnRev,svnCheckMode); %etc...
-ts8  = trainingStep(nafc6, speechStim4, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
-ts9  = trainingStep(nafc6, speechStim5, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
+ts5  = trainingStep(nafc4, speechStim1, performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
+ts6  = trainingStep(nafc4, speechStim2, performanceCriterion(.7, int8(150)),  noTimeOff(), svnRev,svnCheckMode); %Harder task
+ts7  = trainingStep(nafc4, speechStim3, performanceCriterion(.7, int8(175)),  noTimeOff(), svnRev,svnCheckMode); %etc...
+ts8  = trainingStep(nafc4, speechStim4, performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
+ts9  = trainingStep(nafc4, speechStim5, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
 p=protocol('mouse speech discrimination ',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9});
 
 for i=1:length(subjIDs),
     subj=getSubjectFromID(r,subjIDs{i});
-    stepNum=uint8(5);
+    stepNum=uint8(1);
     [subj r]=setProtocolAndStep(subj,p,true,true,true,stepNum,r,'call to setProtocolSpeech','edf');
 end
 
