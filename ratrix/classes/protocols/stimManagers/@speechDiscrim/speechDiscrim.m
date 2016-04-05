@@ -83,6 +83,7 @@ switch nargin
             case 'speechWavReversedReward'
                 
             case 'speechWavLaser'
+            case 'phoneTone'
             case 'toneThenSpeech'
             case 'toneLaser'
             case 'speechWavLaserMulti'
