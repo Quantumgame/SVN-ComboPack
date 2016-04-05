@@ -205,6 +205,17 @@ if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need
     elseif rights>lefts %choose a right stim (wav2)
         details.toneFreq = tones(2);
     end
+    
+    correx = [];
+    if length(trialRecords) > 52
+        try
+            for i = 1:50
+                correx(i) = trialRecords(end-i).trialDetails.correct;
+            end
+        end
+    else
+        correx = trialRecords(:).correct;
+    end
     pctcorrex = mean(correx);
     
     duration = [];
@@ -253,6 +264,8 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','wmReadWav', [details.toneFreq]);
     case {'speechWav'}
         sSound = soundClip('stimSoundBase','speechWav', [details.toneFreq]);
+    case {'phoneTone'}
+        sSound = soundClip('stimSoundBase','phoneTone', [details.toneFreq]);
     case {'speechWavLaser'}
         sSound = soundClip('stimSoundBase','speechWavLaser', [details.toneFreq]);
     case {'speechWavLaserMulti'}

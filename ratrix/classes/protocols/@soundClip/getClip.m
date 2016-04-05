@@ -266,7 +266,9 @@ if isempty(s.clip)
         case 'empty'
             s.clip = []; %zeros(1,s.numSamples);
         otherwise
+            s.type
             error('unknown soundClip type')
+            
     end
 
     %For all channels, normalize
