@@ -156,6 +156,9 @@ switch action
         SetParam(me,'sequence','list',seq,'value',1);
         SetParam(me,'dependents','list',seq,'value',1);
         out=seq;
+        if strcmp(pref.loadpref, 'y')
+            restore_layout;
+        end
 
         controltimer=timer('TimerFcn',[me '(''update_time'');'],'Period',10,'ExecutionMode','FixedRate');
 
@@ -600,6 +603,8 @@ end
 filename=sprintf('%s.mat',GetParam(me,'FullExpidDataFile'));
 pathname=GetParam(me,'FullDatapath');
 save([pathname filename], exper_str);
+SavePrefs(GetParam(me,'user'));
+save_layout;
 %%%%%
 
 %%%%%
