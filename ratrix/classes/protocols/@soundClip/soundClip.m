@@ -60,13 +60,17 @@ switch nargin
         end
         t.clip = [];
         % create object using specified values
-        if ismember(varargin{2},{'tone','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
+        if ismember(varargin{2},{'tone','tone615','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
 
             t.freq = varargin{3};
             switch(varargin{2})
                 case 'tone'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
+                    
+                case 'tone615'
+                    t.description = ['pure tone ' num2str(t.freq) ' Hz'];
+                    t.type = varargin{2};    
                 case 'toneThenSpeech'
                     t.description = ['pure tone w phone after correct ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};

@@ -70,6 +70,7 @@ switch nargin
             case {'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'}
                 %no specific error checking here
             case 'tone'
+            case 'tone615'
                 
             case 'wmReadWav'
                 s.wav1 = soundParams.wav1;
