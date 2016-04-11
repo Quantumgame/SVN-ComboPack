@@ -209,7 +209,7 @@ ts12 = trainingStep(nafc5, speechStim4, performanceCriterion(.75, int8(200)),  n
 ts13 = trainingStep(nafc4, speechStim5, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
-p=protocol('mouse speech discrimination ',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9});
+p=protocol('mouse speech discrimination ',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12, ts13});
 
 for i=1:length(subjIDs),
     subj=getSubjectFromID(r,subjIDs{i});
