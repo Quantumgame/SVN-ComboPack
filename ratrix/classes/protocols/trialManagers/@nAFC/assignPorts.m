@@ -63,26 +63,24 @@ if ~isempty(lastCorrect) && ...
         ~isempty(lastResult) && ...
         ~lastCorrect && ...
         (length(lastRec.targetPorts)==1 || strcmp(trialRecords(end).trialManagerClass,'ball')) && ... %ugh!
-        (lastWasCorrection || rand<trialManager.percentCorrectionTrials || tooBiased) %Changing so correction trials calculated by sliding window instead of just last trial -JLS030916
+        (lastWasCorrection || rand<trialManager.percentCorrectionTrials)
     
     details.correctionTrial = 1;
     try
     details.startTone=lastRec.stimDetails.startTone;
     details.endTone=lastRec.stimDetails.endTone;
     end
-    if tooBiased 
-         if rand<(.75)
-            targetPorts = unBiasedPort;
-            text = 'Bias correction trial!';
-        else
-            targetPorts = biasedPort;
-            text = 'Reverse Bias correction trial!';
-        end
+
+    targetPorts = lastRec.targetPorts;
+    text = 'Regular correction trial!';  
+elseif tooBiased
+    if rand<(.65)
+        targetPorts = unBiasedPort;
+        text = 'Bias correction trial!';
     else
-        targetPorts = lastRec.targetPorts;
-        text = 'Regular correction trial!';
+        targetPorts = biasedPort;
+        text = 'Reverse Bias correction trial!';
     end
-    
 else
     details.correctionTrial = 0;
     targetPorts = responsePorts(ceil(rand*length(responsePorts)));
