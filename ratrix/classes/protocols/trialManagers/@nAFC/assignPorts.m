@@ -74,7 +74,7 @@ if ~isempty(lastCorrect) && ...
     targetPorts = lastRec.targetPorts;
     text = 'Regular correction trial!';  
 elseif tooBiased
-    details.correctionTrial = 1;
+    details.correctionTrial = 0;
     if rand<(.65)
         targetPorts = unBiasedPort;
         text = 'Bias correction trial!';
