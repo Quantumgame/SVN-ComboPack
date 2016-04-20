@@ -99,6 +99,7 @@ event=E.event;
 trace1=L.trace;
 nativeOffset1=L.nativeOffset;
 nativeScaling1=L.nativeScaling;
+stim = S.stim;
 clear E L S
 
 
@@ -261,6 +262,7 @@ timemarks=timemarks/60;
 expectednumrepeats=ceil(length(allfreqs)/(numfreqs*numamps*numdurs));
 %M1=zeros(numfreqs, numamps, numdurs, expectednumrepeats, tracelength*samprate/1000);
 M1=[];
+Mstim=[];
 nreps1=zeros(numfreqs, numamps, numdurs);
 
 
@@ -320,6 +322,7 @@ for i=1:length(event)
                 spiketimes1=dspikes(dspikes>start & dspikes<stop); % spiketimes in region
                 spiketimes1=(spiketimes1-pos)*1000/samprate;%covert to ms after tone onset
                 M1(findex,aindex,dindex, nreps1(findex, aindex, dindex)).spiketimes=spiketimes1;
+Mstim(findex,aindex,dindex, nreps1(findex, aindex, dindex), :)=stim(region);
             end
         end
     end
@@ -360,7 +363,7 @@ end
 
 %plot ch1
 for dindex=[1:numdurs]
-    figure
+%     figure
     p=0;
     subplot1( numamps,numfreqs)
     for aindex=[numamps:-1:1]
@@ -377,8 +380,8 @@ for dindex=[1:numdurs]
             %use this code to plot histograms
             hist(spiketimes1, numbins);
             h = findobj(gca,'Type','patch');
-            set(h,'FaceColor',[.5 .5 .5],'EdgeColor','w')
-            line([0 0+durs(dindex)], [-1 -1], 'color', [.5 .2 .8], 'linewidth', 4)
+            set(h,'FaceColor','k','EdgeColor','k')
+%             line([0 0+durs(dindex)], [-1 -1], 'color', [.5 .2 .8], 'linewidth', 4)
             line(xlimits, [0 0], 'color', 'k')
             ylim(ylimits)
             %xlim([0-baseline tracelength])
@@ -391,13 +394,13 @@ for dindex=[1:numdurs]
 
 
             %plot rasters
-            inc=(ylimits(2))/max(max(max(nreps1)));
+            inc=.5*ylimits(2)/max(nreps1(:));
             for n=1:nreps1(findex, aindex, dindex)
                 spiketimes2=M1(findex,aindex,dindex, n).spiketimes;
                 h=plot(spiketimes2, ylimits(2)+ones(size(spiketimes2))+(n-1)*inc, '.');
                 
-                %                 set(h, 'markersize', 5)
-                set(h,'Color',[.5 .5 .5]);
+                set(h, 'markersize', 20)
+                set(h,'Color','k');
             end
             ylim([ylimits(1) 2*ylimits(2)])
             xlim(xlimits)
@@ -413,6 +416,7 @@ for dindex=[1:numdurs]
     
     %label amps and freqs
     p=0;
+    if (0)
     for aindex=[numamps:-1:1]
         for findex=1:numfreqs
             p=p+1;
@@ -436,7 +440,7 @@ for dindex=[1:numdurs]
     end
     subplot1(ceil(numfreqs/3))
     title(sprintf('%s-%s-%s ch 1, dur=%d, nstd=%d, %d bins, %d total spikes',expdate,session, filenum, durs(dindex), nstd,numbins,length(dspikes)))
-
+    end
 end %for dindex
 
 
