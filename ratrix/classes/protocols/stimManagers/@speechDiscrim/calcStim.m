@@ -175,7 +175,7 @@ if strcmp(stimulus.soundType, 'toneThenSpeech')
     updateSM=1;
     %default case (e.g. rights==lefts )
     
-    tones = [4000 13000];
+    tones = [2000 7000];
     
     %Always have lvl.1 speech difficulty settings in this type
     r1 = 1; %One speaker (Jonny)
