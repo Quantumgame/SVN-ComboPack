@@ -196,16 +196,16 @@ nafc5 = nAFC(sm,pctCorrectTrials,smallRewardsLT,eyeController,{'off'},dropFrames
 %Make Training Steps
 ts1  = trainingStep(fd,    STStim1    , numTrialsDoneCriterion(100)        ,  noTimeOff(), svnRev,svnCheckMode); %Request Free Drinks
 ts2  = trainingStep(nafc2, STStim1    , numTrialsDoneCriterion(200)        ,  noTimeOff(), svnRev,svnCheckMode); %PhonTones Req Rwds
-ts3  = trainingStep(nafc3, STStim1    , performanceCriterion(.7, int8(100)),  noTimeOff(), svnRev,svnCheckMode); %PhonTones w/o req
-ts4  = trainingStep(nafc4, STStim2    , performanceCriterion(.7, int8(200)),  noTimeOff(), svnRev,svnCheckMode); %Phoneme after tone
+ts3  = trainingStep(nafc3, STStim1    , performanceCriterion(.8, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %PhonTones w/o req
+ts4  = trainingStep(nafc4, STStim2    , performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %Phoneme after tone
 ts5  = trainingStep(nafc4, speechStim1, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode); %Long timeout
-ts6  = trainingStep(nafc5, speechStim1, performanceCriterion(.7, int8(150)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
+ts6  = trainingStep(nafc5, speechStim1, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
 ts7  = trainingStep(nafc4, speechStim2, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode); %Harder task
-ts8  = trainingStep(nafc5, speechStim2, performanceCriterion(.75, int8(175)),  noTimeOff(), svnRev,svnCheckMode); %etc...
+ts8  = trainingStep(nafc5, speechStim2, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %etc...
 ts9  = trainingStep(nafc4, speechStim3, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode); %etc...
-ts10 = trainingStep(nafc5, speechStim3, performanceCriterion(.75, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
+ts10 = trainingStep(nafc5, speechStim3, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode);
 ts11 = trainingStep(nafc4, speechStim4, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode);
-ts12 = trainingStep(nafc5, speechStim4, performanceCriterion(.75, int8(200)),  noTimeOff(), svnRev,svnCheckMode);
+ts12 = trainingStep(nafc5, speechStim4, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode);
 ts13 = trainingStep(nafc4, speechStim5, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
