@@ -194,41 +194,32 @@ end
 
 if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need to indicate sad/dad
     
-    [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
-    %default case (e.g. rights==lefts )
-    
-    tones = [4000 13000];
-    
-    if lefts>rights %choose a left stim (wav1)
-        details.toneFreq = tones(1);
-    elseif rights>lefts %choose a right stim (wav2)
-        details.toneFreq = tones(2);
-    end
-    
+    %Calculate percent correct
     correx = [];
     if length(trialRecords) > 52
         try
             for i = 1:50
                 correx(i) = trialRecords(end-i).trialDetails.correct;
             end
+        catch
+            correx = trialRecords(:).correct;
         end
     else
         correx = trialRecords(:).correct;
     end
     pctcorrex = mean(correx);
     
+    %Calc length of tone.
     duration = [];
-    if pctcorrex < .5 %Calc length of tone. 
+    if pctcorrex <= .5  
         duration = 500;
-    elseif pctcorrex>=.5 & pctcorrex<.6
-        duration = 300;
-    elseif pctcorrex>=.6 & pctcorrex<.7
-        duration = 100;
+    elseif pctcorrex>.5 & pctcorrex<.7
+        duration = 500-((pctcorrex-.5)*2500); %linear decrease from 500ms to 0ms as they improve 
     elseif pctcorrex>=.7
         duration = 0;
     else     
         duration = 300;
+        text = [text 'couldnt get corrects!'];
     end
     
     stimulus.duration = duration+500; %Total clip will be dur+500 ms long b/c adding phoneme
