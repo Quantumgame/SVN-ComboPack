@@ -14,9 +14,10 @@ function PlotTC_psthOE(expdate, session, filenum, channel, varargin)
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
 %location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\LongWN';
-   location='D:\lab\Data4Yashar\WNtones';
+%location='D:\lab\Data4Yashar\WNtones';
 %     location='D:\lab\Data4Yashar\TC';
 %       location='D:\lab\Data4Yashar\LongTones';
+location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\LongWN\newData';
 save_outfile=0;
 % %sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
@@ -639,6 +640,7 @@ if save_outfile==1
     out.cell=cell;
     out.nreps=nreps;
     out.quality=4;
+    out.mouseID=56;
     try
         out.isrecording=isrecording;
     end

@@ -18,7 +18,7 @@ sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 rasters=1;
 save_the_outfile=0; % saves an outfile in a specific locationt that is synced with ira's macbook for analysis
 location='d:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\ChRSom\';
-combine_ONOFF=1;
+combine_ONOFF=0;
 
 % sorter='simpleclust';
 % recordings = cell_list_ira_som_OE;
@@ -361,7 +361,7 @@ for i=1:length(event)
         if isempty(pos) & ~isempty(event(i).Position)
             pos=event(i).Position;
             fprintf('\nWARNING! Missing a soundcard trigger. Using hardware trigger instead.')
-          
+            
         end
         
         start=(pos+xlimits(1)*1e-3); %in sec
@@ -622,13 +622,17 @@ end
 
 if ~isempty(cell)
     
-    for dindex=1:length(durs);
+    
         clust=cell;
         figure
-        p=0;
-        subplot1(numamps,numfreqs)
+        p=0;if numdurs==1
+            subplot1(numamps,numfreqs)
+        else
+            subplot1(numdurs, numamps)
+        end
         for aindex=numamps:-1:1
             for findex=1:numfreqs
+                for dindex=1:length(durs);
                 p=p+1;
                 subplot1(p)
                 hold on
@@ -736,15 +740,20 @@ if ~isempty(cell)
         
     end % dindex
 else
-    for dindex=1:length(durs);
+    
         for clust=1:Nclusters
             
             figure
             
             p=0;
+            if numdurs==1
             subplot1(numamps,numfreqs)
+        else
+            subplot1(numdurs, numamps)
+        end
             for aindex=numamps:-1:1
                 for findex=1:numfreqs
+                    for dindex=1:length(durs);
                     offset=0;
                     p=p+1;
                     subplot1(p)
@@ -816,7 +825,7 @@ else
                     
                 end
             end
-            
+            end
             % Label amps and freqs.
             p=0;
             for aindex=[numamps:-1:1]
@@ -855,7 +864,7 @@ else
             subplot1(ceil(numfreqs/3))
             
             
-        end % dindex
+         % dindex
     end %nclust
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -872,12 +881,17 @@ end
 % Plot ON only
 if ~isempty(cell)
     clust=cell;
-    for dindex=1:length(durs);
+   
         figure
         p=0;
-        subplot1(numamps,numfreqs)
+        if numdurs==1
+            subplot1(numamps,numfreqs)
+        else
+            subplot1(numdurs, numamps)
+        end
         for aindex=numamps:-1:1
             for findex=1:numfreqs
+                 for dindex=1:length(durs);
                 p=p+1;
                 subplot1(p)
                 hold on
@@ -899,7 +913,7 @@ if ~isempty(cell)
                 ylim(ylimits1(clust,:))
             end
         end
-        
+        end
         % Label amps and freqs.
         p=0;
         for aindex=[numamps:-1:1]
@@ -934,17 +948,21 @@ if ~isempty(cell)
             end
         end
         subplot1(ceil(numfreqs/3))
-    end %dindex
+    %dindex
 else
     for clust=1:Nclusters
         %      for i=1:length(clust1)
         %         clust=clust1(i);
-        for dindex=1:length(durs);
+        
             figure
-            p=0;
-            subplot1(numamps,numfreqs)
+            p=0;        if numdurs==1
+                subplot1(numamps,numfreqs)
+            else
+                subplot1(numdurs, numamps)
+            end
             for aindex=numamps:-1:1
                 for findex=1:numfreqs
+                    for dindex=1:length(durs);
                     p=p+1;
                     subplot1(p)
                     hold on
@@ -964,7 +982,7 @@ else
                     ylim(ylimits1(clust,:))
                 end
             end
-            
+            end
             % Label amps and freqs.
             p=0;
             for aindex=[numamps:-1:1]
@@ -999,7 +1017,7 @@ else
                 end
             end
             subplot1(ceil(numfreqs/3))
-        end %dindex
+         %dindex
     end %clust
 end
 
@@ -1008,12 +1026,17 @@ end
 % Plot OFF Only
 if ~isempty(cell)
     clust=cell;
-    for dindex=1:length(durs);
+    
         figure
-        p=0;
-        subplot1(numamps,numfreqs)
+        p=0;        
+        if numdurs==1
+            subplot1(numamps,numfreqs)
+        else
+            subplot1(numdurs, numamps)
+        end
         for aindex=numamps:-1:1
             for findex=1:numfreqs
+                for dindex=1:length(durs);
                 p=p+1;
                 subplot1(p)
                 hold on
@@ -1030,7 +1053,7 @@ if ~isempty(cell)
                 ylim(ylimits1(clust,:))
             end
         end
-        
+        end
         % Label amps and freqs.
         p=0;
         for aindex=[numamps:-1:1]
@@ -1065,17 +1088,22 @@ if ~isempty(cell)
             end
         end
         subplot1(ceil(numfreqs/3))
-    end %dindex
+  %dindex
 else
     for clust=1:Nclusters
         %      for i=1:length(clust1)
         %         clust=clust1(i);
-        for dindex=1:length(durs);
+        
             figure
-            p=0;
-            subplot1(numamps,numfreqs)
+            p=0;       
+            if numdurs==1
+                subplot1(numamps,numfreqs)
+            else
+                subplot1(numdurs, numamps)
+            end
             for aindex=numamps:-1:1
                 for findex=1:numfreqs
+                    for dindex=1:length(durs);
                     p=p+1;
                     subplot1(p)
                     hold on
@@ -1092,12 +1120,14 @@ else
                     ylim(ylimits1(clust,:))
                 end
             end
-            
+            end
             % Label amps and freqs.
             p=0;
             for aindex=[numamps:-1:1]
                 for findex=1:numfreqs
-                    p=p+1;
+                    
+                        p=p+1;
+                    
                     subplot1(p)
                     if findex==1
                         ylabel(sprintf('%.0f',amps(aindex)))
@@ -1127,7 +1157,7 @@ else
                 end
             end
             subplot1(ceil(numfreqs/3))
-        end %dindex
+         %dindex
     end %clust
 end
 
@@ -1137,8 +1167,11 @@ if combine_ONOFF==1
     for dindex=1:length(durs);
         for clust=1:Nclusters;
             figure
-            p=0;
-            subplot1(numamps,numfreqs)
+            p=0;        if numdurs==1
+                subplot1(numamps,numfreqs)
+            else
+                subplot1(numdurs, numamps)
+            end
             for aindex=numamps:-1:1
                 for findex=1:numfreqs
                     p=p+1;
@@ -1187,12 +1220,14 @@ if combine_ONOFF==1
                     
                 end
             end
-            
+        end
             % Label amps and freqs.
             p=0;
             for aindex=[numamps:-1:1]
                 for findex=1:numfreqs
-                    p=p+1;
+                    if numdurs==1
+                        p=p+1;
+                    end
                     subplot1(p)
                     if findex==1
                         ylabel(sprintf('%.0f',amps(aindex)))
@@ -1226,7 +1261,7 @@ if combine_ONOFF==1
             subplot1(ceil(numfreqs/3))
             
             
-        end % dindex
+        % dindex
     end
 end
 
@@ -1295,19 +1330,19 @@ if save_the_outfile==1
     out.M1ONp4=squeeze(M1ONp4(cell,:,:,:,:));
     out.mM1OFFp4=squeeze(mM1OFFp4(cell,:,:)); % Accumulated spike times Continuous
     out.mM1ONp4=squeeze(mM1ONp4(cell,:,:));
-%     out.mM1ONspikecount=squeeze(mM1ONspikecount(cell,:,:)); % Mean spikecount for each laser/f/a combo.
-%     out.sM1ONspikecount=squeeze(sM1ONspikecount(cell,:,:));
-%     out.semM1ONspikecount=squeeze(semM1ONspikecount(cell,:,:));
-%     out.mM1OFFspikecount=squeeze(mM1OFFspikecount(cell,:,:));
-%     out.sM1OFFspikecount=squeeze(sM1OFFspikecount(cell,:,:));
-%     out.semM1OFFspikecount=squeeze(semM1OFFspikecount(cell,:,:));
-%   Spont spikes.
-%     out.mM1spontON=squeeze(mM1spontON(cell,:,:));
-%     out.sM1spontON=squeeze(sM1spontON(cell,:,:));
-%     out.semM1spontON=squeeze(semM1spontON(cell,:,:));
-%     out.mM1spontOFF=squeeze(mM1spontOFF(cell,:,:));
-%     out.sM1spontOFF=squeeze(sM1spontOFF(cell,:,:));
-%     out.semM1spontOFF=squeeze(semM1spontOFF(cell,:,:));
+    %     out.mM1ONspikecount=squeeze(mM1ONspikecount(cell,:,:)); % Mean spikecount for each laser/f/a combo.
+    %     out.sM1ONspikecount=squeeze(sM1ONspikecount(cell,:,:));
+    %     out.semM1ONspikecount=squeeze(semM1ONspikecount(cell,:,:));
+    %     out.mM1OFFspikecount=squeeze(mM1OFFspikecount(cell,:,:));
+    %     out.sM1OFFspikecount=squeeze(sM1OFFspikecount(cell,:,:));
+    %     out.semM1OFFspikecount=squeeze(semM1OFFspikecount(cell,:,:));
+    %   Spont spikes.
+    %     out.mM1spontON=squeeze(mM1spontON(cell,:,:));
+    %     out.sM1spontON=squeeze(sM1spontON(cell,:,:));
+    %     out.semM1spontON=squeeze(semM1spontON(cell,:,:));
+    %     out.mM1spontOFF=squeeze(mM1spontOFF(cell,:,:));
+    %     out.sM1spontOFF=squeeze(sM1spontOFF(cell,:,:));
+    %     out.semM1spontOFF=squeeze(semM1spontOFF(cell,:,:));
     out.amps=amps;
     out.freqs=freqs;
     out.combine_ONOFF=combine_ONOFF;

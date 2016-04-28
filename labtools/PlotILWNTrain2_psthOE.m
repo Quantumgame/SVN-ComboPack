@@ -8,7 +8,8 @@ function PlotILWNTrain2_psthOE(expdate, session, filenum, channel, varargin)
 dbstop if error
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 % sorter='simpleclust';
-save_outfile=1;
+location='D:\lab\ClickTrainOutfiles';
+save_outfile=0;
 
 if nargin==0
     fprintf('\nno input');
@@ -105,7 +106,6 @@ elseif nargin==8
 else
     error('PlotILWNTrain2_psthOE: wrong number of arguments');
 end
-save_outfile=1;
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 %Get PPA lazer params
 
@@ -150,15 +150,15 @@ fprintf('\n%d laser pulses in this events file', sum(aopulseon))
 
 outfilename=sprintf('out_ILWNTrain%s-%s-%s-psth',expdate,session, filenum);
 fprintf('\ntrying to load %s...', outfilename)
-try
-    godatadir(expdate, session, filenum)
-    load(outfilename)
-catch
-    fprintf('\nCould not find an outfile, processing data');
-    %     fprintf('failed to load outfile')
-    %     ProcessILWNTrain2_psthOE(expdate, session, filenum, xlimits);
-    %     load(outfilename);
-end
+% try
+%     godatadir(expdate, session, filenum)
+%     load(outfilename)
+% catch
+%     fprintf('\nCould not find an outfile, processing data');
+%     %     fprintf('failed to load outfile')
+%     %     ProcessILWNTrain2_psthOE(expdate, session, filenum, xlimits);
+%     %     load(outfilename);
+% end
 
 %% Find OE data directory
 try
@@ -284,6 +284,7 @@ nrepsON=zeros(numfreqs, numamps, numclickdurs, numisis);
 nrepsOFF=zeros(numfreqs, numamps, numclickdurs, numisis);
 inRange=zeros(1, Nclusters)
 nreps=0*isis;
+M1ONp=[];
 for i=1:length(event)
     if strcmp(event(i).Type, 'tonetrain') | strcmp(event(i).Type, 'clicktrain') | strcmp(event(i).Type, 'pulsetrain')
         if isfield(event(i), 'soundcardtriggerPos')
@@ -403,19 +404,21 @@ if ylimits==-1
                     X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                     [N, x]=hist(st, X);
                     N=N./nrepsON(findex, aindex, dindex, iindex); %normalize to spike rate (averaged across trials)
-                    %                 N=1000*N./binwidth; %normalize to spike rate in Hz
-                    ymax1= max(ymax,max(N));
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    ymax1(iindex,:)= max(ymax,max(N));
                     
                     st=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
                     X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                     [N, x]=hist(st, X);
                     N=N./nrepsOFF(findex, aindex, dindex, iindex); %normalize to spike rate (averaged across trials)
-                    %                 N=1000*N./binwidth; %normalize to spike rate in Hz
-                    ymax2= max(ymax,max(N));
+                    N=1000*N./binwidth; %normalize to spike rate in Hz
+                    ymax2(iindex,:)= max(ymax,max(N));
                 end
+                ymax1=max(ymax1);
+                ymax2=max(ymax2);
             end
         end
-        ylimits1(clust,:)=[-.3 max(ymax1, ymax2)];
+        ylimits1(clust,:)=[-.3 max(ymax1, ymax2)+max(ymax1, ymax2)*.1];
     end
 else
     for clust=1:Nclusters
@@ -425,7 +428,7 @@ end
 
 
 %%%%%%%%%%%%% DONE PROCESSING %%%%%%%%%% PLOTTING NOW %%%%%%%%%%%%%%%%%%%
-
+if ~isempty(M1ONp)
 %plot the ON/OFF
 if ~isempty(cell)
     clust=cell;
@@ -504,9 +507,9 @@ else
                         [NOFF, xOFF]=hist(spiketimesOFF, X);
                         
                         NON=NON./nrepsON(findex, aindex, dindex,iindex); %
-                        %NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                        NON=1000*NON./binwidth; %normalize to spike rate in Hz
                         NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
-                        %NOFF=1000*NOFF./binwidth;
+                        NOFF=1000*NOFF./binwidth;
                         bON=bar(xON, NON,1);
                         hold on
                         bOFF=bar(xOFF,NOFF,1);
@@ -543,9 +546,10 @@ else
         orient tall
     end
 end
+end
 %plot the OFF
 if ~isempty(cell)
-    clust=cell;
+    clust=str2num(cell);
     figure;
     p=0;
     subplot1(numisis, 1)
@@ -560,6 +564,7 @@ if ~isempty(cell)
                     X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                     [NOFF, xOFF]=hist(spiketimesOFF, X);
                     NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
+                    NOFF=1000*NOFF./binwidth;
                     bOFF=bar(xOFF,NOFF,1);
                     set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
                     line(xlimits, [0 0], 'color', 'k')
@@ -603,23 +608,26 @@ else
                         X=xlimits(1):binwidth:xlimits(2); %specify bin centers
                         [NOFF, xOFF]=hist(spiketimesOFF, X);
                         NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
+                        NOFF=1000*NOFF./binwidth;
                         bOFF=bar(xOFF,NOFF,1);
                         set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
                         line(xlimits, [0 0], 'color', 'k')
                         ylim(ylimits1(clust,:))
                         xlim(xlimits)
                         stim=[1:clickdurs];
-                        line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+                        line([0 clickdurs], [-2 3], 'color', 'm', 'linewidth', 4)
                         for i=1:nclicks(iindex)-1
                             from_this_point=max(max(stim)+isis(iindex)-clickdurs);
                             add_this=max(max(stim)+isis(iindex));
                             stim=[stim from_this_point:add_this];
-                            line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+                            line([from_this_point add_this], [-2 3], 'color', 'm', 'linewidth', 4)
                         end
-                        title(sprintf('isi %dms', isis(iindex)));
+                        ylabel(sprintf('%dms', isis(iindex)));
                     end
                 end
             end
+            add_this=[];
+            from_this_point=[];
             all_stims(iindex).stim=stim;
         end
         
@@ -632,6 +640,8 @@ else
     end
     
 end
+if ~isempty(M1ONp)
+    
 %plot the ON
 if ~isempty(cell)
     clust=cell;
@@ -725,14 +735,22 @@ else
         orient tall
     end
 end
+end
 godatadir(expdate,session,filenum);
 
 %assign outputs
-
+if save_outfile==1
+    cell=str2num(cell);
+out.mM1ONp=squeeze(mM1ONp(cell,:,:,:));
+out.mM1OFFp=squeeze(mM1OFFp(cell,:,:,:));
+% out.M1ONp=squeeze(M1ONp(cell,:,:,:));
+% out.M1OFFp=squeeze(M1OFFp(cell,:,:,:));
+else
 out.mM1ONp=mM1ONp;
 out.mM1OFFp=mM1OFFp;
 out.M1ONp=M1ONp;
 out.M1OFFp=M1OFFp;
+end
 out.stim=all_stims;
 out.nrepsON=nrepsON;
 out.nrepsOFF=nrepsOFF;
@@ -758,6 +776,7 @@ out.samprate=samprate;
 out.PPAstart=PPAstart;
 out.width=width;
 out.cluster=cell;
+out.Nclusters=Nclusters;
 
 
 outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-psth',channel,expdate,session, filenum);
@@ -765,11 +784,19 @@ save (outfilename, 'out')
 fprintf('\n Saved to %s.\n', outfilename)
 
 
+
+% if save_outfile==1
+% cd('D:\lab\Somatostatin_project_shared_folder\Clicks\')
+% outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+% save(outfilename, 'out');
+% fprintf('saved the outfile in Clicks folder'); %ira 7.29.15
+
 if save_outfile==1
-cd('D:\lab\Somatostatin_project_shared_folder\Clicks\')
-outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-%d',channel,expdate,session, filenum, cell);
-save(outfilename, 'out');
-fprintf('saved the outfile in Clicks folder'); %ira 7.29.15
+    cd(location)
+    outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-%d',channel,expdate,session, filenum, cell);
+    save(outfilename, 'out');
+    print (outfilename,'-dpdf');
+end
 end
 
 

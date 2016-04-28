@@ -11,16 +11,16 @@ if nargin==0
     fprintf('\nnoinput\n')
     return
 elseif nargin==3
-    binwidth=50;
+    binwidth=5;
     cell=[];
 elseif nargin==4
     xlimits=varargin{1};
-    binwidth=50;
+    binwidth=5;
     cell=[];
 elseif nargin==5
     xlimits=varargin{1};
     ylimits=varargin{2};
-    binwidth=50;
+    binwidth=5;
     cell=[];
 elseif nargin==6
     xlimits=varargin{1};
