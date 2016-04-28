@@ -39,7 +39,7 @@ end
 username=whoami;
 
 if isempty(username)
-    error('please specify username')  
+    error('please specify username')
 end
 
 global pref
@@ -47,8 +47,8 @@ if isempty(pref) Prefs; end
 if ~isfield(pref, 'processed_data_dir') Prefs; end
 username=pref.username;
 
-% Try/catch for rig4. 
-% Don't look for processed data on this machine if pref.rig = 'oldRig3'. 
+% Try/catch for rig4.
+% Don't look for processed data on this machine if pref.rig = 'oldRig3'.
 try
     cd(pref.processed_data_dir)
 catch
@@ -72,22 +72,22 @@ if exist(expdir, 'dir')==7
             error(sprintf('Session directory: %s does not exist',sessdir))
         end
     end
-
+    
 else
-%     if isfield(pref, 'mkdir')
-%         if pref.mkdir
-%             mkdir(expdir)
-%             cd(expdir)
-%             mkdir(sessdir)
-%             cd(sessdir)
-%             fprintf('\ncreated directories %s and %s', expdir, session)
-%         else error('\ndirectory %s not found', expdir)
-%         end
-%     else error('directory %s not found', expdir)
-%     end
-if strcmp(username, 'apw') || strcmp(username, 'ira')
-    godatadirbak(expdate, session, filenum)
-end
+    %     if isfield(pref, 'mkdir')
+    %         if pref.mkdir
+    %             mkdir(expdir)
+    %             cd(expdir)
+    %             mkdir(sessdir)
+    %             cd(sessdir)
+    %             fprintf('\ncreated directories %s and %s', expdir, session)
+    %         else error('\ndirectory %s not found', expdir)
+    %         end
+    %     else error('directory %s not found', expdir)
+    %     end
+    if strcmp(username, 'apw') || strcmp(username, 'ira')
+        godatadirbak(expdate, session, filenum)
+    end
 end
 
 
