@@ -207,7 +207,7 @@ if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need
     else
         correx = trialRecords(:).correct;
     end
-    correx(isnan(correct)) = []; %take out nans so the mean works
+    correx(isnan(correx)) = []; %take out nans so the mean works
     pctcorrex = mean(correx);
     
     %Calc length of tone.
