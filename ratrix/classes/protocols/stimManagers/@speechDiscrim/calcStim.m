@@ -193,7 +193,7 @@ end
 
 
 if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need to indicate sad/dad
-    
+    [lefts, rights] = getBalance(responsePorts,targetPorts);
     %Calculate percent correct
     correx = [];
     if length(trialRecords) > 52
