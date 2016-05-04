@@ -85,6 +85,10 @@ elseif tooBiased
         targetPorts = biasedPort;
         text = 'Reverse Bias correction trial!';
     end
+    try
+    details.startTone=lastRec.stimDetails.startTone;
+    details.endTone=lastRec.stimDetails.endTone;
+    end
 else
     details.correctionTrial = 0;
     targetPorts = responsePorts(ceil(rand*length(responsePorts)));
