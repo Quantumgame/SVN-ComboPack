@@ -42,6 +42,13 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
+        case 'toneLCycle10'
+            toneDuration=500;
+            s.numSamples = s.sampleRate*toneDuration/1000;
+            t=1:s.numSamples;
+            t=t/s.sampleRate;
+            tone=sin(2*pi*t*s.freq);
+            s.clip = tone;    
             
             
         case 'toneThenSpeech'
