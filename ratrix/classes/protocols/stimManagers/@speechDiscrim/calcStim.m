@@ -205,7 +205,13 @@ if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need
             correx = trialRecords(:).correct;
         end
     else
-        correx = trialRecords(:).correct;
+        try
+            for i = 1:length(trialRecords)
+                correx(i) = trialRecords(end-i+1).trialDetails.correct;
+            end
+        catch
+            correx = trialRecords(:).correct;
+        end
     end
     correx(isnan(correx)) = []; %take out nans so the mean works
     pctcorrex = mean(correx);
@@ -219,7 +225,7 @@ if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need
     elseif pctcorrex>=.7
         duration = 0;
     else     
-        duration = 300;
+        duration = 100;
         text = [text 'couldnt get corrects!'];
     end
     
