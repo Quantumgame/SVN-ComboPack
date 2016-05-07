@@ -279,6 +279,45 @@ switch stimulus.soundType
 end
 stimulus.stimSound = soundClip('stimSound','dualChannel',{sSound,details.leftAmplitude,details.toneFreq},{sSound,details.rightAmplitude,details.toneFreq});
 
+%{
+%%%%%%
+%Make Figure for display
+%Get all corrects
+try
+    for i = 1:(length(trialRecords)-1)
+        correx(i) = trialRecords(end-i).trialDetails.correct;
+    end
+catch
+    correx = trialRecords(:).correct;
+end
+correx(isnan(correx)) = [];
+
+%Get windowed average & confidence intervals
+if length(trialRecords)>50
+    winSize = 50;
+elseif length(trialRecords)>5
+    winSize = 50;
+else
+    winSize = 1;
+end
+for i = winSize:length(correx)
+    win50(i) = (sum(correx(i+1-winSize:i)))/winSize;
+end
+winconf = [];
+winSizeVec = [];
+winSizeVec(1:length(win50)) = winSize;
+[~,winconf]=binofit(win50.*winSize, winSizeVec,.05);
+
+%Make Figure
+hfig = figure;
+set(hfig, 'Visible', 'off');
+set(hfig, 'Position', [1, 1, width, height]);
+subplot(3,1,2)
+plot(1:length(win50),win50)
+xlim([1 length(win50)])
+confplot=plot(winconf, ':');
+
+%}
 
 
 %do not want this line when laser enabled!
