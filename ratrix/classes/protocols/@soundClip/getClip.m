@@ -35,6 +35,22 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
+        case 'tone615'
+            toneDuration=500;
+            s.numSamples = s.sampleRate*toneDuration/1000;
+            t=1:s.numSamples;
+            t=t/s.sampleRate;
+            tone=sin(2*pi*t*s.freq);
+            s.clip = tone;
+            
+            
+        case 'toneThenSpeech'
+            toneDuration=500;
+            s.numSamples = s.sampleRate*toneDuration/1000;
+            t=1:s.numSamples;
+            t=t/s.sampleRate;
+            tone=sin(2*pi*t*s.freq);
+            s.clip = tone;
             
         case 'toneLaser'
             toneDuration=500;
@@ -43,6 +59,8 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
+            
+            
         case 'CNMToneTrain'
             %train of pure tones, all at start freq, except last one is at
             %end freq. duration and isi specified in setProtocolCNM
@@ -172,20 +190,58 @@ if isempty(s.clip)
            sustained = randn(1,s.numSamples-(s.sampleRate*.025))./4;
            s.clip = horzcat(pulse,sustained);
             
-       case {'speechWav', 'speechWavLaser', 'speechWavLaserMulti', 'speechWavReversedReward'} %note reversed is not reversed here
+       case 'phoneTone'
+           %Receive stim target from s.freq as described in calcStim
+            %freq is [consonant, speaker, vowel, recording]
+ 
+            map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
+            names = {'Jonny','temp','temp2'}; %Set other names when the stims are cut!!!
+            
+            %if ~s.freq
+                s.freq = freqDurable;
+            %end
+            
+            duration = s.freq(2);
+            s.numSamples = s.sampleRate*duration/1000;
+            t=1:s.numSamples;
+            t=t/s.sampleRate;
+            
+            if s.freq(1) == 1
+                tone=sin(2*pi*t*2000);
+            elseif s.freq(1) == 2
+                tone=sin(2*pi*t*7000);
+            end      
+            
+            filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(1),'\CV\',map(s.freq(1),1),'\',map(s.freq(1),1),num2str(3),'.wav'));
+            [aud, fs] = wavread(filen);
+            s.clip = aud.';
+            
+            %Normalize 
+            toneamp = ((abs(max(aud.'))+abs(min(aud.')))/4); %want half of the average min/max intensity
+            tone = tone*toneamp;
+            
+            clip = horzcat(tone,aud.');
+            s.clip = clip;
+            s.numSamples = s.sampleRate*(duration+500)/1000;
+
+        case {'speechWav', 'speechWavLaser', 'speechWavLaserMulti', 'speechWavReversedReward'} %note reversed is not reversed here
             %Receive stim target from s.freq as described in calcStim
             %freq is [consonant, speaker, vowel, recording]
  
             map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
             names = {'Jonny','temp','temp2'}; %Set other names when the stims are cut!!!
             
-            if ~s.freq
+            %if ~s.freq
                 s.freq = freqDurable;
-            end
+            %end
             
             filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(s.freq(2)),'\CV\',map(s.freq(1),s.freq(3)),'\',map(s.freq(1),s.freq(3)),num2str(s.freq(4)),'.wav'));
             [aud, fs] = wavread(filen);
             s.clip = aud.';
+            
+            
+
+            
             
         case 'warblestackWav'  
             startsound=s.freq(1); %if 0, warble first, if 1, WN first
@@ -218,7 +274,9 @@ if isempty(s.clip)
         case 'empty'
             s.clip = []; %zeros(1,s.numSamples);
         otherwise
+            s.type
             error('unknown soundClip type')
+            
     end
 
     %For all channels, normalize

@@ -36,6 +36,7 @@ details.soundONTime=0;
 
 switch stimulus.soundType
     case {'tone'}
+    case {'tone615'}
     case {'toneLaser'}
         %this is for pure tone control protocol
         details.laserON = rand>.9; %laser is on for 10% of trials
@@ -157,6 +158,25 @@ if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to i
 
 end
 
+if strcmp(stimulus.soundType, 'tone615') %files specified in getClip-just need to indicate sad/dad
+    
+    [lefts, rights] = getBalance(responsePorts,targetPorts);
+    
+    %default case (e.g. rights==lefts )
+    
+    tones = [6000 15000];
+    
+    if lefts>rights %choose a left stim (wav1)
+        details.toneFreq = tones(1);
+    elseif rights>lefts %choose a right stim (wav2)
+        details.toneFreq = tones(2);
+    end
+    if lefts == rights %left
+        details.toneFreq = tones(1);
+    end
+
+end
+
 
 if strcmp(stimulus.soundType, 'phonemeLaser') || strcmp(stimulus.soundType, 'phonemeLaserMulti') %laser assignment - random stimulus for laser trials
     
@@ -206,6 +226,8 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','phonemeWavReversedReward', [details.toneFreq]);
     case {'tone'}
         sSound = soundClip('stimSoundBase','tone', [details.toneFreq]);
+    case {'tone615'}
+        sSound = soundClip('stimSoundBase','tone615', [details.toneFreq]);
     case {'toneLaser'}
         sSound = soundClip('stimSoundBase','toneLaser', [details.toneFreq]);
 end

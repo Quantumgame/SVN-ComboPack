@@ -5,7 +5,7 @@ function t=soundClip(varargin)
 % Set all attributes here, so they are all defined
 t.sampleRate = 88200;
 t.msLength = 500;
-t.msMinSoundDuration = 100;
+t.msMinSoundDuration = 25;
 t.numSamples = t.sampleRate*t.msLength/1000;
 t.amplitude = 1.0; % Not currently specified by default
 t.fundamentalFreqs = [];
@@ -60,14 +60,19 @@ switch nargin
         end
         t.clip = [];
         % create object using specified values
-        if ismember(varargin{2},{'tone','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
-            %if ~all(varargin{3}>0) 
-%                error('pass in Freq  > 0') %commented out to allow isi of 0 
-            %end 
+        if ismember(varargin{2},{'tone','tone615','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward'} ) 
+
             t.freq = varargin{3};
             switch(varargin{2})
                 case 'tone'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
+                    t.type = varargin{2};
+                    
+                case 'tone615'
+                    t.description = ['pure tone ' num2str(t.freq) ' Hz'];
+                    t.type = varargin{2};    
+                case 'toneThenSpeech'
+                    t.description = ['pure tone w phone after correct ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
                 case 'toneLaser'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
@@ -96,6 +101,14 @@ switch nargin
                 case 'phonemeWavReversedReward'
                     t.description = ['phonemeWavReversedReward'];
                     t.type = varargin{2}; 
+                case 'phoneTone'
+                    t.description = ['phoneTone'];
+                    t.type = varargin{2};
+                    t.msLength = varargin{3}(2)+500;
+                    t.numSamples = t.sampleRate*t.msLength/1000;
+                case 'pulse'
+                    t.description = ['pulse'];
+                    t.type = varargin{2};
                 case 'pulseAndNoise'
                     t.description = ['pulseAndNoise'];
                     t.type = varargin{2};
@@ -163,8 +176,10 @@ switch nargin
             t.leftAmplitude = left{2};
             t.rightSoundClip = right{1};
             t.rightAmplitude = right{2};
-            %t.leftSoundClip.freq = left{3};
-            %t.rightSoundClip.freq = right{3};
+            if length(left)>2
+                t.leftSoundClip.freq = left{3};
+                t.rightSoundClip.freq = right{3};
+            end
             t.description = ['dualChannel soundclip with (Left: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  ...
                 ']; Right: ''' getName(t.leftSoundClip) ''',[' t.leftAmplitude  '])' ];
             t.type = varargin{2};
