@@ -1,0 +1,3 @@
+function makeSpeechStruct(dir)
+
+
