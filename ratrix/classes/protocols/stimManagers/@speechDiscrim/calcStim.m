@@ -105,7 +105,7 @@ if strcmp(stimulus.soundType, 'speechWav')
             r1 = randi(2,1);
             r2 = randi(2,1);
             if r1 == 2 %one recording if second speaker this time
-                r3 = 3;
+                r3 = 1;
             else
                 r3 = randi(2,1) + 1;
             end

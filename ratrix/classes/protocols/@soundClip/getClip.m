@@ -202,7 +202,7 @@ if isempty(s.clip)
             %freq is [consonant, speaker, vowel, recording]
  
             map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
-            names = {'Jonny','temp','temp2'}; %Set other names when the stims are cut!!!
+            names = {'Jonny','Ira','temp2'}; %Set other names when the stims are cut!!!
             
             %if ~s.freq
                 s.freq = freqDurable;
@@ -236,7 +236,7 @@ if isempty(s.clip)
             %freq is [consonant, speaker, vowel, recording]
  
             map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
-            names = {'Jonny','temp','temp2'}; %Set other names when the stims are cut!!!
+            names = {'Jonny','Ira','temp2'}; %Set other names when the stims are cut!!!
             
             %if ~s.freq
                 s.freq = freqDurable;
