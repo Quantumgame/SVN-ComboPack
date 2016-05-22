@@ -49,6 +49,16 @@ function r = setProtocolSpeech(r,subjIDs)
 %     -Advance after above 70% in 200 Trials
 % 8-10) "" w/ L3,4,5 Stim
 %     -Advance after above 70% in 200 Trials
+
+% Experimental Trials
+% 14) Perceptual Boundary Test - 10% of trials are whole-sound morphs, 10%
+% of trials are VOT morphs, both w/ 7 levels of morphing between the two
+% most accurate CV pairs
+% 15) Generalization Verification - 10% of trials are tokens from trained
+% CVs (incl. untrained speakers, etc.), 10% of trials are tokens from
+% untrained CVs. Spaced such that repetition is not close together
+% 16) Component Tests - 10% of trials are CV pairs w/ formant/frequency
+% band removed, 10% of trials are singular formant/frequency band. 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -83,13 +93,36 @@ toneParams.duration   = 500;
 toneParams.amp        = amplitude;
 
 % Make Stimuli - Tones & Speech
-phTParams.soundType  = 'phoneTone';
-phTParams.freq       = [];
-phTParams.duration   = 1000;
-phTParams.amp        = amplitude;
+phTParams.soundType   = 'phoneTone';
+phTParams.freq        = [];
+phTParams.duration    = 1000;
+phTParams.amp         = amplitude;
 
-% Set parameters
-% reinforcement
+% Morph Parameters (for step 14)
+morphParams.soundType = 'morPhone';
+morphParams.freq      = [];
+morphParams.duration  = 500;
+morphParams.amp       = amplitude;
+morphParams.pctVOT    = .1; %Percent of trials that are VOT morphs
+morphParams.pctMorph  = .1; %Percent of trials that are whole-sound morphs
+
+% Generalization Parameters (for step 15)
+genParams.soundType   = 'speechWavAll'; 
+genParams.freq        = [];
+genParams.duration    = 500;
+genParams.amp         = amplitude;
+genParams.pctLearned  = .1; %Percent of trials that have a novel token from a learned CV pair
+genParams.pctNovel    = .1; %Percent of trials that have a novel token from a novel CV pair
+
+% Component Test Parameters (for step 16)
+componentParams.soundType = 'speechComponent';
+componentParams.freq      = [];
+componentParams.duration  = 500;
+componentParams.amp       = amplitude;
+componentParams.pctMask   = .1; %pct of trials that mask one formant/frequency band
+componentParams.pctSingle = .1; %pct of trials that have only one formant/frequency band
+
+% Reinforcement Parameters
 largeReward        = 80;
 medReward          = 55;
 smallReward        = 40;
@@ -116,7 +149,9 @@ dropFrames         = false;
 % determined in the modified speech manager (makeSpeechSM_PhonCorrect)
 STStim1 = speechDiscrim(interTrialLum,toneParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 STStim2 = speechDiscrim(interTrialLum,phTParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-
+ExpStim1 = speechDiscrim(intertrialLum,morphParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim2 = speechDiscrim(intertrialLum,genParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim3 = speechDiscrim(intertrialLum,componentParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make Stimuli and Reinforcement Managers
@@ -208,12 +243,26 @@ ts11 = trainingStep(nafc4, speechStim4, numTrialsDoneCriterion(400)        ,  no
 ts12 = trainingStep(nafc5, speechStim4, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode);
 ts13 = trainingStep(nafc4, speechStim5, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 
+%Experimental Training Steps
+%Perceptual Boundary - VOT and whole-sound morphs
+ts14 = trainingStep(nafc4, ExpStim1, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
+%Generalization Validation
+ts15 = trainingStep(nafc4, ExpStim2, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
+%Parameter Testing
+ts16 = trainingStep(nafc4, ExpStim3, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
+
+
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
-p=protocol('mouse speech discrimination ',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12, ts13});
+p=protocol('mouse speech discrimination ',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12, ts13, ts14, ts15, ts16});
 
 for i=1:length(subjIDs),
     subj=getSubjectFromID(r,subjIDs{i});
-    stepNum=uint8(6);
+    [~,t] = getProtocolAndStep(subj);
+    if t>0
+        stepNum = uint8(t);
+    else
+        stepNum=uint8(6);
+    end
     [subj r]=setProtocolAndStep(subj,p,true,true,true,stepNum,r,'call to setProtocolSpeech','edf');
 end
 

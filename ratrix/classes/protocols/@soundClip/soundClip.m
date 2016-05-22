@@ -118,6 +118,9 @@ switch nargin
                 case 'speechWav'
                     t.description = ['speechWav'];
                     t.type = varargin{2}; 
+                case 'speechWavAll'
+                    t.description = ['speechWavAll'];
+                    t.type = varargin{2};
                 case 'speechWavLaser'
                     t.description = ['speechWavLaser'];
                     t.type = varargin{2}; 
