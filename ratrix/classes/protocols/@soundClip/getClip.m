@@ -255,6 +255,11 @@ if isempty(s.clip)
             
             filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(s.freq(2)),'\CV\',map(s.freq(1),s.freq(3)),'\',map(s.freq(1),s.freq(3)),num2str(s.freq(4)),'.wav'));
             [aud, fs] = wavread(filen);
+            expectLength = s.sampleRate *.5; %Pad end with silence
+            if length(aud) < expectLength
+                aud(end:expectLength) = 0;
+            end
+            
             s.clip = aud.';
             
             
