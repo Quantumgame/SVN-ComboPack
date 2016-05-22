@@ -149,9 +149,9 @@ dropFrames         = false;
 % determined in the modified speech manager (makeSpeechSM_PhonCorrect)
 STStim1 = speechDiscrim(interTrialLum,toneParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 STStim2 = speechDiscrim(interTrialLum,phTParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-ExpStim1 = speechDiscrim(intertrialLum,morphParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-ExpStim2 = speechDiscrim(intertrialLum,genParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-ExpStim3 = speechDiscrim(intertrialLum,componentParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim1 = speechDiscrim(interTrialLum,morphParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim2 = speechDiscrim(interTrialLum,genParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim3 = speechDiscrim(interTrialLum,componentParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make Stimuli and Reinforcement Managers

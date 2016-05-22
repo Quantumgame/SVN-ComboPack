@@ -29,6 +29,10 @@ end
 details.toneFreq = [];
 
 if strcmp(stimulus.soundType, 'speechWav') 
+    names = {'Jonny','Ira','Anna','Dani','Theresa'};
+    map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
+    
+    
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     switch stimulus.stimLevel %Choose stim, mapped in getClip
         case 1 %base
@@ -70,11 +74,15 @@ if strcmp(stimulus.soundType, 'speechWav')
     if lefts >= rights %choose a left stim (/g/)
         details.toneFreq = [1, r1, r2, r3];
         freqDurable = [1, r1, r2, r3];
-
+        r0=1;
     elseif rights>lefts %choose a right stim (/b/)
         details.toneFreq = [2, r1, r2, r3];
         freqDurable = [2, r1, r2, r3];
+        r0=2;
     end
+    
+    %Print current stim
+    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
 end
 
 if strcmp(stimulus.soundType, 'speechWavAll') 
@@ -132,6 +140,7 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     details.toneFreq = [r0, r1, r2, r3, r4];
     freqDurable = [r0, r1, r2, r3, r4];
     
+    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d',map{r0,r2},names{r1},r3)];
 end
 
 if strcmp(stimulus.soundType, 'speechWavReversedReward') %files specified in getClip-just need to indicate sad/dad
@@ -272,6 +281,8 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','wmReadWav', [details.toneFreq]);
     case {'speechWav'}
         sSound = soundClip('stimSoundBase','speechWav', [details.toneFreq]);
+    case {'speechWavAll'}
+        sSound = soundClip('stimSoundBase','speechWavAll', [details.toneFreq]);
     case {'phoneTone'}
         sSound = soundClip('stimSoundBase','phoneTone', [details.toneFreq]);
     case {'speechWavLaser'}
