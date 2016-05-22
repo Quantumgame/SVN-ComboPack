@@ -117,7 +117,11 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     else
         %Is Learned
         r1 = randi(5,1); %six speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
-        r2 = randi(6,1); %all recorded vowel contexts
+        if r1 == 1
+            r2 = randi(3,1); %jonny only has 3 vowel contexts cut atm
+        else
+            r2 = randi(6,1); %all recorded vowel contexts
+        end
         %Need to find how many tokens available for this speaker
         foldir = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(r1),'\CV\',map(r0,r2),'\*.wav'));
         recs = numel(dir(foldir));
