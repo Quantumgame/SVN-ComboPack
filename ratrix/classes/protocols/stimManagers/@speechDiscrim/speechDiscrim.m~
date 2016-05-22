@@ -77,12 +77,11 @@ switch nargin
             case 'speechWav'
                 s.stimLevel = soundParams.stimLevel;
                 if s.stimlevel == 6 %If we are on experimental level 15, get pcts.
-                    s.pct1 = soundParams.pctLearned;
-                    s.pct2 = soundParams.pctNovel;
+                s.pct1 = soundParams.pctVOT;
+                s.pct2 = soundParams.pctMorph;
                 end
             case 'speechWavAll'
-                s.pct1 = soundParams.pctLearned;
-                s.pct2 = soundParams.pctNovel;                
+                
             case 'phoneTone'
             case 'toneThenSpeech'
             case 'morPhone'
