@@ -395,7 +395,8 @@ for i=1:length(ids)
                     %                         compiledLUT = [compiledLUT newLUT];
                     %                     end
                     
-                    verifyAllFieldsNCols(newRecs,length(classes{3,c}));
+                    %verifyAllFieldsNCols(newRecs,length(classes{3,c}));
+                    %What? don't do that^^^
                     bailed=isempty(fieldnames(newRecs)); %extractDetailFields bailed for some reason (eg unimplemented or missing fields from old records)
                     
                     if length(compiledDetails)<c

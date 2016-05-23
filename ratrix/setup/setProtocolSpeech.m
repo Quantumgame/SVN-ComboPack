@@ -261,7 +261,7 @@ for i=1:length(subjIDs),
     if t>0
         stepNum = uint8(t);
     else
-        stepNum=uint8(6);
+        stepNum=uint8(15);
     end
     [subj r]=setProtocolAndStep(subj,p,true,true,true,stepNum,r,'call to setProtocolSpeech','edf');
 end
