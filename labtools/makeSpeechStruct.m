@@ -103,17 +103,23 @@ for i = 1:numFiles
     sstx(i).similarSpecEnt = WF4(:,i);
 end
 
-
-
-
-
 cd(dirName)
 cd ..
-saveDir = pwd;
+mkdir('SimMats');
+cd('SimMats');
 matPath = [pwd,'/phoMat.mat'];
 save(matPath,'sstx');
 
 fprintf('Spectral clustering completed, saving struct as %s \n',matPath)
+
+%Also save csvs of matrices
+csvwrite([pwd,'/WAbs.csv'],WA);
+csvwrite([pwd,'/WNRG.csv'],WF1);
+csvwrite([pwd,'/WNRGEnt.csv'],WF2);
+csvwrite([pwd,'/WSpec.csv'],WF3);
+csvwrite([pwd,'/WSpecEnt.csv'],WF4);
+
+
 
 
 
