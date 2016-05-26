@@ -12,7 +12,7 @@ else
         [out.correctionTrial newLUT] = extractFieldAndEnsure(stimDetails,{'correctionTrial'},'scalar',newLUT);
         %[out.pctCorrectionTrials newLUT] = extractFieldAndEnsure(stimDetails,{'pctCorrectionTrials'},'scalar',newLUT);
         
-        [out.amp newLUT] = extractFieldAndEnsure(stimDetails,{'amp'},'scalar',newLUT);
+        [out.amp newLUT] = extractFieldAndEnsure(stimDetails,{'amplitude'},'scalar',newLUT);
         %[out.laserON newLUT] = extractFieldAndEnsure(stimDetails,{'laserON'},'scalar',newLUT);
         %[out.laser_duration newLUT] = extractFieldAndEnsure(stimDetails,{'laser_duration'},'scalar',newLUT);
         [out.toneFreq newLUT] = extractFieldAndEnsure(stimDetails,{'toneFreq'},'equalLengthVects',newLUT);

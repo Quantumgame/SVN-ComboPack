@@ -1,7 +1,7 @@
 function s=speechDiscrim(varargin)
 % speechDiscrim class constructor.
 % s =
-% intensityDiscrim(mean,soundParams,maxWidth,maxHeight,scaleFactor,interTrialLuminance)
+% speechDiscrim(mean,soundParams,maxWidth,maxHeight,scaleFactor,interTrialLuminance)
 % mean normalized (0 <= value <= 1)
 % Description of arguments:
 % =========================
@@ -23,6 +23,8 @@ s.soundType='';
 s.wav1='';
 s.wav2='';
 s.stimLevel = [];
+s.pct1 = []; %Generalized Variables to hold percentages from setProtocolSpeech
+s.pct2 = [];
         
 switch nargin
     case 0
@@ -72,23 +74,25 @@ switch nargin
             case {'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'}
                 %no specific error checking here
             case 'tone'
-                
-            case 'wmReadWav'
-                s.wav1 = soundParams.wav1;
-                s.wav2 = soundParams.wav2;
-                
             case 'speechWav'
                 s.stimLevel = soundParams.stimLevel;
-            
-            case 'speechWavReversedReward'
-                
-            case 'speechWavLaser'
+                if s.stimlevel == 6 %If we are on experimental level 15, get pcts.
+                    s.pct1 = soundParams.pctLearned;
+                    s.pct2 = soundParams.pctNovel;
+                end
+            case 'speechWavAll'
+                s.pct1 = soundParams.pctLearned;
+                s.pct2 = soundParams.pctNovel;                
             case 'phoneTone'
             case 'toneThenSpeech'
-            case 'toneLaser'
-            case 'speechWavLaserMulti'
+            case 'morPhone'
+                s.pct1 = soundParams.pctVOT;
+                s.pct2 = soundParams.pctMorph;
+            case 'speechComponent'
+                s.pct1 = soundParams.pctMask;
+                s.pct2 = soundParams.pctSingle;
             otherwise
-                error('intensityDiscrim: soundType not recognized')
+                error('speechDiscrim: soundType not recognized')
         end
         s = class(s,'speechDiscrim',stimManager(varargin{3},varargin{4},varargin{5},varargin{6}));
         

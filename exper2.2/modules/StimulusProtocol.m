@@ -43,7 +43,13 @@ switch action
             SetParamUI(me,'Run','backgroundcolor',[0 0.9 0],'String','Play');
             stimulusProtocolTimerDelay=-1;
             stop(stimulusProtocolTimer);
-            
+            %Speech search needs to be told that the current generation is
+            %over
+            cstim=GetParam(me,'CurrentStimulus');
+            if strcmpi(cstim.type,'speechsearch')
+                SetParam(me,'dependents','list','SpeechSearch','value',1);
+                SendEvent('genend',[], me, 'SpeechSearch')
+            end
             %reset soundmachine to stop looping sounds %mw 071607
 %note that this also aborts sounds in progress
 % if ExistParam('soundloadsm', 'sm')

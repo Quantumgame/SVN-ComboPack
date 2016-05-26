@@ -26,60 +26,6 @@ switch trialManagerClass
         error('unknown trial manager class')
 end
 
-details.laserON=0; %set to be 0, modify if necessary
-
-details.responseTime=0;
-details.soundONTime=0;
-
-
-
-
-% %decide randomly if we issue a laser pulse on this trial or not
-
-switch stimulus.soundType
-    case {'tone'}
-    case {'toneLaser'}
-        %this is for pure tone control protocol
-        details.laserON = rand>.9; %laser is on for 10% of trials
-        details.laser_duration=.5; %seconds
-        details.laser_start_time=Inf;
-        details.laser_off_time=Inf;
-        details.laser_start_window=0;
-        details.laser_wait_start_time=Inf;
-    case {'speechWav'}
-    case {'speechWavLaser'}
-        details.laserON = rand>.9; %laser is on for 10% of trials
-        details.laser_duration=.5; %seconds
-        details.laser_start_time=Inf;
-        details.laser_off_time=Inf;
-        details.laser_start_window=0;
-        details.laser_wait_start_time=Inf;
-    case {'speechWavReversedReward'}
-    case {'speechWavLaserMulti'}
-        details.laserON = rand>.8;
-        details.laser_start_window=RandSample([0 .14]); %randomly choose one of the start points
-        %details.laser_duration=(stimulus.freq(2)-stimulus.freq(1))*.001; %spacing between start times determines the interval length
-        details.laser_duration=.14;
-        details.laser_start_time=Inf;
-        details.laser_wait_start_time=Inf;
-        details.laser_off_time=Inf;
-end
-
-
-
-
-
-
-if stimulus.duration==50  %stimulus.freq empty for speech, [1] for speechlaser
-    %special case for laserCal
-    details.laserON = 1; %laser is on for 10% of trials
-    details.laser_duration=30; %seconds
-    details.laser_start_time=Inf;
-    details.laser_off_time=Inf;
-end
-
-
-
 details.toneFreq = [];
 
 if strcmp(stimulus.soundType, 'speechWav') 
@@ -105,7 +51,7 @@ if strcmp(stimulus.soundType, 'speechWav')
             r1 = randi(2,1);
             r2 = randi(2,1);
             if r1 == 2 %one recording if second speaker this time
-                r3 = 3;
+                r3 = 1;
             else
                 r3 = randi(2,1) + 1;
             end
@@ -117,6 +63,8 @@ if strcmp(stimulus.soundType, 'speechWav')
             else
                 r3 = randi(2,1) + 1;
             end
+        case 6 %Experimental phase - get a shit ton of sound files
+            
     end
     
     if lefts >= rights %choose a left stim (/g/)
@@ -127,6 +75,63 @@ if strcmp(stimulus.soundType, 'speechWav')
         details.toneFreq = [2, r1, r2, r3];
         freqDurable = [2, r1, r2, r3];
     end
+end
+
+if strcmp(stimulus.soundType, 'speechWavAll') 
+    [lefts, rights] = getBalance(responsePorts,targetPorts);
+    pctLearned = stimulus.pct1;
+    pctNovel   = stimulus.pct2;
+    
+    if lefts >= rights %choose a left stim (/g/)
+        r0 = 1;
+    elseif rights>lefts %choose a right stim (/b/)
+        r0 = 2;
+    end
+    
+    names = {'Jonny','Ira','Anna','Dani','Theresa'};
+    map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
+    
+    %Check if we're going to give an expt. stimulus, then check which type
+    pctExpt = pctLearned+pctNovel;
+    rndn = rand;
+    if rndn>pctExpt
+        %For now, set base level as lvl 4 difficulty
+        r1 = randi(2,1);
+        r2 = randi(2,1);
+        if r1 == 2 %one recording if second speaker this time
+            r3 = 1;
+        else
+            r3 = randi(2,1) + 1;
+        end
+        r4 = 1; %tells us it's not expt
+
+    elseif rndn>pctLearned
+        details.toneFreq = 2;
+        r1 = randi(5,1); %five speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
+        r2 = randi(2,1); %since base difficulty 4, only 2 vowel contexts atm
+        %Need to find how many tokens available for this speaker
+        foldir = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(r1),'\CV\',map(r0,r2),'\*.wav'));
+        recs = numel(dir(foldir));
+        r3 = randi(recs,1);
+        r4 = 2; %tells us it's learned
+    else
+        %Is Learned
+        r1 = randi(5,1); %six speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
+        if r1 == 1
+            r2 = randi(3,1); %jonny only has 3 vowel contexts cut atm
+        else
+            r2 = randi(6,1); %all recorded vowel contexts
+        end
+        %Need to find how many tokens available for this speaker
+        foldir = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(r1),'\CV\',map(r0,r2),'\*.wav'));
+        recs = numel(dir(foldir));
+        r3 = randi(recs,1);
+        r4 = 3; %tells us it's novel
+    end
+    
+    details.toneFreq = [r0, r1, r2, r3, r4];
+    freqDurable = [r0, r1, r2, r3, r4];
+    
 end
 
 if strcmp(stimulus.soundType, 'speechWavReversedReward') %files specified in getClip-just need to indicate sad/dad
@@ -175,7 +180,7 @@ if strcmp(stimulus.soundType, 'toneThenSpeech')
     updateSM=1;
     %default case (e.g. rights==lefts )
     
-    tones = [4000 13000];
+    tones = [2000 7000];
     
     %Always have lvl.1 speech difficulty settings in this type
     r1 = 1; %One speaker (Jonny)
@@ -193,42 +198,40 @@ end
 
 
 if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need to indicate sad/dad
-    
     [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
-    %default case (e.g. rights==lefts )
-    
-    tones = [4000 13000];
-    
-    if lefts>rights %choose a left stim (wav1)
-        details.toneFreq = tones(1);
-    elseif rights>lefts %choose a right stim (wav2)
-        details.toneFreq = tones(2);
-    end
-    
+    %Calculate percent correct
     correx = [];
     if length(trialRecords) > 52
         try
             for i = 1:50
                 correx(i) = trialRecords(end-i).trialDetails.correct;
             end
+        catch
+            correx = trialRecords(:).correct;
         end
     else
-        correx = trialRecords(:).correct;
+        try
+            for i = 1:length(trialRecords)
+                correx(i) = trialRecords(end-i+1).trialDetails.correct;
+            end
+        catch
+            correx = trialRecords(:).correct;
+        end
     end
+    correx(isnan(correx)) = []; %take out nans so the mean works
     pctcorrex = mean(correx);
     
+    %Calc length of tone.
     duration = [];
-    if pctcorrex < .5 %Calc length of tone. 
+    if pctcorrex <= .5  
         duration = 500;
-    elseif pctcorrex>=.5 & pctcorrex<.6
-        duration = 300;
-    elseif pctcorrex>=.6 & pctcorrex<.7
-        duration = 100;
+    elseif pctcorrex>.5 & pctcorrex<.7
+        duration = 500-((pctcorrex-.5)*2500); %linear decrease from 500ms to 0ms as they improve 
     elseif pctcorrex>=.7
         duration = 0;
     else     
-        duration = 300;
+        duration = 100;
+        text = [text 'couldnt get corrects!'];
     end
     
     stimulus.duration = duration+500; %Total clip will be dur+500 ms long b/c adding phoneme
@@ -242,8 +245,13 @@ if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need
     end
    
     
-    
-    
+if strcmp(stimulus.soundType, 'morPhone')    
+    %Not implemented yet...
+end
+
+if strcmp(stimulus.soundType, 'speechComponent')    
+    %Not implemented yet...
+end
 end
 
 
@@ -278,9 +286,52 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','toneThenSpeech', [details.toneFreq]);
     case {'toneLaser'}
         sSound = soundClip('stimSoundBase','toneLaser', [details.toneFreq]);
+    case {'morPhone'}
+        sSound = soundClip('stimSoundBase','morPhone', [details.toneFreq]);
+    case {'speechComponent'}
+        sSound = soundClip('stimSoundBase','speechComponent', [details.toneFreq]);
 end
 stimulus.stimSound = soundClip('stimSound','dualChannel',{sSound,details.leftAmplitude,details.toneFreq},{sSound,details.rightAmplitude,details.toneFreq});
 
+%{
+%%%%%%
+%Make Figure for display
+%Get all corrects
+try
+    for i = 1:(length(trialRecords)-1)
+        correx(i) = trialRecords(end-i).trialDetails.correct;
+    end
+catch
+    correx = trialRecords(:).correct;
+end
+correx(isnan(correx)) = [];
+
+%Get windowed average & confidence intervals
+if length(trialRecords)>50
+    winSize = 50;
+elseif length(trialRecords)>5
+    winSize = 50;
+else
+    winSize = 1;
+end
+for i = winSize:length(correx)
+    win50(i) = (sum(correx(i+1-winSize:i)))/winSize;
+end
+winconf = [];
+winSizeVec = [];
+winSizeVec(1:length(win50)) = winSize;
+[~,winconf]=binofit(win50.*winSize, winSizeVec,.05);
+
+%Make Figure
+hfig = figure;
+set(hfig, 'Visible', 'off');
+set(hfig, 'Position', [1, 1, width, height]);
+subplot(3,1,2)
+plot(1:length(win50),win50)
+xlim([1 length(win50)])
+confplot=plot(winconf, ':');
+
+%}
 
 
 %do not want this line when laser enabled!

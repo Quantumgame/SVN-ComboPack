@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 function sstx = makeSpeechStruct(dirName)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Makes structure as .mat file for SpeechSearch that contains
@@ -121,5 +122,8 @@ csvwrite([pwd,'/WSpecEnt.csv'],WF4);
 
 
 
+=======
+function makeSpeechStruct(dir)
+>>>>>>> master
 
 

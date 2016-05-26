@@ -20,6 +20,9 @@ if ~isempty(trialRecords) && length(trialRecords)>1
     
     try % may not have correctionTrial field
         lastWasCorrection = lastRec.stimDetails.correctionTrial;
+        if lastWasCorrection == 2 %Bias control are labeled w/ a 2.
+            lastWasCorrection = 0;
+        end
     end
     
     try % check for bias
@@ -74,13 +77,17 @@ if ~isempty(lastCorrect) && ...
     targetPorts = lastRec.targetPorts;
     text = 'Regular correction trial!';  
 elseif tooBiased
-    details.correctionTrial = 0;
-    if rand<(.65)
+    details.correctionTrial = 2;
+    if rand<(abs(biaspct)+.5)
         targetPorts = unBiasedPort;
         text = 'Bias correction trial!';
     else
         targetPorts = biasedPort;
         text = 'Reverse Bias correction trial!';
+    end
+    try
+    details.startTone=lastRec.stimDetails.startTone;
+    details.endTone=lastRec.stimDetails.endTone;
     end
 else
     details.correctionTrial = 0;

@@ -172,7 +172,7 @@ switch action
         end
         ResetFullExpidDataFile;
         % tell the other modules to reset
-        SendEvent('reset',[],me,'all');
+        ('reset',[],me,'all');
         SetParam(me,'ExpStart',0);
         SetParam(me,'ExpTime',0);
         Message(me,'');

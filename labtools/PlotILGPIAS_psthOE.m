@@ -25,8 +25,9 @@ sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 fprintf('\nsorter: %s', sorter)
 
 save_the_outfile=0; % saves an outfile in a specific locationt hat is synced with ira's macbook for analysis
-location='d:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\Gap\';
-
+%location='d:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\Gap\';
+%location='D:\lab\Somatostatin_project_shared_folder\MK_data_SomArch\Gap\newData';
+location='D:\lab\IC Data';
 combine_ONOFF=0; %if you want to plot on and off trials together without splitting them
 
 refract=15;
@@ -230,7 +231,7 @@ if isempty(event); fprintf('\nno stimuli\n'); return; end
 fprintf('\ncomputing tuning curve...');
 
 % check for missing soundcard triggers
-for i=1:length(event)
+for i=1:length(event)       %length(event)
     sct(i)=event(i).soundcardtriggerPos/30e3;
 end
 time=event(2).Param.duration/1000; %convert it to sec
@@ -498,15 +499,18 @@ out.session=session;
 out.filenum=filenum;
 out.tetrode=channel;
 out.cluster=cell;
-% cell=str2num(cell);
+cell=str2num(cell);
 out.M1OFFtc = squeeze(M1OFFtc(cell,:,:,:));
-%out.M1ONtc = squeeze(M1ONtc(cell,:,:,:));
-%out.M1ONtc2 = squeeze(M1ONtc2(cell,:,:,:));
 out.M1OFFtc2 = squeeze(M1OFFtc2(cell,:,:,:));
 out.mM1OFFtc = squeeze(mM1OFFtc(cell,:));
-%out.mM1ONtc = squeeze(mM1ONtc(cell,:));
 out.mM1OFFtc2 = squeeze(mM1OFFtc2(cell,:));
-%out.mM1ONtc2 = squeeze(mM1ONtc2(cell,:));
+if ~isempty(M1ONtc)
+    out.M1ONtc = squeeze(M1ONtc(cell,:,:,:));
+    out.M1ONtc2 = squeeze(M1ONtc2(cell,:,:,:));
+    out.mM1ONtc2 = squeeze(mM1ONtc2(cell,:));
+    out.mM1ONtc = squeeze(mM1ONtc(cell,:));
+    out.nrepsON=nrepsON;
+end
 out.inRange=inRange(clust);
 out.binwidth=binwidth;
 out.samprate=samprate;
@@ -517,17 +521,17 @@ out.gapdurs = gapdurs;
 out.gapdelay = gapdelay;
 out.Nclusters = Nclusters;
 out.nrepsOFF=nrepsOFF;
-%out.nrepsON=nrepsON;
 out.xlimits=xlimits;
 out.PPAstart=PPAstart;
 out.width=width;
 out.numpulses=numpulses;
 out.oepathname=oepathname;
 out.combine_ONOFF=combine_ONOFF;
-%out.OEdatafile=OEdatafile;
+% out.OEdatafile=OEdatafile;
 out.isi=isi;
-out.quality=5;
-out.notes='tc2 is only 0-150 ms';
+out.quality=4;
+out.mouseID=10;
+out.notes='';
     cd(location);
     outfilename=sprintf('out%sILGPIAS-%s-%s-%s-%d',channel,expdate,session, filenum, cell);
     save (outfilename, 'out');
@@ -536,26 +540,26 @@ out.notes='tc2 is only 0-150 ms';
     
 else
     out.M1OFFtc = M1OFFtc;
-out.M1ONtc = M1ONtc;
-out.mM1OFFtc = mM1OFFtc;
-out.mM1ONtc = mM1ONtc;
-out.expdate=expdate;
-out.session=session;
-out.filenum=filenum;
-out.binwidth=binwidth;
-out.samprate=samprate;
-out.numpulseamps = numpulseamps;
-out.numgapdurs = numgapdurs;
-out.pulseamps = pulseamps;
-out.gapdurs = gapdurs;
-out.gapdelay = gapdelay;
-out.Nclusters = Nclusters;
-out.nrepsOFF=nrepsOFF;
-out.nrepsON=nrepsON;
-out.channel=channel; %which tetrode
-godatadir(expdate, session, filenum)
-save(outfilename, 'out')
-fprintf('\nsaved to %s\n', outfilename);
+    out.M1ONtc = M1ONtc;
+    out.mM1OFFtc = mM1OFFtc;
+    out.mM1ONtc = mM1ONtc;
+    out.expdate=expdate;
+    out.session=session;
+    out.filenum=filenum;
+    out.binwidth=binwidth;
+    out.samprate=samprate;
+    out.numpulseamps = numpulseamps;
+    out.numgapdurs = numgapdurs;
+    out.pulseamps = pulseamps;
+    out.gapdurs = gapdurs;
+    out.gapdelay = gapdelay;
+    out.Nclusters = Nclusters;
+    out.nrepsOFF=nrepsOFF;
+    out.nrepsON=nrepsON;
+    out.channel=channel; %which tetrode
+    godatadir(expdate, session, filenum)
+    save(outfilename, 'out')
+    fprintf('\nsaved to %s\n', outfilename);
 
 end
 end

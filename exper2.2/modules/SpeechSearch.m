@@ -31,11 +31,14 @@ end
 switch action
     case 'init'
         fig = ModuleFigure(me,'pos',[5 608 128 120]);
+<<<<<<< HEAD
         pref.speechdir = [pref.home 'speechStim\'];
         
         %Check whether speech stats matrix is calc'd, asks to calc if not.
         
         
+=======
+>>>>>>> master
     case 'close'
     case 'load'
     case 'getready'
@@ -56,8 +59,11 @@ switch action
 %local functions
 function computealg
     %Offload compute to alg. module. 
+<<<<<<< HEAD
     %Uses similarity matrix and cell responses to weight phuture phonemes
     %to load into future protocols. 
+=======
+>>>>>>> master
 function genspeech
     %Make speech protocol files from the probability matrix given by alg.
 function gencomponents

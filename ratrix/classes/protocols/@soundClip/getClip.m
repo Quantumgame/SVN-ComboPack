@@ -42,6 +42,13 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
+        case 'toneLCycle10'
+            toneDuration=500;
+            s.numSamples = s.sampleRate*toneDuration/1000;
+            t=1:s.numSamples;
+            t=t/s.sampleRate;
+            tone=sin(2*pi*t*s.freq);
+            s.clip = tone;    
             
             
         case 'toneThenSpeech'
@@ -195,7 +202,7 @@ if isempty(s.clip)
             %freq is [consonant, speaker, vowel, recording]
  
             map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
-            names = {'Jonny','temp','temp2'}; %Set other names when the stims are cut!!!
+            names = {'Jonny','Ira','temp2'}; %Set other names when the stims are cut!!!
             
             %if ~s.freq
                 s.freq = freqDurable;
@@ -229,7 +236,7 @@ if isempty(s.clip)
             %freq is [consonant, speaker, vowel, recording]
  
             map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
-            names = {'Jonny','temp','temp2'}; %Set other names when the stims are cut!!!
+            names = {'Jonny','Ira','Anna','Dani','Theresa'}; 
             
             %if ~s.freq
                 s.freq = freqDurable;
@@ -240,7 +247,23 @@ if isempty(s.clip)
             s.clip = aud.';
             
             
-
+        case {'speechWavAll'}
+            names = {'Jonny','Ira','Anna','Dani','Theresa'};
+            map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
+            
+            s.freq = freqDurable;
+            
+            filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(s.freq(2)),'\CV\',map(s.freq(1),s.freq(3)),'\',map(s.freq(1),s.freq(3)),num2str(s.freq(4)),'.wav'));
+            [aud, fs] = wavread(filen);
+            s.clip = aud.';
+            
+            
+            
+        case 'morPhone'
+            %not implemented yet...
+            
+        case 'speechComponent'
+            %not implemented yet...
             
             
         case 'warblestackWav'  
