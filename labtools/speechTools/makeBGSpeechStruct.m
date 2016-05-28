@@ -1,6 +1,6 @@
-function sstx = makeSpeechStruct(dirName)
+function sstx = makeBGSpeechStruct(dirName)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Makes structure as .mat file for SpeechSearch that contains
+% Makes structure as .mat file using only /b/ and /g/ pairs for SpeechSearch that contains
 %   -Basic stim information (speaker/consonant/vowel/etc.)
 %   -Spectrogram for each phoneme
 %   -Graph with similarity weights to other phonemes
@@ -8,6 +8,15 @@ function sstx = makeSpeechStruct(dirName)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Get filenames
 fileList = getPhoPhiles(dirName);
+cvList = {};
+for i = 1:length(fileList)
+    pathParts = strsplit(fileList{i},'/');
+    if ~isempty(strmatch(pathParts(end-2),{'CV'},'exact')) && isempty(strmatch(pathParts(end-3),{'Ellen'},'exact')) && ...
+            sum(strcmp(pathParts{end}(1),{'b','g'}))
+        cvList = [cvList,fileList{i}];
+    end
+end
+fileList = cvList; %Dumb way to do this but it seems to work
 numFiles = length(fileList);
 sstx = struct;
 
@@ -83,18 +92,16 @@ WF2 = squareform(pdist(F(:,:,2)'));
 WF3 = squareform(pdist(F(:,:,3)'));
 WF4 = squareform(pdist(F(:,:,4)'));
 
-% Apply Gaussian similarity function
+% Apply Gaussian similarity function and normalize
 sigma = 1;
-WA = simGaussian(WA, sigma);
-WF1 = simGaussian(WF1,sigma);
-WF2 = simGaussian(WF2,sigma);
-WF3 = simGaussian(WF3,sigma);
-WF4 = simGaussian(WF4,sigma);
+WA = matNorm(simGaussian(WA, sigma));
+WF1 = matNorm(simGaussian(WF1,sigma));
+WF2 = matNorm(simGaussian(WF2,sigma));
+WF3 = matNorm(simGaussian(WF3,sigma));
+WF4 = matNorm(simGaussian(WF4,sigma));
 
-%Normalize results
-WA = norm
 
-imagesc(WA)
+%imagesc(WF4)
 
 %Write
 for i = 1:numFiles
@@ -105,53 +112,23 @@ for i = 1:numFiles
     sstx(i).similarSpecEnt = WF4(:,i);
 end
 
-%Feature Clustering
-
-
-
-
 cd(dirName)
 cd ..
-saveDir = pwd;
-matPath = [pwd,'/phoMat.mat'];
+mkdir('SimMats');
+cd('SimMats');
+matPath = [pwd,'/BGphoMat.mat'];
 save(matPath,'sstx');
 
-fprintf('Spectral clustering completed, saving struct as %s and plotting results... \n',matPath)
-%have to actually put the plot in...
+fprintf('Spectral clustering completed, saving struct as %s \n',matPath)
+
+%Also save csvs of matrices
+csvwrite([pwd,'/BGWAbs.csv'],WA);
+csvwrite([pwd,'/BGWNRG.csv'],WF1);
+csvwrite([pwd,'/BGWNRGEnt.csv'],WF2);
+csvwrite([pwd,'/BGWSpec.csv'],WF3);
+csvwrite([pwd,'/BGWSpecEnt.csv'],WF4);
 
 
 
-   
-    
-    
-    
-    
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Begin local functions
-function fileList = getFilenamez(dirName)
-  excludes = {'.DS_Store'};
-  dirData = dir(dirName);      %# Get the data for the current directory
-  dirIndex = [dirData.isdir];  %# Find the index for directories
-  fileList = {dirData(~dirIndex).name}';  %'# Get a list of the files
-  validFiles = ~ismember(fileList,excludes);
-  fileList = fileList(validFiles);
-  if ~isempty(fileList)
-    fileList = cellfun(@(x) fullfile(dirName,x),...  %# Prepend path to files
-                       fileList,'UniformOutput',false);
-  end
-  subDirs = {dirData(dirIndex).name};  %# Get a list of the subdirectories
-  validIndex = ~ismember(subDirs,{'.','..','Unprocessed','Unsorted'});  %# Find index of subdirectories
-                                               %#   that are not '.' or '..'
-  for iDir = find(validIndex)                  %# Loop over valid subdirectories
-    nextDir = fullfile(dirName,subDirs{iDir});    %# Get the subdirectory path
-    fileList = [fileList; getFilenames(nextDir)];  %# Recursively call getAllFiles
-  end
-end
-
-
-
-end
 

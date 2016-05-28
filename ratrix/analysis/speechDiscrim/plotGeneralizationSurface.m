@@ -7,7 +7,7 @@ function plotGeneralizationSurface(phoMat,csvDir)
 %
 %
 % Arguments:
-% phoMat - phoMat created by makeCVSpeechStruct
+% phoMat - /b/ /g/ phoMat created by makeBGSpeechStruct
 % csvDir - directory of compiled trial record csv's as made by
 % cleanPermanentRecords
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,6 +48,34 @@ fprintf('MDS Complete in %.1f seconds\n',toc);
 
 %Get vectorform stim ID
 phoVects = scalarToPhoVect(phoMat);
+
+%Scatterplot by /b/ /g/
+figure
+subplot(1,4,1)
+colorvec = zeros(length(phoVects),3);
+colorvec(find(phoVects(:,1)==1),1) = 1;
+colorvec(find(phoVects(:,1)==2),3) = 1;
+scatter(MDmat(:,1),MDmat(:,2),20,colorvec,'filled')
+
+%Scatterplot by vowel
+subplot(1,4,2)
+colorvec2 = colorvec;
+colorvec2(:,2) = phoVects(:,3)./8;
+scatter(MDmat(:,1),MDmat(:,2),20,colorvec2,'filled')
+
+%Scatterplot by speaker
+subplot(1,4,3:4)
+colormap(jet)
+hold on
+for i = 1:length(unique(phoVects(:,2)))
+    p(i) = scatter(MDmat(find(phoVects(:,2)==i),1),MDmat(find(phoVects(:,2)==i),2),20,repmat(i*7,length(find(phoVects(:,2)==i)),1),'filled')
+end
+hold off
+%scatter(MDmat(:,1),MDmat(:,2),20,phoVects(:,2),'filled')
+legend([p(1),p(2),p(3),p(4),p(5)],{'Jonny','Ira','Anna','Dani','Theresa'},'Location','EastOutside')
+
+
+
 
 
 
