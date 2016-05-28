@@ -52,6 +52,8 @@ for n=1:length(modules)
             setpref(user,pref_str,s);
         end
     end
+    setpref(user,default_modules,modules);
+    
 end
             
             

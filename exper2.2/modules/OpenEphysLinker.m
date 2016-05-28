@@ -92,15 +92,15 @@ catch
     
 end
 %check that laser and soundcardtrigger channels are being recorded
-filename='100_ADC1.continuous';
+filename='100_CH36.continuous';
 d=dir(filename);
 if isempty(d)
-    str=sprintf('%s\nWarning! ADC 1 not being recorded', str);
+    str=sprintf('%s\nWarning! Ch36 not being recorded', str);
 end
-filename='100_ADC2.continuous';
+filename='100_CH37.continuous';
 d=dir(filename);
 if isempty(d)
-    str=sprintf('%s\nWarning! ACD 2 not being recorded', str);
+    str=sprintf('%s\nWarning! Ch37 not being recorded', str);
 end
 Message(me, str);
 
