@@ -244,8 +244,14 @@ if isempty(s.clip)
             
             filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(s.freq(2)),'\CV\',map(s.freq(1),s.freq(3)),'\',map(s.freq(1),s.freq(3)),num2str(s.freq(4)),'.wav'));
             [aud, fs] = wavread(filen);
-            s.clip = aud.';
             
+            %pad end w/ silence if not fully 500ms so doesn't loop
+            expectLength = s.sampleRate *.5;
+            if length(aud) < expectLength
+                aud(end:expectLength) = 0;
+            end 
+            
+            s.clip = aud.';
             
         case {'speechWavAll'}
             names = {'Jonny','Ira','Anna','Dani','Theresa'};
@@ -261,7 +267,6 @@ if isempty(s.clip)
             end
             
             s.clip = aud.';
-            
             
             
         case 'morPhone'
