@@ -1,45 +1,93 @@
-function cleanPermanentRecords(mouse,foldir,datadir)
+function updatePermanentRecordsSilent()
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Update cleaned permanent records for the mouselist, and if they haven't
+% been gathered yet build them.
 
-%Because compiled records are an absolute clusterfuck we have to go back
-%and rebuild our data from scratch if we actually want to use it. what a
-%great piece of software this is.
+mouseList = {'6896','6897','6898','6899','6900','6924','6925','6926',...
+             '6927','6928','6960','6961','6962','6963','6964','6965',...
+             '6966','6967','6975','6977','6979','6982','6983','6984'};
+         
+rigNums = [1,2,3,4,5,3,4,5,...
+           3,4,5,5,1,2,3,4,...
+           5,5,4,4,3,5,5,5];
+         
+datadir = C:\Users\lab\Documents\speechData;
+recordsdir = 1;
 
-%Scratchy help b/c writing quickly -JLS052516
-%inputs: foldir - folder we're looking for permanent records in
-%datadir: place to save the .csv
 
-cd(foldir)
+%Get list of files to compare against
+fileList = getFilenames(datadir);
+dates = getFileDates(datadir);
 
+for i = 1:length(mouseList)
+    if ~all(cellfun('isempty',strfind(fileList,mouseList{i})))
+        fprintf('\nFound existing file for %s, updating...',mouseList{i});
+        csvfile = char(fileList(~cellfun('isempty',strfind(fileList,mouseList{i}))));
+        date = datenum(dates{~cellfun('isempty',strfind(fileList,mouseList{i}))});
+        if strcmp(recordsdir,'1')
+            updatePermRec(mouseList{i},date,csvfile,rigNums(i));
+        else
+            updatePermRec(mouseList{i},date,csvfile);
+        end
+    else
+        fprintf('Compiling %s fresh',mouseList{i});
+        if strcmp(recordsdir,'1')
+            cleanPermanentRecords(mouseList{i},['\\WEHR-RATRIX',rigNums(i),'\Users\nlab\Desktop\laserData\PermanentTrialRecordStore'],datadir);
+        else
+            cleanPermanentRecords(mouseList{i},recordsdir,datadir);
+        end
+    end
+end
+end
+
+function updatePermRec(varargin)
+mouse = varargin{1};
+date = varargin{2};
+csvfile = varargin{3};
+switch nargin
+    case 3
+        foldir = [recordsdir,'\',mouse];
+    case 4
+        foldir = ['\\WEHR-RATRIX',num2str(varargin{4}),'\Users\nlab\Desktop\laserData\PermanentTrialRecordStore\',mouse];
+end
+
+%Get and sort file list
 excludes = {'.DS_Store','.','..'};
-header = {'trialNumber','date','session','step','freq','duration','consonant','speaker','vowel','token','response','target','correct','gentype'};
-
-%make csv and write header
-csvfile = char(strcat(datadir,'/',mouse,'.csv'));
-fid = fopen(csvfile,'w');
-fprintf(fid,'%s,',header{1:end-1});
-fprintf(fid,'%s\n',header{end});
-fclose(fid);
-
-datamat = [];
 fileData = dir(foldir);
 fileList = {fileData(:).name}';
 validFiles = ~ismember(fileList,excludes);
 fileData = fileData(validFiles);
 fileDates = [fileData(:).datenum].';
 [fileDates,fileDates] = sort(fileDates);
-fileList = {fileData(fileDates).name};
+subfileList = {fileData(fileDates).name};
+subfileList = cellfun(@(x) fullfile(foldir,x),...  %# Prepend path to files
+                       subfileList,'UniformOutput',false);
+subdates = {fileData(fileDates).datenum};
 
-trialNumber = 0;
 
-for j = 1:length(fileList)
-    fprintf('file %d of %d\n',j,length(fileList));
-    load(strcat(foldir,'/',fileList{j}))
+csvimport = csvread(csvfile,1);
+lastsesh = csvimport(end,3);
+lastdate = csvimport(end,2);
+
+datamat = [];
+trialNumber = csvimport(end,1);
+indint = 0;
+for j = 1:length(subfileList)
+    
+    sessiondate = datenum(str2num(subfileList{j}(end-18:end-15)),str2num(subfileList{j}(end-14:end-13)),str2num(subfileList{j}(end-12:end-11)),str2num(subfileList{j}(end-9:end-8)),str2num(subfileList{j}(end-7:end-6)),str2num(subfileList{j}(end-5:end-4)));
+    if sessiondate > lastdate
+        load(subfileList{j})
+        indint = indint+1;
+        fprintf('\n Processing file %d of %d',j,length(subfileList));
+    else
+        continue
+    end
     l = length(trialRecords);
 
 
     %Extract Data
     trialNumber = (trialNumber(end)+1):(trialNumber(end)+l);
-    session = repmat(j,l,1);
+    session = repmat(lastsesh+indint,l,1);
     step = [trialRecords(:).trainingStepNum];
 
     %Stuff that needs to be looped
@@ -120,20 +168,20 @@ for j = 1:length(fileList)
 
 
     end
+    fileattrib(csvfile,'+w');
     datamat = [trialNumber',double(dates'),session,double(step'),freq',duration',consonant',speaker',vowel',token',response',target',correct',double(gentype')];
     dlmwrite(csvfile,datamat,'-append','precision','%.6f');
+end    
+
+
+
+
+
+
 end
 
-            
-            
-            
-            
-            
-                
-              
+    
+     
         
-        
-        
-
     
     
