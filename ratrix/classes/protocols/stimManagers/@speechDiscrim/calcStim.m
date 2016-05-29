@@ -239,7 +239,7 @@ if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need
     elseif pctcorrex>=.7
         duration = 0;
     else     
-        duration = 100;
+        duration = 0;
         text = [text 'couldnt get corrects!'];
     end
     
