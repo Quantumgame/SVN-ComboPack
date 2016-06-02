@@ -40,12 +40,12 @@ function r = setProtocolSpeech(r,subjIDs)
 %
 % nAFC
 % 5) Basic Task w/ L1 Stim & reg size drinks, startle stim & buzz if wrong/too
-% early
-%     -Advance after 400 trials
-% 6) Basic Task w/ less water
-%     -Advance w/ 70% in 300 trials
-% 7-8) L2 stim; 9-10) L3 stim; 11-12) L4 stim; 13) L5 stim
-%
+% early. 5 gives 
+%     -Advance after 70% correct in 300 trials
+
+% 8-10) "" w/ L3,4,5 Stim
+%     -Advance after above 70% in 200 Trials
+
 % Experimental Trials
 % 14) Perceptual Boundary Test - 10% of trials are whole-sound morphs, 10%
 % of trials are VOT morphs, both w/ 7 levels of morphing between the two
@@ -126,24 +126,12 @@ oldmice = {'6896','6897','6898','6899','6900',...
        
 %Set to new stim and change if we're just updating an old mouse
 soundParams.stimMap = 2;
-toneParams.stimMap = 2;
-phTParams.stimMap = 2;
-morphParams.stimMap = 2;
-genParams.stimMap = 2;
-componentParams.stimMap = 2;
-
+soundParams.
 for i = 1:length(subjIDs)
     if ~all(cellfun('isempty',strfind(oldmice,subjIDs{i})))
-        soundParams.stimMap = 1;
-        toneParams.stimMap = 1;
-        phTParams.stimMap = 1;
-        morphParams.stimMap = 1;
-        genParams.stimMap = 1;
-        componentParams.stimMap = 1;
-        break
-    end
-end
            
+
+
 % Reinforcement Parameters
 largeReward        = 80;
 medReward          = 55;

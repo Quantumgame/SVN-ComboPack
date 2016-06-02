@@ -241,12 +241,7 @@ if isempty(s.clip)
             %freq is [consonant, speaker, vowel, recording]
  
             map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
-            
-            if stimMap == 1
-                names = {'Jonny','Ira','Anna','Dani','Theresa'};
-            elseif stimMap == 2
-                names = {'Theresa','Dani','Jonny','Ira','Anna'};
-            end
+            names = {'Jonny','Ira','Anna','Dani','Theresa'}; 
             
             %if ~s.freq
                 s.freq = freqDurable;
@@ -264,11 +259,7 @@ if isempty(s.clip)
             s.clip = aud.';
             
         case {'speechWavAll'}
-            if stimMap == 1
-                names = {'Jonny','Ira','Anna','Dani','Theresa'};
-            elseif stimMap == 2
-                names = {'Theresa','Dani','Jonny','Ira','Anna'};
-            end
+            names = {'Jonny','Ira','Anna','Dani','Theresa'};
             map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
             
             s.freq = freqDurable;

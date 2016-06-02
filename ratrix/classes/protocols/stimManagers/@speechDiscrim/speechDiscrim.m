@@ -25,6 +25,7 @@ s.wav2='';
 s.stimLevel = [];
 s.pct1 = []; %Generalized Variables to hold percentages from setProtocolSpeech
 s.pct2 = [];
+s.stimMap = [];
         
 switch nargin
     case 0
@@ -61,7 +62,7 @@ switch nargin
         end
         
         s.freq=soundParams.freq;
-
+        s.stimMap = soundParams.stimMap;
         
         switch s.soundType
             case {'allOctaves','tritones'}
