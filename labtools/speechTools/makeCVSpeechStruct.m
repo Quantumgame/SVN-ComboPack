@@ -11,7 +11,7 @@ fileList = getPhoPhiles(dirName);
 cvList = {};
 for i = 1:length(fileList)
     pathParts = strsplit(fileList{i},'/');
-    if strmatch(pathParts(end-2),{'CV'},'exact')
+    if ~isempty(strmatch(pathParts(end-2),{'CV'},'exact')) && isempty(strmatch(pathParts(end-3),{'Ellen'},'exact'));
         cvList = [cvList,fileList{i}];
     end
 end
@@ -93,14 +93,14 @@ WF4 = squareform(pdist(F(:,:,4)'));
 
 % Apply Gaussian similarity function and normalize
 sigma = 1;
-WA = normc(simGaussian(WA, sigma));
-WF1 = normc(simGaussian(WF1,sigma));
-WF2 = normc(simGaussian(WF2,sigma));
-WF3 = normc(simGaussian(WF3,sigma));
-WF4 = normc(simGaussian(WF4,sigma));
+WA = matNorm(simGaussian(WA, sigma));
+WF1 = matNorm(simGaussian(WF1,sigma));
+WF2 = matNorm(simGaussian(WF2,sigma));
+WF3 = matNorm(simGaussian(WF3,sigma));
+WF4 = matNorm(simGaussian(WF4,sigma));
 
 
-imagesc(WA)
+imagesc(WF4)
 
 %Write
 for i = 1:numFiles
