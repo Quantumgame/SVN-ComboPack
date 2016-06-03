@@ -30,10 +30,10 @@ end
 details.toneFreq = [];
 
 if strcmp(stimulus.soundType, 'speechWav') 
-
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
     
     stimMap = stimulus.stimMap;
+    
     if stimMap == 1
         names = {'Jonny','Ira','Anna','Dani','Theresa'};
     elseif stimMap == 2
@@ -81,11 +81,10 @@ if strcmp(stimulus.soundType, 'speechWav')
     if lefts >= rights %choose a left stim (/g/)
         details.toneFreq = [1, r1, r2, r3];
         freqDurable = [1, r1, r2, r3];
-        r0=1;
+
     elseif rights>lefts %choose a right stim (/b/)
         details.toneFreq = [2, r1, r2, r3];
         freqDurable = [2, r1, r2, r3];
-        r0=2;
     end
     
 
@@ -162,7 +161,9 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     details.toneFreq = [r0, r1, r2, r3, r4];
     freqDurable = [r0, r1, r2, r3, r4];
     
-    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d',map{r0,r2},names{r1},r3)];
+
+    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
+    
 end
 
 
