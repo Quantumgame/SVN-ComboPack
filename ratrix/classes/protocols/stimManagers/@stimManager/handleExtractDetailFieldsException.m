@@ -3,8 +3,6 @@ ex
 out=struct; %official way to bail
 if ismember(ex.identifier,{'MATLAB:catenate:structFieldBad'})
     warning('bailing: stimDeatils have varying field names')
-    trialRecords
-    trialRecords.stimDetails
 elseif ismember(ex.identifier,{'MATLAB:nonExistentField'})
     [trialRecords.stimDetails]
     warning('bailing: apparently fields missing from stimDetails')

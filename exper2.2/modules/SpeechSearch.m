@@ -31,12 +31,12 @@ end
 switch action
     case 'init'
         fig = ModuleFigure(me,'pos',[5 608 128 120]);
-
         pref.speechdir = [pref.home 'speechStim\'];
         
         %Check whether speech stats matrix is calc'd, asks to calc if not.
         
         
+
     case 'close'
     case 'load'
     case 'getready'
