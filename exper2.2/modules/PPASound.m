@@ -490,32 +490,32 @@ SetParam(me,'seamless', seamless); %store whether transition should be seamless 
 Message(me, str, 'append');
 
 % write diagnostic logfile -mw 07.07.2014
-%??? 9-3-2015 mw
-% try
-%     protocol=GetParam('stimulusprotocol', 'protocol');
-%     currstims=GetParam('stimulusprotocol', 'currentstimulus');
-%     currstim=currstims(protocol);
-%     stimuli=GetSharedParam('StimulusProtocols');
-%     stimuli=stimuli{protocol};
-%     stimulus=stimuli(currstim);
-%     paths=Control('GetDataPath');
-%     cd(paths{3});
-%     expids=Control('GetExpid');
-%     fid=fopen(sprintf('%sppasoundlog.txt', expids{3}), 'at');
-%     fprintf(fid, '\n\nstim %d', currstim);
-%     fprintf(fid, '\n%s', stimulus.type);
-%     names=fieldnames(param);
-% %     fprintf(fid, '\n');
-%     for nameidx=1:length(names)
-%         fprintf(fid, '\n%s %g', names{nameidx}, eval(['param.', names{nameidx}]));
-%     end
-%     fprintf(fid, '%s', str1);
-%     fprintf(fid, '\n%s', str);
-%     fprintf(fid,'\nGetSecs %.6f', GetSecs);
-%     fclose(fid);
-% catch
-%     Message(me, 'failed to write logfile', 'append')
-% end
+
+try
+    protocol=GetParam('stimulusprotocol', 'protocol');
+    currstims=GetParam('stimulusprotocol', 'currentstimulus');
+    currstim=currstims(protocol);
+    stimuli=GetSharedParam('StimulusProtocols');
+    stimuli=stimuli{protocol};
+    stimulus=stimuli(currstim);
+    paths=Control('GetDataPath');
+    cd(paths{3});
+    expids=Control('GetExpid');
+    fid=fopen(sprintf('%sppasoundlog.txt', expids{3}), 'at');
+    fprintf(fid, '\n\nstim %d', currstim);
+    fprintf(fid, '\n%s', stimulus.type);
+    names=fieldnames(param);
+%     fprintf(fid, '\n');
+    for nameidx=1:length(names)
+        fprintf(fid, '\n%s %g', names{nameidx}, eval(['param.', names{nameidx}]));
+    end
+    fprintf(fid, '%s', str1);
+    fprintf(fid, '\n%s', str);
+    fprintf(fid,'\nGetSecs %.6f', GetSecs);
+    fclose(fid);
+catch
+    Message(me, 'failed to write logfile', 'append')
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
