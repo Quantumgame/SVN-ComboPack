@@ -30,16 +30,7 @@ end
 details.toneFreq = [];
 
 if strcmp(stimulus.soundType, 'speechWav') 
-
-    map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
-    
     stimMap = stimulus.stimMap;
-    if stimMap == 1
-        names = {'Jonny','Ira','Anna','Dani','Theresa'};
-    elseif stimMap == 2
-        names = {'Theresa','Dani','Jonny','Ira','Anna'};
-    end
-    
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     switch stimulus.stimLevel %Choose stim, mapped in getClip
         case 1 %base
@@ -81,16 +72,11 @@ if strcmp(stimulus.soundType, 'speechWav')
     if lefts >= rights %choose a left stim (/g/)
         details.toneFreq = [1, r1, r2, r3];
         freqDurable = [1, r1, r2, r3];
-        r0=1;
+
     elseif rights>lefts %choose a right stim (/b/)
         details.toneFreq = [2, r1, r2, r3];
         freqDurable = [2, r1, r2, r3];
-        r0=2;
     end
-    
-
-    %Print current stim
-    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
 end
 
 if strcmp(stimulus.soundType, 'speechWavAll') 
@@ -162,9 +148,7 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     details.toneFreq = [r0, r1, r2, r3, r4];
     freqDurable = [r0, r1, r2, r3, r4];
     
-    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d',map{r0,r2},names{r1},r3)];
 end
-
 
 
 if strcmp(stimulus.soundType, 'toneThenSpeech')
@@ -194,7 +178,7 @@ if strcmp(stimulus.soundType, 'toneThenSpeech')
 end
 
 
-if strcmp(stimulus.soundType, 'phoneTone') 
+if strcmp(stimulus.soundType, 'phoneTone') %files specified in getClip-just need to indicate sad/dad
     stimMap = stimulus.stimMap;
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     %Calculate percent correct
@@ -223,15 +207,12 @@ if strcmp(stimulus.soundType, 'phoneTone')
     duration = [];
     if pctcorrex <= .5  
         duration = 500;
-        text = [text, sprintf('Duration: %d',duration)];
     elseif pctcorrex>.5 & pctcorrex<.7
         duration = 500-((pctcorrex-.5)*2500); %linear decrease from 500ms to 0ms as they improve 
-        text = [text, sprintf('Duration: %d',duration)];
     elseif pctcorrex>=.7
         duration = 0;
-        text = [text, sprintf('Duration: %d',duration)];
     else     
-        duration = 0;
+        duration = 100;
         text = [text 'couldnt get corrects!'];
     end
     
@@ -244,7 +225,6 @@ if strcmp(stimulus.soundType, 'phoneTone')
         details.toneFreq = [2, duration];
         freqDurable = [2, duration];
     end
-end
    
     
 if strcmp(stimulus.soundType, 'morPhone')    
@@ -253,6 +233,7 @@ end
 
 if strcmp(stimulus.soundType, 'speechComponent')    
     %Not implemented yet...
+end
 end
 
 
@@ -263,14 +244,30 @@ details.leftAmplitude = stimulus.amplitude;
 % fprintf(fid, '\nintensity discrim/calcstim: laserON=%d',details.laserON)
 % fclose(fid)
 switch stimulus.soundType
+    case {'allOctaves','tritones'}
+        sSound = soundClip('stimSoundBase','allOctaves',[stimulus.freq],20000);
+    case {'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'}
+        sSound = soundClip('stimSoundBase',stimulus.soundType);
+        details.rightAmplitude = 10.^((40 - 80)/20);
+        details.leftAmplitude = 10.^((40 - 80)/20);
+    case {'wmReadWav'}
+        sSound = soundClip('stimSoundBase','wmReadWav', [details.toneFreq]);
     case {'speechWav'}
         sSound = soundClip('stimSoundBase','speechWav', [details.toneFreq]);
-    case {'speechWavAll'}
-        sSound = soundClip('stimSoundBase','speechWavAll', [details.toneFreq]);
     case {'phoneTone'}
         sSound = soundClip('stimSoundBase','phoneTone', [details.toneFreq]);
+    case {'speechWavLaser'}
+        sSound = soundClip('stimSoundBase','speechWavLaser', [details.toneFreq]);
+    case {'speechWavLaserMulti'}
+        sSound = soundClip('stimSoundBase','speechWavLaserMulti', [details.toneFreq]);
+    case {'speechWavReversedReward'} %%%shit shit shit shit
+        sSound = soundClip('stimSoundBase','speechWavReversedReward', [details.toneFreq]);
+    case {'tone'}
+        sSound = soundClip('stimSoundBase','tone', [details.toneFreq]);
     case {'toneThenSpeech'}
         sSound = soundClip('stimSoundBase','toneThenSpeech', [details.toneFreq]);
+    case {'toneLaser'}
+        sSound = soundClip('stimSoundBase','toneLaser', [details.toneFreq]);
     case {'morPhone'}
         sSound = soundClip('stimSoundBase','morPhone', [details.toneFreq]);
     case {'speechComponent'}
