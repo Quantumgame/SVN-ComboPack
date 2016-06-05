@@ -170,6 +170,8 @@ end
 
 if strcmp(stimulus.soundType, 'toneThenSpeech')
     stimMap = stimulus.stimMap;
+    
+    
     %For when only tone in discrim phase, phoneme will be played as
     %'correct sound' if used w/ soundmanager "makeSpeechSM_PhonCorrect"
     %Also need to calc phone. params and store them in freqDurable for
@@ -197,6 +199,13 @@ end
 
 if strcmp(stimulus.soundType, 'phoneTone') 
     stimMap = stimulus.stimMap;
+    map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
+    if stimulus.stimMap == 1
+        names = {'Jonny','Ira','Anna','Dani','Theresa'};
+    elseif stimulus.stimMap == 2
+        names = {'Theresa','Dani','Jonny','Ira','Anna'};
+    end
+    
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     %Calculate percent correct
     correx = [];
@@ -211,7 +220,7 @@ if strcmp(stimulus.soundType, 'phoneTone')
     else
         try
             for i = 1:length(trialRecords)
-                correx(i) = trialRecords(end-i+1).trialDetails.correct;
+                correx(i) = trialRecords(i).trialDetails.correct;
             end
         catch
             correx = trialRecords(:).correct;
@@ -241,10 +250,16 @@ if strcmp(stimulus.soundType, 'phoneTone')
     if lefts>=rights %choose a left stim (wav1)
         details.toneFreq = [1, duration];
         freqDurable = [1,duration];
+        r0 = 1;
     elseif rights>lefts %choose a right stim (wav2)
         details.toneFreq = [2, duration];
         freqDurable = [2, duration];
+        r0 = 2;
     end
+    
+    
+     %Print current stim
+    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,1},names{1},1)];
 end
    
     

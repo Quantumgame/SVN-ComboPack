@@ -226,7 +226,10 @@ if isempty(s.clip)
             
             filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(1),'\CV\',map(s.freq(1),1),'\',map(s.freq(1),1),num2str(3),'.wav'));
             [aud, fs] = wavread(filen);
-            s.clip = aud.';
+            expectLength = s.sampleRate *.5;
+            if length(aud) < expectLength
+                aud(end:expectLength) = 0;
+            end 
             
             %Normalize 
             toneamp = ((abs(max(aud.'))+abs(min(aud.')))/4); %want half of the average min/max intensity

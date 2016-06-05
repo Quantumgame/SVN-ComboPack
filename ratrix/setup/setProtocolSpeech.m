@@ -101,6 +101,7 @@ morphParams.duration  = 500;
 morphParams.amp       = amplitude;
 morphParams.pctVOT    = .1; %Percent of trials that are VOT morphs
 morphParams.pctMorph  = .1; %Percent of trials that are whole-sound morphs
+morphParams.stimLevel = 6;
 
 % Generalization Parameters (for step 15)
 genParams.soundType   = 'speechWavAll'; 
@@ -109,6 +110,7 @@ genParams.duration    = 500;
 genParams.amp         = amplitude;
 genParams.pctLearned  = .1; %Percent of trials that have a novel token from a learned CV pair
 genParams.pctNovel    = .1; %Percent of trials that have a novel token from a novel CV pair
+genParams.stimLevel   = 6;
 
 % Component Test Parameters (for step 16)
 componentParams.soundType = 'speechComponent';
@@ -117,6 +119,7 @@ componentParams.duration  = 500;
 componentParams.amp       = amplitude;
 componentParams.pctMask   = .1; %pct of trials that mask one formant/frequency band
 componentParams.pctSingle = .1; %pct of trials that have only one formant/frequency band
+componentParams.stimLevel = 6;
 
 % Mapping parameter - New mice are training w/ a different set of phonemes
 oldmice = {'6896','6897','6898','6899','6900',...
@@ -171,9 +174,9 @@ dropFrames         = false;
 % determined in the modified speech manager (makeSpeechSM_PhonCorrect)
 STStim1 = speechDiscrim(interTrialLum,toneParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 STStim2 = speechDiscrim(interTrialLum,phTParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-ExpStim1 = speechDiscrim(intertrialLum,morphParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-ExpStim2 = speechDiscrim(intertrialLum,genParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-ExpStim3 = speechDiscrim(intertrialLum,componentParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim1 = speechDiscrim(interTrialLum,morphParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim2 = speechDiscrim(interTrialLum,genParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim3 = speechDiscrim(interTrialLum,componentParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make Stimuli and Reinforcement Managers
@@ -283,7 +286,7 @@ for i=1:length(subjIDs),
     if t>0
         stepNum = uint8(t);
     else
-        stepNum=uint8(6);
+        stepNum=uint8(1);
     end
     [subj r]=setProtocolAndStep(subj,p,true,true,true,stepNum,r,'call to setProtocolSpeech','edf');
 end
