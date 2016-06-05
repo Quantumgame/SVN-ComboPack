@@ -81,10 +81,11 @@ if strcmp(stimulus.soundType, 'speechWav')
     if lefts >= rights %choose a left stim (/g/)
         details.toneFreq = [1, r1, r2, r3];
         freqDurable = [1, r1, r2, r3];
-
+        r0 = 1;
     elseif rights>lefts %choose a right stim (/b/)
         details.toneFreq = [2, r1, r2, r3];
         freqDurable = [2, r1, r2, r3];
+        r0 = 2;
     end
     
 
