@@ -842,6 +842,16 @@ else
                 phaseON=[phaseON 2*pi*u/isi];
             end
         end
+        n=length(phaseON);
+        r=sqrt(sum(cos(phaseON)).^2 + sum(sin(phaseON)).^2)/n;
+        %note: if there is only one spike, Vs=1 artifactually
+        % therefore I am excluding cases where there is only one spike
+        if n==1 r=nan; end
+        VsON(isiindex)=r;
+        RZON(isiindex)=n*(r^2);  %Rayleigh Z statistic RZ=n*(VS)^2, Zar p.616
+        p_ON(isiindex)=exp(-n*(r^2)); %p-value of Rayleigh Z statistic
+
+
         for s=spiketimesOFF
             if s>0 & s<onsets(end)+isi
                 p=s-onsets;
@@ -850,6 +860,13 @@ else
                 phaseOFF=[phaseOFF 2*pi*u/isi];
             end
         end
+        n=length(phaseOFF);
+        r=sqrt(sum(cos(phaseOFF)).^2 + sum(sin(phaseOFF)).^2)/n;
+        if n==1 r=nan; end
+        VsOFF(isiindex)=r;
+        RZOFF(isiindex)=n*(r^2);  %Rayleigh Z statistic RZ=n*(VS)^2, Zar p.616
+        p_OFF(isiindex)=exp(-n*(r^2)); %p-value of Rayleigh Z statistic
+
         subplot1(isiindex)
         [NON xON]=hist(phaseON, [0:pi/10:2*pi]); hold on;
         [NOFF xOFF]=hist(phaseOFF, [0:pi/10:2*pi]);
@@ -920,6 +937,13 @@ out.width=width;
 out.cluster=cell;
 out.tetrode=channel;
 out.Nclusters=Nclusters;
+
+out.VsON=VsON; %vector strength
+out.RZON=RZON; %rayleigh statistic
+out.p_ON=p_ON; %p-value
+out.VsOFF=VsOFF;
+out.RZOFF=RZOFF;
+out.p_OFF=p_OFF;
 
 
 
