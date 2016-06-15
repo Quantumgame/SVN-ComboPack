@@ -1,3 +1,4 @@
+
 function PlotILWNTrain2_psthOE(expdate, session, filenum, channel, varargin)
 % usage: out=PlotILWNTrain2_psthOE(expdate, session, filenum, tetrode (channel), [xlimits], [ylimits], [binwidth], cell)
 % plots an averaged tuning curve (psth) for WNTrain2 stimuli for data
@@ -9,7 +10,10 @@ dbstop if error
 sorter='MClust'; %can be either 'MClust' or 'simpleclust'
 % sorter='simpleclust';
 location='D:\lab\ClickTrainOutfiles';
+location='D:\lab\SomArchData\WNtrains';
 save_outfile=0;
+rasters=1;
+pot_outline=1;
 
 if nargin==0
     fprintf('\nno input');
@@ -106,11 +110,8 @@ elseif nargin==8
 else
     error('PlotILWNTrain2_psthOE: wrong number of arguments');
 end
-%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
-%Get PPA lazer params
 
-ProcessData_single(expdate,session,filenum);
-[on, PPAstart, width, numpulses, PPAisi]=getPPALaserParams(expdate,session,filenum);
+
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%
 
@@ -148,17 +149,20 @@ fprintf('\n%d laser pulses in this events file', sum(aopulseon))
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-outfilename=sprintf('out_ILWNTrain%s-%s-%s-psth',expdate,session, filenum);
+outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-psth',channel,expdate,session, filenum);
 fprintf('\ntrying to load %s...', outfilename)
 % try
 %     godatadir(expdate, session, filenum)
 %     load(outfilename)
-% catch
-%     fprintf('\nCould not find an outfile, processing data');
-%     %     fprintf('failed to load outfile')
-%     %     ProcessILWNTrain2_psthOE(expdate, session, filenum, xlimits);
-%     %     load(outfilename);
+% if out.xlimits~=xlimits
+%     ProcessILWNTrain2_psthOE(expdate, session, filenum, channel, xlimits,varargin);
 % end
+% catch
+fprintf('\nCould not find an outfile, processing data');
+%     fprintf('failed to load outfile')
+ProcessILWNTrain2_psthOE(expdate, session, filenum, channel, xlimits,ylimits,binwidth, cell);
+load(outfilename);
+%end
 
 %% Find OE data directory
 try
@@ -218,25 +222,14 @@ switch sorter
         Nclusters=numclusters;
 end
 
-try
-    samprate=OEget_samplerate(oepathname);
-catch
-    fprintf('\ncould not load sampling rate. Assuming samprate=30000');
-    samprate=30000;
-end
-
 
 if isempty(event); fprintf('\nno stimuli\n'); return; end
 
-
+samprate=out.samprate;
 fprintf('\ncomputing tuning curve...');
-%
 
-if lostat==-1
-    lostat=inf;
-end
 fprintf('\nresponse window: %d to %d ms relative to tone onset',round(xlimits(1)), round(xlimits(2)));
-
+event=out.event;
 %get freqs/amps
 j=0;
 allfreqs=0;
@@ -270,225 +263,35 @@ numamps=length(amps);
 numdurs=length(durs);
 numfreqs=length(freqs1);
 numclickdurs=length(clickdurs);
+M1OFFp=out.M1OFFp;
+M1ONp=out.M1ONp;
+nrepsON=out.nrepsON;
+nrepsOFF=out.nrepsOFF;
+M1ONspikecounts=out.M1ONspikecounts;
+M1spontON=out.M1spontON;
+M1OFFspikecounts=out.M1OFFspikecounts;
+M1spontOFF=out.M1spontOFF;
+inRange=out.inRange;
+spiketimes=out.spiketimes;
+ylimits1=out.ylimits1;
+mM1ONp=out.mM1ONp;
+mM1OFFp=out.mM1OFFp;
+PPAstart=out.PPAstart;
+width=out.width;
+numpulses=out.numpulses;
+PPAisi=out.PPAisi;
 
-
-% Mt: matrix with each complete train
-% Ms: stimulus matrix in same format as Mt
-
-%first concatenate the sequence of trains into a matrix Mt
-%preallocate Mt and Ms
-% Mt=zeros(numisis, 1,round(tracelength*1e-3*samprate+1) );%trains
-% Ms=Mt;%stimulus record
-
-nrepsON=zeros(numfreqs, numamps, numclickdurs, numisis);
-nrepsOFF=zeros(numfreqs, numamps, numclickdurs, numisis);
-inRange=zeros(1, Nclusters)
-nreps=0*isis;
-M1ONp=[];
-for i=1:length(event)
-    if strcmp(event(i).Type, 'tonetrain') | strcmp(event(i).Type, 'clicktrain') | strcmp(event(i).Type, 'pulsetrain')
-        if isfield(event(i), 'soundcardtriggerPos')
-            pos=event(i).soundcardtriggerPos/samprate;
-            if isempty(pos) & ~isempty(event(i).Position)
-                pos=event(i).Position;
-                fprintf('\nWARNING! Missing a soundcard trigger. Using hardware trigger instead.')
-                
-            end
-        else
-            pos=event(i).Position; %in sec
-            fprintf('noSCT %d ',event(i).Param.AOPulseOn )
-        end
-        
-        start=pos+event(i).Param.start*1e-3+xlimits(1)*1e-3; %in sec
-        stop=pos+event(i).Param.start*1e-3+xlimits(2)*1e-3; %in sec
-        if strcmp(event(i).Type, 'clicktrain')
-            
-            isi=event(i).Param.isi;
-            nclick=event(i).Param.nclicks;
-            AOPulseOn=event(i).Param.AOPulseOn;
-            amp=event(i).Param.amplitude;
-            clickdur=event(i).Param.clickduration;
-            try
-                freq= event(i).Param.frequency;
-            catch
-                freq=1;
-                %fprintf('\n found only one type of sound, WN');
-            end
-            
-            iindex= find(isis==isi);
-            aindex= find(amps==amp);
-            dindex= find(clickdurs== clickdur);
-            findex= find(freqs1==freq);
-            
-            region=start:stop;
-            for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
-                nreps(iindex)=nreps(iindex)+1;
-                st=spiketimes(clust).spiketimes;
-                spiketimes1=st(st>start & st<stop); % spiketimes in region
-                spikecount=length(spiketimes1); % No. of spikes fired in response to this rep of this stim.
-                inRange(clust)=inRange(clust)+ spikecount; %accumulate total spikecount in region
-                spiketimes1=(spiketimes1-pos)*1000;%covert to ms after tone onset
-                spont_spikecount=length(find(st<start & st>(start-(stop-start))));
-                Mt(iindex,nreps(iindex)).spiketimes=spiketimes;
-                %               Ms(iindex,nreps(iindex),:)=stim(region);
-                if AOPulseOn
-                    if clust==1
-                        nrepsON(findex, aindex, dindex, iindex)=nrepsON(findex, aindex, dindex, iindex)+1;
-                    end
-                    M1ONp(clust, findex, aindex, dindex, iindex, nrepsON(findex, aindex, dindex, iindex)).spiketimes=spiketimes1;
-                    M1ONspikecounts(clust, findex, aindex, dindex, iindex, nrepsON(findex, aindex, dindex, iindex))=spikecount;
-                    M1spontON(clust, findex, aindex, dindex, iindex, nrepsON(findex, aindex, dindex, iindex))=spont_spikecount;
-                else
-                    if clust==1
-                        nrepsOFF(findex, aindex, dindex, iindex)=nrepsOFF(findex, aindex, dindex, iindex)+1;
-                    end
-                    M1OFFp(clust, findex, aindex, dindex, iindex, nrepsOFF(findex, aindex, dindex, iindex)).spiketimes=spiketimes1;
-                    M1OFFspikecounts(clust, findex, aindex, dindex, iindex, nrepsOFF(findex, aindex, dindex, iindex))=spikecount;
-                    M1spontOFF(clust, findex, aindex, dindex, iindex, nrepsOFF(findex, aindex, dindex, iindex))=spont_spikecount;
-                end
-            end
-        end
-    end
-end
-
-%
-%     fprintf('\nmin num ON reps: %d\nmax num ON reps: %d', min(min(min(min(nrepsON)))), max(max(max(max(nrepsON)))))
-%     fprintf('\nmin num OFF reps: %d\nmax num OFF reps: %d', min(min(min(min(nrepsOFF)))), max(max(max(max(nrepsOFF)))))
 for clust=1:Nclusters %could be multiple clusts (cells) per tetrode
     fprintf('\ncell %d:', clust)
     fprintf('\ntotal num spikes: %d', length(spiketimes(clust).spiketimes))
     fprintf('\nIn range: %d', inRange(clust))
 end
 
-
-% Accumulate spiketimes across trials, for psth...
-for dindex=1:length(durs); % Hardcoded.
-    for aindex=[numamps:-1:1]
-        for findex=1:numfreqs
-            for iindex=1:numisis
-                for clust=1:Nclusters
-                    
-                    % on
-                    spiketimesON=[];
-                    spikecountsON=[];
-                    for rep=1:nrepsON(findex, aindex, dindex, iindex)
-                        spiketimesON=[spiketimesON M1ONp(clust, findex, aindex, dindex, iindex, rep).spiketimes];
-                        % Accumulate spike times for all presentations of each
-                        % laser/f/a combo.
-                    end
-                    
-                    % All spiketimes for a given f/a/d combo, for psth:
-                    mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes=spiketimesON;
-                    
-                    % off
-                    spiketimesOFF=[];
-                    for rep=1:nrepsOFF(findex, aindex, dindex)
-                        spiketimesOFF=[spiketimesOFF M1OFFp(clust, findex, aindex, dindex, iindex, rep).spiketimes];
-                    end
-                    mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes=spiketimesOFF;
-                end
-            end
-        end
-    end
-end
-
-%find axis limits
-
-if ylimits==-1
-    for clust=1:Nclusters
-        ymax=0;
-        for aindex=[numamps:-1:1]
-            for findex=1:numfreqs
-                for iindex=1:numisis
-                    st=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
-                    X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                    [N, x]=hist(st, X);
-                    N=N./nrepsON(findex, aindex, dindex, iindex); %normalize to spike rate (averaged across trials)
-                    N=1000*N./binwidth; %normalize to spike rate in Hz
-                    ymax1(iindex,:)= max(ymax,max(N));
-                    
-                    st=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
-                    X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                    [N, x]=hist(st, X);
-                    N=N./nrepsOFF(findex, aindex, dindex, iindex); %normalize to spike rate (averaged across trials)
-                    N=1000*N./binwidth; %normalize to spike rate in Hz
-                    ymax2(iindex,:)= max(ymax,max(N));
-                end
-                ymax1=max(ymax1);
-                ymax2=max(ymax2);
-            end
-        end
-        ylimits1(clust,:)=[-.3 max(ymax1, ymax2)+max(ymax1, ymax2)*.1];
-    end
-else
-    for clust=1:Nclusters
-        ylimits1(clust, :)=[ylimits];
-    end
-end
-
-
 %%%%%%%%%%%%% DONE PROCESSING %%%%%%%%%% PLOTTING NOW %%%%%%%%%%%%%%%%%%%
 if ~isempty(M1ONp)
-%plot the ON/OFF
-if ~isempty(cell)
-    clust=cell;
-    figure;
-    p=0;
-    subplot1(numisis, 1)
-    for iindex=[1:numisis]
-        for dindex=1:numdurs
-            for findex=1:numfreqs
-                for aindex=numamps
-                    p=p+1;
-                    subplot1( p)
-                    hold on
-                    
-                    spiketimesON=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
-                    spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
-                    X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                    [NON, xON]=hist(spiketimesON, X);
-                    [NOFF, xOFF]=hist(spiketimesOFF, X);
-                    
-                    NON=NON./nrepsON(findex, aindex, dindex,iindex); %
-                    %NON=1000*NON./binwidth; %normalize to spike rate in Hz
-                    NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
-                    %NOFF=1000*NOFF./binwidth;
-                    bON=bar(xON, NON,1);
-                    hold on
-                    bOFF=bar(xOFF,NOFF,1);
-                    set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
-                    set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                    
-                    line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
-                    line(xlimits, [0 0], 'color', 'k')
-                    ylim(ylimits1(clust,:))
-                    xlim(xlimits)
-                    
-                    hold on
-                    
-                    stim=[1:clickdurs];
-                    line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                    for i=1:nclicks(iindex)-1
-                        from_this_point=max(max(stim)+isis(iindex)-clickdurs);
-                        add_this=max(max(stim)+isis(iindex));
-                        stim=[stim from_this_point:add_this];
-                        line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                    end
-                    title(sprintf('isi %dms', isis(iindex)));
-                end
-            end
-        end
-        all_stims(iindex).stim=stim;
-    end
-    
-    subplot1(1)
-    title(sprintf('%s-%s-%s laser ON and OFF, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
-    set(gcf, 'pos', [618    72      520   900])
-    shg
-    refresh
-    orient tall
-else
-    for clust=1:Nclusters
+    %plot the ON/OFF
+    if ~isempty(cell)
+        clust=cell;
         figure;
         p=0;
         subplot1(numisis, 1)
@@ -515,10 +318,31 @@ else
                         bOFF=bar(xOFF,NOFF,1);
                         set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
                         set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                        
-                        %line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
+                        offset=0;
+                        yl=ylimits1(clust,:);
+                        inc=(yl(2))/max(max(max(nrepsOFF)));
+                        if rasters==1
+                            
+                            for n=1:nrepsOFF(findex, aindex, dindex)
+                                spiketimes2=M1OFFp(clust, findex, aindex, dindex, iindex, n).spiketimes;
+                                offset=offset+inc;
+                                h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                            end
+                            for n=1:nrepsON(findex, aindex, dindex)
+                                spiketimes2=M1ONp(clust, findex, aindex, dindex, iindex, n).spiketimes;
+                                offset=offset+inc;
+                                h=plot(spiketimes2, ylimits1(clust,2)+ones(size(spiketimes2))+offset, '.g');
+                            end
+                        end
+                        if rasters==1
+                            ylimits2(clust,2)=ylimits1(clust,2)*3;
+                            ylim(ylimits2(clust,:))
+                        else
+                            ylim(ylimits1(clust,:));
+                        end
+                        line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
                         line(xlimits, [0 0], 'color', 'k')
-                        ylim(ylimits1(clust,:))
+                        
                         xlim(xlimits)
                         
                         hold on
@@ -531,7 +355,7 @@ else
                             stim=[stim from_this_point:add_this];
                             line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
                         end
-                        title(sprintf('isi %dms', isis(iindex)));
+                        ylabel(sprintf('%dms', isis(iindex)));;
                     end
                 end
             end
@@ -544,212 +368,530 @@ else
         shg
         refresh
         orient tall
-    end
-end
-end
-%plot the OFF
-if ~isempty(cell)
-    clust=str2num(cell);
-    figure;
-    p=0;
-    subplot1(numisis, 1)
-    for iindex=[1:numisis]
-        for dindex=1:numdurs
-            for findex=1:numfreqs
-                for aindex=numamps
-                    p=p+1;
-                    subplot1( p)
-                    hold on
-                    spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
-                    X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                    [NOFF, xOFF]=hist(spiketimesOFF, X);
-                    NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
-                    NOFF=1000*NOFF./binwidth;
-                    bOFF=bar(xOFF,NOFF,1);
-                    set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                    line(xlimits, [0 0], 'color', 'k')
-                    ylim(ylimits1(clust,:))
-                    xlim(xlimits)
-                    stim=[1:clickdurs];
-                    line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                    for i=1:nclicks(iindex)-1
-                        from_this_point=max(max(stim)+isis(iindex)-clickdurs);
-                        add_this=max(max(stim)+isis(iindex));
-                        stim=[stim from_this_point:add_this];
-                        line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                    end
-                    title(sprintf('isi %dms', isis(iindex)));
-                end
-            end
-        end
-        all_stims(iindex).stim=stim;
-    end
-    
-    subplot1(1)
-    title(sprintf('%s-%s-%s laser OFF, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
-    set(gcf, 'pos', [618    72      520   900])
-    shg
-    refresh
-    orient tall
-else
-    
-    for clust=1:Nclusters
-        figure;
-        p=0;
-        subplot1(numisis, 1)
-        for iindex=[1:numisis]
-            for dindex=1:numdurs
-                for findex=1:numfreqs
-                    for aindex=numamps
-                        p=p+1;
-                        subplot1( p)
-                        hold on
-                        spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
-                        X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                        [NOFF, xOFF]=hist(spiketimesOFF, X);
-                        NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
-                        NOFF=1000*NOFF./binwidth;
-                        bOFF=bar(xOFF,NOFF,1);
-                        set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
-                        line(xlimits, [0 0], 'color', 'k')
-                        ylim(ylimits1(clust,:))
-                        xlim(xlimits)
-                        stim=[1:clickdurs];
-                        line([0 clickdurs], [-2 3], 'color', 'm', 'linewidth', 4)
-                        for i=1:nclicks(iindex)-1
-                            from_this_point=max(max(stim)+isis(iindex)-clickdurs);
-                            add_this=max(max(stim)+isis(iindex));
-                            stim=[stim from_this_point:add_this];
-                            line([from_this_point add_this], [-2 3], 'color', 'm', 'linewidth', 4)
+        
+        if pot_outline==1
+            clust=cell;
+            figure;
+            p=0;
+            subplot1(numisis, 1)
+            for iindex=[1:numisis]
+                for dindex=1:numdurs
+                    for findex=1:numfreqs
+                        for aindex=numamps
+                            p=p+1;
+                            subplot1( p)
+                            hold on
+                            
+                            spiketimesON=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
+                            spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
+                            X=xlimits(1):binwidth:xlimits(2); %specify bin centers
+                            [NON, xON]=hist(spiketimesON, X);
+                            [NOFF, xOFF]=hist(spiketimesOFF, X);
+                            
+                            NON=NON./nrepsON(findex, aindex, dindex,iindex); %
+                            NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                            NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
+                            NOFF=1000*NOFF./binwidth;
+                            non=smooth(NON);
+                            noff=smooth(NOFF);
+                            hold on;
+                            plot(xON, non,'Color',([51 204 0]/255),'LineWidth',2);
+                            plot(xOFF, noff, 'Color',[0 0 0], 'LineWidth',2);
+                            ylimits2(clust,2)=ylimits1(clust,2)-ylimits1(clust,2)*.30;
+                            ylim(ylimits2(clust,:));
+                            
+                            line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 3)
+                            line(xlimits, [0 0], 'color', 'k')
+                            
+                            xlim(xlimits)
+                            
+                            stim=[1:clickdurs];
+                            line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+                            for i=1:nclicks(iindex)-1
+                                from_this_point=max(max(stim)+isis(iindex)-clickdurs);
+                                add_this=max(max(stim)+isis(iindex));
+                                stim=[stim from_this_point:add_this];
+                                line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+                            end
+                            ylabel(sprintf('%dms', isis(iindex)));;
                         end
-                        ylabel(sprintf('%dms', isis(iindex)));
                     end
                 end
+                xlabel('time (ms)');
+                all_stims(iindex).stim=stim;
             end
-            add_this=[];
-            from_this_point=[];
-            all_stims(iindex).stim=stim;
+            
+            subplot1(1)
+            title(sprintf('%s-%s-%s laser ON and OFF, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+            set(gcf, 'pos', [618    72      520   900])
+            shg
+            refresh
+            orient tall
         end
         
+        
+    else
+        for clust=1:Nclusters
+            figure;
+            p=0;
+            subplot1(numisis, 1)
+            for iindex=[1:numisis]
+                for dindex=1:numdurs
+                    for findex=1:numfreqs
+                        for aindex=numamps
+                            p=p+1;
+                            subplot1( p)
+                            hold on
+                            
+                            spiketimesON=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
+                            spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
+                            X=xlimits(1):binwidth:xlimits(2); %specify bin centers
+                            [NON, xON]=hist(spiketimesON, X);
+                            [NOFF, xOFF]=hist(spiketimesOFF, X);
+                            
+                            NON=NON./nrepsON(findex, aindex, dindex,iindex); %
+                            NON=1000*NON./binwidth; %normalize to spike rate in Hz
+                            NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
+                            NOFF=1000*NOFF./binwidth;
+                            bON=bar(xON, NON,1);
+                            hold on
+                            bOFF=bar(xOFF,NOFF,1);
+                            set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
+                            set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+                            offset=0;
+                            yl=ylimits1(clust,:);
+                            inc=(yl(2))/max(max(max(nrepsOFF)));
+                            if rasters==1
+                                
+                                for n=1:nrepsOFF(findex, aindex, dindex)
+                                    spiketimes2=M1OFFp(clust, findex, aindex, dindex, iindex, n).spiketimes;
+                                    offset=offset+inc;
+                                    h=plot(spiketimes2, yl(2)+ones(size(spiketimes2))+offset, '.k');
+                                end
+                                for n=1:nrepsON(findex, aindex, dindex)
+                                    spiketimes2=M1ONp(clust, findex, aindex, dindex, iindex, n).spiketimes;
+                                    offset=offset+inc;
+                                    h=plot(spiketimes2, ylimits1(clust,2)+ones(size(spiketimes2))+offset, '.g');
+                                end
+                            end
+                            
+                            %line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
+                            line(xlimits, [0 0], 'color', 'k')
+                            if rasters==1
+                                ylimits2(clust,2)=ylimits1(clust,2)*3;
+                                ylim(ylimits2(clust,:))
+                            else
+                                ylim(ylimits1(clust,:));
+                            end
+                            xlim(xlimits)
+                            
+                            hold on
+                            
+                            stim=[1:clickdurs];
+                            line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+                            for i=1:nclicks(iindex)-1
+                                from_this_point=max(max(stim)+isis(iindex)-clickdurs);
+                                add_this=max(max(stim)+isis(iindex));
+                                stim=[stim from_this_point:add_this];
+                                line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+                            end
+                            title(sprintf('isi %dms', isis(iindex)));
+                        end
+                    end
+                end
+                all_stims(iindex).stim=stim;
+            end
+            
+            subplot1(1)
+            title(sprintf('%s-%s-%s laser ON and OFF, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+            set(gcf, 'pos', [618    72      520   900])
+            shg
+            refresh
+            orient tall
+        end
+    end
+end
+% %plot the OFF
+% if ~isempty(cell)
+%     clust=cell;
+%     figure;
+%     p=0;
+%     subplot1(numisis, 1)
+%     for iindex=[1:numisis]
+%         for dindex=1:numdurs
+%             for findex=1:numfreqs
+%                 for aindex=numamps
+%                     p=p+1;
+%                     subplot1( p)
+%                     hold on
+%                     spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
+%                     X=xlimits(1):binwidth:xlimits(2); %specify bin centers
+%                     [NOFF, xOFF]=hist(spiketimesOFF, X);
+%                     NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
+%                     NOFF=1000*NOFF./binwidth;
+%                     bOFF=bar(xOFF,NOFF,1);
+%                     set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+%                     line(xlimits, [0 0], 'color', 'k')
+%                     ylim(ylimits1(clust,:))
+%                     xlim(xlimits)
+%                     stim=[1:clickdurs];
+%                     line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+%                     for i=1:nclicks(iindex)-1
+%                         from_this_point=max(max(stim)+isis(iindex)-clickdurs);
+%                         add_this=max(max(stim)+isis(iindex));
+%                         stim=[stim from_this_point:add_this];
+%                         line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+%                     end
+%                     title(sprintf('isi %dms', isis(iindex)));
+%                 end
+%             end
+%         end
+%         all_stims(iindex).stim=stim;
+%     end
+%
+%     subplot1(1)
+%     title(sprintf('%s-%s-%s laser OFF, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+%     set(gcf, 'pos', [618    72      520   900])
+%     shg
+%     refresh
+%     orient tall
+% else
+%
+%     for clust=1:Nclusters
+%         figure;
+%         p=0;
+%         subplot1(numisis, 1)
+%         for iindex=[1:numisis]
+%             for dindex=1:numdurs
+%                 for findex=1:numfreqs
+%                     for aindex=numamps
+%                         p=p+1;
+%                         subplot1( p)
+%                         hold on
+%                         spiketimesOFF=mM1OFFp(clust, findex, aindex, dindex, iindex).spiketimes;
+%                         X=xlimits(1):binwidth:xlimits(2); %specify bin centers
+%                         [NOFF, xOFF]=hist(spiketimesOFF, X);
+%                         NOFF=NOFF./nrepsOFF(findex, aindex, dindex,iindex);
+%                         NOFF=1000*NOFF./binwidth;
+%                         bOFF=bar(xOFF,NOFF,1);
+%                         set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+%                         line(xlimits, [0 0], 'color', 'k')
+%                         ylim(ylimits1(clust,:))
+%                         xlim(xlimits)
+%                         stim=[1:clickdurs];
+%                         line([0 clickdurs], [-2 3], 'color', 'm', 'linewidth', 4)
+%                         for i=1:nclicks(iindex)-1
+%                             from_this_point=max(max(stim)+isis(iindex)-clickdurs);
+%                             add_this=max(max(stim)+isis(iindex));
+%                             stim=[stim from_this_point:add_this];
+%                             line([from_this_point add_this], [-2 3], 'color', 'm', 'linewidth', 4)
+%                         end
+%                         ylabel(sprintf('%dms', isis(iindex)));
+%                     end
+%                 end
+%             end
+%             add_this=[];
+%             from_this_point=[];
+%             all_stims(iindex).stim=stim;
+%         end
+%
+%         subplot1(1)
+%         title(sprintf('%s-%s-%s laser OFF, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+%         set(gcf, 'pos', [618    72      520   900])
+%         shg
+%         refresh
+%         orient tall
+%     end
+%
+% end
+% if ~isempty(M1ONp)
+%
+%     %plot the ON
+%     if ~isempty(cell)
+%         clust=cell;
+%         figure;
+%         p=0;
+%         subplot1(numisis, 1)
+%         for iindex=[1:numisis]
+%             for dindex=1:numdurs
+%                 for findex=1:numfreqs
+%                     for aindex=numamps
+%                         p=p+1;
+%                         subplot1( p)
+%                         spiketimesON=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
+%                         X=xlimits(1):binwidth:xlimits(2); %specify bin centers
+%                         [NON, xON]=hist(spiketimesON, X);
+%                         NON=NON./nrepsON(findex, aindex, dindex,iindex);
+%                         bON=bar(xON, NON,1);
+%                         set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
+%                         line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
+%                         line(xlimits, [0 0], 'color', 'k')
+%                         ylim(ylimits1(clust,:))
+%                         xlim(xlimits)
+%
+%                         hold on
+%
+%                         stim=[1:clickdurs];
+%                         line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+%                         for i=1:nclicks(iindex)-1
+%                             from_this_point=max(max(stim)+isis(iindex)-clickdurs);
+%                             add_this=max(max(stim)+isis(iindex));
+%                             stim=[stim from_this_point:add_this];
+%                             line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+%                         end
+%                         title(sprintf('isi %dms', isis(iindex)));
+%                     end
+%                 end
+%             end
+%             all_stims(iindex).stim=stim;
+%         end
+%
+%         subplot1(1)
+%         title(sprintf('%s-%s-%s laser ON, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+%         set(gcf, 'pos', [618    72      520   900])
+%         shg
+%         refresh
+%         orient tall
+%     else
+%         for clust=1:Nclusters
+%             figure;
+%             p=0;
+%             subplot1(numisis, 1)
+%             for iindex=[1:numisis]
+%                 for dindex=1:numdurs
+%                     for findex=1:numfreqs
+%                         for aindex=numamps
+%                             p=p+1;
+%                             subplot1( p)
+%                             spiketimesON=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
+%                             X=xlimits(1):binwidth:xlimits(2); %specify bin centers
+%                             [NON, xON]=hist(spiketimesON, X);
+%                             NON=NON./nrepsON(findex, aindex, dindex,iindex);
+%                             bON=bar(xON, NON,1);
+%                             set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
+%                             %line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
+%                             line(xlimits, [0 0], 'color', 'k')
+%                             ylim(ylimits1(clust,:))
+%                             xlim(xlimits)
+%
+%                             hold on
+%
+%                             stim=[1:clickdurs];
+%                             line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+%                             for i=1:nclicks(iindex)-1
+%                                 from_this_point=max(max(stim)+isis(iindex)-clickdurs);
+%                                 add_this=max(max(stim)+isis(iindex));
+%                                 stim=[stim from_this_point:add_this];
+%                                 line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
+%                             end
+%                             title(sprintf('isi %dms', isis(iindex)));
+%                         end
+%                     end
+%                 end
+%                 all_stims(iindex).stim=stim;
+%             end
+%
+%             subplot1(1)
+%             title(sprintf('%s-%s-%s laser ON, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+%             set(gcf, 'pos', [618    72      520   900])
+%             shg
+%             refresh
+%             orient tall
+%         end
+%     end
+% end
+
+
+%%
+%plot spikerate MTF
+
+mMtON=out.mMtON;
+mMtOFF=out.mMtOFF;
+MtON=out.MtON;
+MtOFF=out.MtOFF;
+%mMs=out.mMs;
+numisis=out.numisis;
+start=0;
+if isempty(cell)
+    for clust=1:Nclusters
+        figure;
+        for isiindex=[1:numisis]
+            dindex=1; findex=1; aindex=1;
+            spiketimesON=mM1ONp(clust,dindex, findex,aindex,isiindex).spiketimes;
+            spiketimesOFF=mM1OFFp(clust,dindex, findex,aindex,isiindex).spiketimes;
+            spikecountON(isiindex)=length(find(spiketimesON>start & spiketimesON<(out.durs+start) ));
+            spikecountOFF(isiindex)=length(find(spiketimesOFF>start & spiketimesOFF<(out.durs+start) ));
+            spikecountON(isiindex)=spikecountON(isiindex)./out.nrepsON(isiindex); %normalize to trial average
+            spikecountOFF(isiindex)=spikecountOFF(isiindex)./out.nrepsOFF(isiindex);
+            spikerateON(isiindex)=1000*spikecountON(isiindex)/out.durs;%normalize to spike rate in Hz
+            spikerateOFF(isiindex)=1000*spikecountOFF(isiindex)/out.durs;
+        end
+        pON=plot(spikerateON, 'g.-'); hold on
+        set(pON, 'markersize', 30)
+        pOFF=plot(spikerateOFF, 'k.-');
+        set(pOFF, 'markersize', 30)
+        ylabel('firing rate, Hz')
+        set(gca, 'xtick', 1:numisis, 'xticklabel', out.isis)
+        xlim([.5 numisis+.5])
+        xlabel('ISI, ms')
+        title(sprintf('%s-%s-%s   %s', expdate,session, filenum, get(get(gca, 'title'), 'string')))
+    end
+    %plot spikerate cycle histograms
+    
+    for clust=1:Nclusters
+        figure
+        yl=0;
+        subplot1(numisis, 1)
+        
+        for isiindex=[1:numisis]
+            isi=out.isis(isiindex);
+            onsets=isi*(0:nclicks(isiindex)-1);
+            %     trace_stim=squeeze(mMs(isiindex, :));
+            %     t=1:length(trace_stim);
+            %     t=t/10;
+            %     plot(t, trace_stim,'r', onsets, zeros(size(onsets)), '.')
+            dindex=1; findex=1; aindex=1;
+            spiketimesON=mM1ONp(clust,dindex, findex,aindex,isiindex).spiketimes;
+            spiketimesOFF=mM1OFFp(clust,dindex, findex,aindex,isiindex).spiketimes;
+            phaseON=[];
+            phaseOFF=[];
+            for s=spiketimesON
+                if s>0 & s<onsets(end)+isi
+                    p=s-onsets;
+                    q=p(p>0);
+                    u=q(end);
+                    phaseON=[phaseON 2*pi*u/isi];
+                end
+            end
+            for s=spiketimesOFF
+                if s>0 & s<onsets(end)+isi
+                    p=s-onsets;
+                    q=p(p>0);
+                    u=q(end);
+                    phaseOFF=[phaseOFF 2*pi*u/isi];
+                end
+            end
+            subplot1(isiindex)
+            [NON xON]=hist(phaseON, [0:pi/10:2*pi]); hold on;
+            [NOFF xOFF]=hist(phaseOFF, [0:pi/10:2*pi]);
+            bON=bar(xON, NON,1);
+            bOFF=bar(xOFF, NOFF,1);
+            set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
+            set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+            % spikecount(isiindex)=length(find(spiketimes>0 & spiketimes<out.durs ));
+            % spikecount(isiindex)=spikecount(isiindex)./out.nreps(isiindex); %normalize to trial average
+            % spikerate(isiindex)=1000*spikecount(isiindex)/out.durs;%normalize to spike rate in Hz
+            xlim([0 2*pi])
+            yl=max(yl, ylim);
+            ylabel(sprintf('isi %dms',isi));
+        end
+        for isiindex=[1:numisis]
+            subplot1(isiindex)
+            ylim(yl)
+        end
+        
+        xlabel('phase')
         subplot1(1)
-        title(sprintf('%s-%s-%s laser OFF, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+        title(sprintf('cycle spike histogram %s-%s-%s   %s', expdate,session, filenum, get(get(gca, 'title'), 'string')));
         set(gcf, 'pos', [618    72      520   900])
         shg
         refresh
         orient tall
     end
-    
-end
-if ~isempty(M1ONp)
-    
-%plot the ON
-if ~isempty(cell)
-    clust=cell;
+else
     figure;
-    p=0;
+    clust=cell; aindex=1;dindex=1;findex=1;
+    for isiindex=[1:numisis]
+        spiketimesON=mM1ONp(clust,dindex, findex,aindex,isiindex).spiketimes;
+            spiketimesOFF=mM1OFFp(clust,dindex, findex,aindex,isiindex).spiketimes;
+        spikecountON(isiindex)=length(find(spiketimesON>start & spiketimesON<(out.durs+start) ));
+        spikecountOFF(isiindex)=length(find(spiketimesOFF>start & spiketimesOFF<(out.durs+start) ));
+        spikecountON(isiindex)=spikecountON(isiindex)./out.nrepsON(isiindex); %normalize to trial average
+        spikecountOFF(isiindex)=spikecountOFF(isiindex)./out.nrepsOFF(isiindex);
+        spikerateON(isiindex)=1000*spikecountON(isiindex)/out.durs;%normalize to spike rate in Hz
+        spikerateOFF(isiindex)=1000*spikecountOFF(isiindex)/out.durs;
+    end
+    pON=plot(spikerateON, 'g.-'); hold on
+    set(pON, 'markersize', 30)
+    pOFF=plot(spikerateOFF, 'k.-');
+    set(pOFF, 'markersize', 30)
+    ylabel('firing rate, Hz')
+    set(gca, 'xtick', 1:numisis, 'xticklabel', out.isis)
+    xlim([.5 numisis+.5])
+    xlabel('ISI, ms')
+    title(sprintf('%s-%s-%s   %s', expdate,session, filenum, get(get(gca, 'title'), 'string')))
+    
+    figure
+    yl=0;
     subplot1(numisis, 1)
-    for iindex=[1:numisis]
-        for dindex=1:numdurs
-            for findex=1:numfreqs
-                for aindex=numamps
-                    p=p+1;
-                    subplot1( p)
-                    spiketimesON=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
-                    X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                    [NON, xON]=hist(spiketimesON, X);
-                    NON=NON./nrepsON(findex, aindex, dindex,iindex);
-                    bON=bar(xON, NON,1);
-                    set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
-                    line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
-                    line(xlimits, [0 0], 'color', 'k')
-                    ylim(ylimits1(clust,:))
-                    xlim(xlimits)
-                    
-                    hold on
-                    
-                    stim=[1:clickdurs];
-                    line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                    for i=1:nclicks(iindex)-1
-                        from_this_point=max(max(stim)+isis(iindex)-clickdurs);
-                        add_this=max(max(stim)+isis(iindex));
-                        stim=[stim from_this_point:add_this];
-                        line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                    end
-                    title(sprintf('isi %dms', isis(iindex)));
-                end
+    
+    for isiindex=[1:numisis]
+        isi=out.isis(isiindex);
+        onsets=isi*(0:nclicks(isiindex)-1);
+        spiketimesON=mM1ONp(clust,dindex, findex,aindex,isiindex).spiketimes;
+        spiketimesOFF=mM1OFFp(clust,dindex, findex,aindex,isiindex).spiketimes;
+
+        phaseON=[];
+        phaseOFF=[];
+        s=[];
+        for s=spiketimesON
+            if s>0 & s<onsets(end)+isi
+                p=s-onsets;
+                q=p(p>0);
+                u=q(end);
+                phaseON=[phaseON 2*pi*u/isi];
             end
         end
-        all_stims(iindex).stim=stim;
+        for s=spiketimesOFF
+            if s>0 & s<onsets(end)+isi
+                p=s-onsets;
+                q=p(p>0);
+                u=q(end);
+                phaseOFF=[phaseOFF 2*pi*u/isi];
+            end
+        end
+        subplot1(isiindex)
+        [NON xON]=hist(phaseON, [0:pi/10:2*pi]); hold on;
+        [NOFF xOFF]=hist(phaseOFF, [0:pi/10:2*pi]);
+        bON=bar(xON, NON,1);
+        bOFF=bar(xOFF, NOFF,1);
+        set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
+        set(bOFF, 'facecolor', 'none','edgecolor', [0 0 0]);
+
+        xlim([0 2*pi])
+        yl=max(yl, ylim);
+        ylabel(sprintf('isi %dms',isi));
+    end
+    for isiindex=[1:numisis]
+        subplot1(isiindex)
+        ylim(yl)
     end
     
+    xlabel('phase')
     subplot1(1)
-    title(sprintf('%s-%s-%s laser ON, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
+    title(sprintf('cycle spike histogram %s-%s-%s   %s', expdate,session, filenum, get(get(gca, 'title'), 'string')))
     set(gcf, 'pos', [618    72      520   900])
     shg
     refresh
     orient tall
-else
-    for clust=1:Nclusters
-        figure;
-        p=0;
-        subplot1(numisis, 1)
-        for iindex=[1:numisis]
-            for dindex=1:numdurs
-                for findex=1:numfreqs
-                    for aindex=numamps
-                        p=p+1;
-                        subplot1( p)
-                        spiketimesON=mM1ONp(clust, findex, aindex, dindex, iindex).spiketimes;
-                        X=xlimits(1):binwidth:xlimits(2); %specify bin centers
-                        [NON, xON]=hist(spiketimesON, X);
-                        NON=NON./nrepsON(findex, aindex, dindex,iindex);
-                        bON=bar(xON, NON,1);
-                        set(bON, 'facecolor', ([51 204 0]/255),'edgecolor', ([51 204 0]/255));
-                        %line([PPAstart width+PPAstart], [-.1 -.1], 'color', 'c', 'linewidth', 2)
-                        line(xlimits, [0 0], 'color', 'k')
-                        ylim(ylimits1(clust,:))
-                        xlim(xlimits)
-                        
-                        hold on
-                        
-                        stim=[1:clickdurs];
-                        line([0 clickdurs], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                        for i=1:nclicks(iindex)-1
-                            from_this_point=max(max(stim)+isis(iindex)-clickdurs);
-                            add_this=max(max(stim)+isis(iindex));
-                            stim=[stim from_this_point:add_this];
-                            line([from_this_point add_this], [-.02 -.02], 'color', 'm', 'linewidth', 4)
-                        end
-                        title(sprintf('isi %dms', isis(iindex)));
-                    end
-                end
-            end
-            all_stims(iindex).stim=stim;
-        end
-        
-        subplot1(1)
-        title(sprintf('%s-%s-%s laser ON, tetrode %s, cell %d   %s', expdate,session, filenum, channel, clust, get(get(gca, 'title'), 'string')))
-        set(gcf, 'pos', [618    72      520   900])
-        shg
-        refresh
-        orient tall
-    end
 end
-end
+%%
 godatadir(expdate,session,filenum);
 
 %assign outputs
 if save_outfile==1
-    cell=str2num(cell);
-out.mM1ONp=squeeze(mM1ONp(cell,:,:,:));
-out.mM1OFFp=squeeze(mM1OFFp(cell,:,:,:));
-% out.M1ONp=squeeze(M1ONp(cell,:,:,:));
-% out.M1OFFp=squeeze(M1OFFp(cell,:,:,:));
+    %cell=str2num(cell);
+    out.mM1ONp=squeeze(mM1ONp(cell,:,:,:));
+    out.mM1OFFp=squeeze(mM1OFFp(cell,:,:,:));
+    out.M1ONp=squeeze(M1ONp(cell,:,:,:));
+    out.M1OFFp=squeeze(M1OFFp(cell,:,:,:));
+    out.quality=5;
+    out.mouse=61;
 else
-out.mM1ONp=mM1ONp;
-out.mM1OFFp=mM1OFFp;
-out.M1ONp=M1ONp;
-out.M1OFFp=M1OFFp;
+    out.mM1ONp=mM1ONp;
+    out.mM1OFFp=mM1OFFp;
+    out.M1ONp=M1ONp;
+    out.M1OFFp=M1OFFp;
 end
 out.stim=all_stims;
 out.nrepsON=nrepsON;
@@ -776,12 +918,14 @@ out.samprate=samprate;
 out.PPAstart=PPAstart;
 out.width=width;
 out.cluster=cell;
+out.tetrode=channel;
 out.Nclusters=Nclusters;
 
 
-outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-psth',channel,expdate,session, filenum);
-save (outfilename, 'out')
-fprintf('\n Saved to %s.\n', outfilename)
+
+% outfilename=sprintf('out_T%s_ILWNTrain%s-%s-%s-psth',channel,expdate,session, filenum);
+% save (outfilename, 'out')
+% fprintf('\n Saved to %s.\n', outfilename)
 
 
 
