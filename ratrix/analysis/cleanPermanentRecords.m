@@ -108,6 +108,7 @@ for j = 1:length(fileList)
             end
         catch
             response(k) = NaN(1);
+
         end
 
         if length(trialRecords(k).targetPorts) == 1
@@ -118,8 +119,21 @@ for j = 1:length(fileList)
 
 
 
-
     end
     datamat = [trialNumber',double(dates'),session,double(step'),freq',duration',consonant',speaker',vowel',token',response',target',correct',double(gentype')];
     dlmwrite(csvfile,datamat,'-append','precision','%.6f');
 end
+
+            
+            
+            
+            
+            
+                
+              
+        
+        
+        
+
+    
+    
