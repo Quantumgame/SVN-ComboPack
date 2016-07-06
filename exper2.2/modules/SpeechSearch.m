@@ -31,6 +31,7 @@ end
 switch action
     case 'init'
         fig = ModuleFigure(me,'pos',[5 608 128 120]);
+
         pref.speechdir = [pref.home 'speechStim\'];
         
         %Check whether speech stats matrix is calc'd, asks to calc if not.
@@ -57,10 +58,6 @@ switch action
 %local functions
 function computealg
     %Offload compute to alg. module. 
-
-
-    %Uses similarity matrix and cell responses to weight phuture phonemes
-    %to load into future protocols. 
 
 
     %Uses similarity matrix and cell responses to weight phuture phonemes
