@@ -21,8 +21,10 @@ sstx = struct;
 prevCharCnt = 0;
 fprintf('\n\n')
 M = zeros(.5*96000,numFiles);
+
 F = [];
 Ch= [];
+
 for i = 1:numFiles
     fprintf([repmat('\b',1,(21+length(num2str(i-1))+length(num2str(numFiles)))),'Processing file %d of %d '],i,numFiles)
     sstx(i).file = fileList{i};
@@ -34,13 +36,18 @@ for i = 1:numFiles
     
     %Feature extraction fo clustering
     [a,fs] = audioread(fileList{i});
+
     %Size Chopping so all are 500ms
+
+    sstx(i).features = stFeatureExtraction(a,fs,.010,.010);
+
     lt = size(a,1);
     if lt < (fs*.5)
         a(lt:(fs*.5),1) = 0;
     elseif lt > (fs*.5)
         a = a(1:fs*.5);
     end
+
     sstx(i).features = stFeatureExtraction(a,fs,.010,.010); %Extract features after making length same.
     %Save matrices for spectral clustering
     M(:,i) = a; %Full audio file for absolute 
@@ -48,9 +55,13 @@ for i = 1:numFiles
     F(:,i,2) = sstx(i).features(3,:); %Energy Entropy
     F(:,i,3) = sstx(i).features(4,:); %Spectral Centroid
     F(:,i,4) = sstx(i).features(6,:); %Spectral Entropy
+
+    M(:,i) = a;
+
 end
 fprintf(' \n')
 fprintf('Simple processing completed, beginning spectral clustering\n')
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Make Similarity Matrices
@@ -58,12 +69,18 @@ fprintf('Simple processing completed, beginning spectral clustering\n')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Normalizing
 %Normalize M
+
+%Spectral clustering
+%Inspired by http://www.mathworks.com/matlabcentral/fileexchange/34412-fast-and-efficient-spectral-clustering
+%Normalize
+
 minData = min(M, [], 2);
 maxData = max(M, [], 2);
 
 r = (0-1) ./ (minData - maxData);
 s = 0 - r .* minData;
 M = repmat(r, 1, size(M, 2)) .* M + repmat(s, 1, size(M, 2));
+
 
 %Normalize F
 for i = 1:4
@@ -119,5 +136,40 @@ csvwrite([pwd,'/WNRGEnt.csv'],WF2);
 csvwrite([pwd,'/WSpec.csv'],WF3);
 csvwrite([pwd,'/WSpecEnt.csv'],WF4);
 
+
+
+   
+    
+    
+    
+    
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Begin local functions
+function fileList = getFilenamez(dirName)
+  excludes = {'.DS_Store'};
+  dirData = dir(dirName);      %# Get the data for the current directory
+  dirIndex = [dirData.isdir];  %# Find the index for directories
+  fileList = {dirData(~dirIndex).name}';  %'# Get a list of the files
+  validFiles = ~ismember(fileList,excludes);
+  fileList = fileList(validFiles);
+  if ~isempty(fileList)
+    fileList = cellfun(@(x) fullfile(dirName,x),...  %# Prepend path to files
+                       fileList,'UniformOutput',false);
+  end
+  subDirs = {dirData(dirIndex).name};  %# Get a list of the subdirectories
+  validIndex = ~ismember(subDirs,{'.','..','Unprocessed','Unsorted'});  %# Find index of subdirectories
+                                               %#   that are not '.' or '..'
+  for iDir = find(validIndex)                  %# Loop over valid subdirectories
+    nextDir = fullfile(dirName,subDirs{iDir});    %# Get the subdirectory path
+    fileList = [fileList; getFilenames(nextDir)];  %# Recursively call getAllFiles
+  end
+end
+
+
+
+end
 
 
