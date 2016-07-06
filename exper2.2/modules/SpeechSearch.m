@@ -58,6 +58,11 @@ switch action
 function computealg
     %Offload compute to alg. module. 
 
+
+    %Uses similarity matrix and cell responses to weight phuture phonemes
+    %to load into future protocols. 
+
+
     %Uses similarity matrix and cell responses to weight phuture phonemes
     %to load into future protocols. 
 
