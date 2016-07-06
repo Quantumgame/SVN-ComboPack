@@ -75,6 +75,7 @@ hold off
 %scatter(MDmat(:,1),MDmat(:,2),20,phoVects(:,2),'filled')
 legend([p(1),p(2),p(3),p(4),p(5)],{'Jonny','Ira','Anna','Dani','Theresa'},'Location','EastOutside')
 
+
 %Scatterplot by vowel
 subplot(1,4,2)
 colorvec2 = colorvec;

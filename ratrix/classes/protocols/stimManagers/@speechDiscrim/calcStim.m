@@ -31,7 +31,6 @@ details.toneFreq = [];
 
 if strcmp(stimulus.soundType, 'speechWav') 
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
-    
     stimMap = stimulus.stimMap;
     
     if stimMap == 1
@@ -90,6 +89,7 @@ if strcmp(stimulus.soundType, 'speechWav')
     
 
     %Print current stim
+
     text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
 end
 
