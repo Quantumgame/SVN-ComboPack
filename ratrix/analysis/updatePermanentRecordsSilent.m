@@ -11,8 +11,8 @@ rigNums = [1,2,3,4,5,3,4,5,...
            3,4,5,5,1,2,3,4,...
            5,5,4,4,3,5,5,5];
          
-datadir = C:\Users\lab\Documents\speechData;
-recordsdir = 1;
+datadir = 'C:\Users\lab\Documents\speechData';
+recordsdir = '1';
 
 
 %Get list of files to compare against
