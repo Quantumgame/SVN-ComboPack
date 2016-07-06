@@ -21,12 +21,8 @@ sstx = struct;
 prevCharCnt = 0;
 fprintf('\n\n')
 M = zeros(.5*96000,numFiles);
-
-
-
 F = [];
 Ch= [];
-
 for i = 1:numFiles
     fprintf([repmat('\b',1,(21+length(num2str(i-1))+length(num2str(numFiles)))),'Processing file %d of %d '],i,numFiles)
     sstx(i).file = fileList{i};
@@ -38,16 +34,13 @@ for i = 1:numFiles
     
     %Feature extraction fo clustering
     [a,fs] = audioread(fileList{i});
-
     %Size Chopping so all are 500ms
-
     lt = size(a,1);
     if lt < (fs*.5)
         a(lt:(fs*.5),1) = 0;
     elseif lt > (fs*.5)
         a = a(1:fs*.5);
     end
-
     sstx(i).features = stFeatureExtraction(a,fs,.010,.010); %Extract features after making length same.
     %Save matrices for spectral clustering
     M(:,i) = a; %Full audio file for absolute 
@@ -59,14 +52,12 @@ end
 fprintf(' \n')
 fprintf('Simple processing completed, beginning spectral clustering\n')
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Make Similarity Matrices
 %Inspired by http://www.mathworks.com/matlabcentral/fileexchange/34412-fast-and-efficient-spectral-clustering
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Normalizing
 %Normalize M
-
 minData = min(M, [], 2);
 maxData = max(M, [], 2);
 
@@ -92,15 +83,16 @@ WF2 = squareform(pdist(F(:,:,2)'));
 WF3 = squareform(pdist(F(:,:,3)'));
 WF4 = squareform(pdist(F(:,:,4)'));
 
-
-% Apply Gaussian similarity function and normalize
+% Apply Gaussian similarity function
 sigma = 1;
-WA = normc(simGaussian(WA, sigma));
-WF1 = normc(simGaussian(WF1,sigma));
-WF2 = normc(simGaussian(WF2,sigma));
-WF3 = normc(simGaussian(WF3,sigma));
-WF4 = normc(simGaussian(WF4,sigma));
+WA = simGaussian(WA, sigma);
+WF1 = simGaussian(WF1,sigma);
+WF2 = simGaussian(WF2,sigma);
+WF3 = simGaussian(WF3,sigma);
+WF4 = simGaussian(WF4,sigma);
 
+%Normalize results
+WA = norm
 
 imagesc(WA)
 
@@ -113,22 +105,53 @@ for i = 1:numFiles
     sstx(i).similarSpecEnt = WF4(:,i);
 end
 
+%Feature Clustering
+
+
+
+
 cd(dirName)
 cd ..
-mkdir('SimMats');
-cd('SimMats');
+saveDir = pwd;
 matPath = [pwd,'/phoMat.mat'];
 save(matPath,'sstx');
 
-fprintf('Spectral clustering completed, saving struct as %s \n',matPath)
-
-%Also save csvs of matrices
-csvwrite([pwd,'/WAbs.csv'],WA);
-csvwrite([pwd,'/WNRG.csv'],WF1);
-csvwrite([pwd,'/WNRGEnt.csv'],WF2);
-csvwrite([pwd,'/WSpec.csv'],WF3);
-csvwrite([pwd,'/WSpecEnt.csv'],WF4);
+fprintf('Spectral clustering completed, saving struct as %s and plotting results... \n',matPath)
+%have to actually put the plot in...
 
 
 
+   
+    
+    
+    
+    
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Begin local functions
+function fileList = getFilenamez(dirName)
+  excludes = {'.DS_Store'};
+  dirData = dir(dirName);      %# Get the data for the current directory
+  dirIndex = [dirData.isdir];  %# Find the index for directories
+  fileList = {dirData(~dirIndex).name}';  %'# Get a list of the files
+  validFiles = ~ismember(fileList,excludes);
+  fileList = fileList(validFiles);
+  if ~isempty(fileList)
+    fileList = cellfun(@(x) fullfile(dirName,x),...  %# Prepend path to files
+                       fileList,'UniformOutput',false);
+  end
+  subDirs = {dirData(dirIndex).name};  %# Get a list of the subdirectories
+  validIndex = ~ismember(subDirs,{'.','..','Unprocessed','Unsorted'});  %# Find index of subdirectories
+                                               %#   that are not '.' or '..'
+  for iDir = find(validIndex)                  %# Loop over valid subdirectories
+    nextDir = fullfile(dirName,subDirs{iDir});    %# Get the subdirectory path
+    fileList = [fileList; getFilenames(nextDir)];  %# Recursively call getAllFiles
+  end
+end
+
+
+
+end
 
