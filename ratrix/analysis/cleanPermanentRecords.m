@@ -123,17 +123,3 @@ for j = 1:length(fileList)
     datamat = [trialNumber',double(dates'),session,double(step'),freq',duration',consonant',speaker',vowel',token',response',target',correct',double(gentype')];
     dlmwrite(csvfile,datamat,'-append','precision','%.6f');
 end
-
-            
-            
-            
-            
-            
-                
-              
-        
-        
-        
-
-    
-    
