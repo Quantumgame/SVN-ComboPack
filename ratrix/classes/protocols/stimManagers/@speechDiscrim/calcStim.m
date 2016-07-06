@@ -168,11 +168,8 @@ if strcmp(stimulus.soundType, 'speechWavAll')
 end
 
 
-
 if strcmp(stimulus.soundType, 'toneThenSpeech')
     stimMap = stimulus.stimMap;
-    
-    
     %For when only tone in discrim phase, phoneme will be played as
     %'correct sound' if used w/ soundmanager "makeSpeechSM_PhonCorrect"
     %Also need to calc phone. params and store them in freqDurable for
@@ -235,9 +232,9 @@ if strcmp(stimulus.soundType, 'phoneTone')
     if pctcorrex <= .5  
         duration = 500;
         text = [text, sprintf('Duration: %d',duration)];
-    elseif pctcorrex>.5 && pctcorrex<.7
+    elseif pctcorrex>.5 & pctcorrex<.7
         duration = 500-((pctcorrex-.5)*2500); %linear decrease from 500ms to 0ms as they improve 
-        text = [text, sprintf('Duration: %0.1f',duration)];
+        text = [text, sprintf('Duration: %d',duration)];
     elseif pctcorrex>=.7
         duration = 0;
         text = [text, sprintf('Duration: %d',duration)];
