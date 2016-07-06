@@ -130,5 +130,29 @@ csvwrite([pwd,'/WSpec.csv'],WF3);
 csvwrite([pwd,'/WSpecEnt.csv'],WF4);
 
 
+imagesc(WA)
+
+%Write
+for i = 1:numFiles
+    sstx(i).similarAbs = WA(:,i);
+    sstx(i).similarNRG = WF1(:,i);
+    sstx(i).similarNRGEnt = WF2(:,i);
+    sstx(i).similarSpecCent = WF3(:,i);
+    sstx(i).similarSpecEnt = WF4(:,i);
+end
+
+
+
+
+
+cd(dirName)
+cd ..
+saveDir = pwd;
+matPath = [pwd,'/phoMat.mat'];
+save(matPath,'sstx');
+
+fprintf('Spectral clustering completed, saving struct as %s \n',matPath)
+
+
 
 
