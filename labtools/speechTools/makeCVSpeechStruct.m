@@ -102,6 +102,7 @@ WF4 = matNorm(simGaussian(WF4,sigma));
 
 imagesc(WF4)
 
+
 %Write
 for i = 1:numFiles
     sstx(i).similarAbs = WA(:,i);
