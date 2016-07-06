@@ -74,3 +74,20 @@ hold off
 %scatter(MDmat(:,1),MDmat(:,2),20,phoVects(:,2),'filled')
 legend([p(1),p(2),p(3),p(4),p(5)],{'Jonny','Ira','Anna','Dani','Theresa'},'Location','EastOutside')
 
+%Scatterplot by vowel
+subplot(1,4,2)
+colorvec2 = colorvec;
+colorvec2(:,2) = phoVects(:,3)./8;
+scatter(MDmat(:,1),MDmat(:,2),20,colorvec2,'filled')
+
+%Scatterplot by speaker
+subplot(1,4,3:4)
+colormap(jet)
+hold on
+for i = 1:length(unique(phoVects(:,2)))
+    p(i) = scatter(MDmat(find(phoVects(:,2)==i),1),MDmat(find(phoVects(:,2)==i),2),20,repmat(i*7,length(find(phoVects(:,2)==i)),1),'filled')
+end
+hold off
+%scatter(MDmat(:,1),MDmat(:,2),20,phoVects(:,2),'filled')
+legend([p(1),p(2),p(3),p(4),p(5)],{'Jonny','Ira','Anna','Dani','Theresa'},'Location','EastOutside')
+
