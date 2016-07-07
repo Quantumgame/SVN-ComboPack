@@ -35,6 +35,7 @@ toneParams.soundType = 'tone';
 toneParams.freq      = [];
 toneParams.duration  = 500;
 toneParams.amp       = 10.^((60-80)/20);
+toneParams.stimMap   = 2;
 maxWidth             = 1920; %Leftovers from vision days, dk what these do but if they're not there nothing works.
 maxHeight            = 1080;
 scaleFactor          = 0;
@@ -70,7 +71,7 @@ for i=1:length(subjIDs),
     if t>0
         stepNum = uint8(t);
     else
-        stepNum=uint8(6);
+        stepNum=uint8(1);
     end
     [subj r]=setProtocolAndStep(subj,p,true,true,true,stepNum,r,'call to setProtocolSpeech','edf');
 end

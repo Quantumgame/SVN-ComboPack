@@ -259,6 +259,25 @@ if strcmp(stimulus.soundType, 'phoneTone')
      %Print current stim
     text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,1},names{1},1)];
 end
+
+if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to indicate sad/dad
+    
+    [lefts, rights] = getBalance(responsePorts,targetPorts);
+    
+    %default case (e.g. rights==lefts )
+    
+    tones = [4000 13000];
+    
+    if lefts>rights %choose a left stim (wav1)
+        details.toneFreq = tones(1);
+    elseif rights>lefts %choose a right stim (wav2)
+        details.toneFreq = tones(2);
+    end
+    if lefts == rights %left
+        details.toneFreq = tones(1);
+    end
+
+end
    
     
 if strcmp(stimulus.soundType, 'morPhone')    
@@ -289,6 +308,8 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','morPhone', [details.toneFreq]);
     case {'speechComponent'}
         sSound = soundClip('stimSoundBase','speechComponent', [details.toneFreq]);
+    case {'tone'}
+        sSound = soundClip('stimSoundBase','tone', [details.toneFreq]);
 end
 stimulus.stimSound = soundClip('stimSound','dualChannel',{sSound,details.leftAmplitude,details.toneFreq},{sSound,details.rightAmplitude,details.toneFreq});
 
