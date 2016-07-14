@@ -110,6 +110,12 @@ if isempty(s.clip)
             end    
             train=[train starttone];
             s.clip = train;
+
+        case 'noise'
+            s.numSamples = s.sampleRate*.5;
+            sustained = randn(1,s.numSamples)./5;
+            s.clip = sustained;
+
         case 'wmToneWN'
             startsound=s.freq(1); %if 0, tone first, if 1, WN first
             endsound=s.freq(2); %if 0, tone 2nd, if 1, WN 2nd 
