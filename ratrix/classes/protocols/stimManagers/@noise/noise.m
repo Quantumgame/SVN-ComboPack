@@ -1,4 +1,4 @@
-function s=speechDiscrim(varargin)
+function s=noise(varargin)
 % noise class constructor.
 % s =
 % noise(mean,soundParams,maxWidth,maxHeight,scaleFactor,interTrialLuminance)
@@ -62,7 +62,6 @@ switch nargin
         end
         
         s.freq=soundParams.freq;
-        s.stimMap = soundParams.stimMap;
         
         switch s.soundType
             case 'noise'
