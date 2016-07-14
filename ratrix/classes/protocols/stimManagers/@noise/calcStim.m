@@ -35,7 +35,7 @@ details.leftAmplitude = stimulus.amplitude;
 % fclose(fid)
 switch stimulus.soundType
     case {'noise'}
-        sSound = soundClip('stimSoundBase','speechWav', [details.toneFreq]);
+        sSound = soundClip('stimSoundBase','noise', [details.toneFreq]);
    end
 stimulus.stimSound = soundClip('stimSound','dualChannel',{sSound,details.leftAmplitude,details.toneFreq},{sSound,details.rightAmplitude,details.toneFreq});
 
