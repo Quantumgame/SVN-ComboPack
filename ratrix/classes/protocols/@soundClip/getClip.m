@@ -111,6 +111,17 @@ if isempty(s.clip)
             train=[train starttone];
             s.clip = train;
 
+        case 'gap'
+            beginNoise = randn(1,s.sampleRate*.2)./5; % 200ms of WN
+            if s.freq == 0
+                endNoise = randn(1,s.sampleRate*.3)./5; % 300ms of WN
+                s.clip = [beginNoise,endNoise];
+            else
+                gapSamples = zeros(s.sampleRate*(s.freq/1000),1)';  % zeros for the length of the gap
+                endNoise = randn(1,s.sampleRate*(.3-(s.freq/1000)))./5; % noise for whatever time is left
+                s.clip = [beginNoise,gapSamples,endNoise]; % 
+            end
+
         case 'noise'
             s.numSamples = s.sampleRate*.5;
             sustained = randn(1,s.numSamples)./5;

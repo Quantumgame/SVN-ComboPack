@@ -90,6 +90,9 @@ switch nargin
                 case 'freeCNMToneTrain'
                     t.description = ['freeCNMToneTrain, start: ' num2str(t.freq(1)) 'Hz, n=',num2str(t.freq(3)) ,' tones'];
                     t.type = varargin{2};  
+                case 'gap'
+                    t.description = ['gap'];
+                    t.type = varargin{2};                      
                 case 'noise'
                     t.description = ['noise'];
                     t.type = varargin{2}  
