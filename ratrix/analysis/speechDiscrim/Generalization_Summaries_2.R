@@ -66,7 +66,17 @@ ggsave("~/Documents/speechPlots/6925_levelplot.svg",plot=stepplot,device="svg",w
 ################################################################
 ################################################################
 # Generalization Barchart
-spfiles <- c("~/Documents/speechData/6924.csv","~/Documents/speechData/6925.csv","~/Documents/speechData/6926.csv","~/Documents/speechData/6927.csv","~/Documents/speechData/6928.csv")
+spfiles <- c("~/Documents/speechData/6924.csv",
+             "~/Documents/speechData/6925.csv",
+             "~/Documents/speechData/6926.csv",
+             "~/Documents/speechData/6927.csv",
+             "~/Documents/speechData/6928.csv",
+             "~/Documents/speechData/6960.csv",
+             "~/Documents/speechData/6964.csv",
+             "~/Documents/speechData/6965.csv",
+             "~/Documents/speechData/7007.csv",
+             "~/Documents/speechData/7012.csv")
+#spfiles <- c("~/Documents/speechData/6924.csv","~/Documents/speechData/6925.csv","~/Documents/speechData/6926.csv","~/Documents/speechData/6927.csv","~/Documents/speechData/6928.csv")
 #spfiles <- c("~/Documents/speechData/6925.csv","~/Documents/speechData/6927.csv","~/Documents/speechData/6928.csv")
 
 
@@ -77,8 +87,8 @@ for (f in spfiles){
   sp <- read.csv(f)
   #sp.gens <- subset(sp,(step==15|step==13|step==12) & (!is.na(correct)),select=c("consonant","speaker","vowel","token","correct","gentype","step","session"))
   sp.gens <- subset(sp,(step==15) & (!is.na(correct)),select=c("consonant","speaker","vowel","token","correct","gentype","step","session"))
-  minsesh <- max(unique(sp.gens$session))-5
-  sp.gens <- subset(sp.gens,session>=minsesh,select=c("consonant","speaker","vowel","token","correct","gentype","step"))
+  #minsesh <- max(unique(sp.gens$session))-5
+  #sp.gens <- subset(sp.gens,session>=minsesh,select=c("consonant","speaker","vowel","token","correct","gentype","step"))
   #prevent overlapping gentypes
   sp.gens[sp.gens$speaker==1 & (sp.gens$vowel==1|sp.gens$vowel==2) & (sp.gens$token==1|sp.gens$token==2),]$gentype <- 1
   sp.gens[sp.gens$speaker==2 & (sp.gens$vowel==1|sp.gens$vowel==2) & sp.gens$token==1,]$gentype <- 1
@@ -93,12 +103,21 @@ for (f in spfiles){
   gendat <- rbind(gendat,sp.gens)
 }
 
+# Fix speaker # for mice that use the new stimmap
+gendat[(gendat$mouse=="7007"|gendat$mouse=="7012") & gendat$speaker == 1,]$speaker <- 5
+gendat[(gendat$mouse=="7007"|gendat$mouse=="7012") & gendat$speaker == 2,]$speaker <- 4
+gendat[(gendat$mouse=="7007"|gendat$mouse=="7012") & gendat$speaker == 3,]$speaker <- 1
+gendat[(gendat$mouse=="7007"|gendat$mouse=="7012") & gendat$speaker == 4,]$speaker <- 2
+gendat[(gendat$mouse=="7007"|gendat$mouse=="7012") & gendat$speaker == 5,]$speaker <- 3
+
 #Summarize & reshape data
 gendat.type <- ddply(gendat,.(gentype),summarize, meancx = mean(correct),cilo = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[5]],cihi = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[6]])
 gendat.mouse <- ddply(gendat,.(mouse,gentype),summarize, meancx = mean(correct),cilo = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[5]],cihi = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[6]])
-gendat.token <- ddply(gendat,.(consonant,speaker,vowel,token),summarize, meancx = mean(correct),cilo = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[5]],cihi = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[6]])
+gendat.token <- ddply(gendat,.(consonant,vowel,speaker,token),summarize, meancx = mean(correct),cilo = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[5]],cihi = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[6]])
 gendat.vowel <- ddply(gendat,.(mouse,consonant,vowel),summarize, meancx = mean(correct),cilo = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[5]],cihi = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[6]])
 gendat.speaker <- ddply(gendat,.(speaker,consonant,vowel),summarize, meancx = mean(correct),cilo = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[5]],cihi = binom.confint(sum(correct),length(correct),conf.level=0.95,method="exact")[[6]])
+
+gendat.token.max <- ddply(gendat.token,.(consonant,vowel,speaker),summarize, maxcx = max(meancx))
 
 #gendat.token.melt <- melt(gendat.token,measure.vars=c('meancx','cilo','cihi'))
 #gendat.token.cast <- cast(gendat.token.melt,mouse+consonant+speaker+vowel+token~variable,mean)

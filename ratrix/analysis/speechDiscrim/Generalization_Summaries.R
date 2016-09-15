@@ -65,7 +65,16 @@ ggsave("~/Documents/speechPlots/6925_levelplot.svg",plot=stepplot,device="svg",w
 ################################################################
 ################################################################
 # Generalization Barchart
-spfiles <- c("~/Documents/speechData/6924.csv","~/Documents/speechData/6925.csv","~/Documents/speechData/6926.csv","~/Documents/speechData/6927.csv","~/Documents/speechData/6928.csv")
+spfiles <- c("~/Documents/speechData/6924.csv",
+             "~/Documents/speechData/6925.csv",
+             "~/Documents/speechData/6926.csv",
+             "~/Documents/speechData/6927.csv",
+             "~/Documents/speechData/6928.csv",
+             "~/Documents/speechData/6960.csv",
+             "~/Documents/speechData/6964.csv",
+             "~/Documents/speechData/6965.csv",
+             "~/Documents/speechData/7007.csv",
+             "~/Documents/speechData/7012.csv")
 #spfiles <- c("~/Documents/speechData/6925.csv","~/Documents/speechData/6927.csv","~/Documents/speechData/6928.csv")
 
 
@@ -75,8 +84,8 @@ gendat <- data.frame(setNames(replicate(7,numeric(0),simplify = F),c("mouse","co
 for (f in spfiles){
   sp <- read.csv(f)
   sp.gens <- subset(sp,(step==15|step==13|step==12) & (!is.na(correct)),select=c("consonant","speaker","vowel","token","correct","gentype","step","session"))
-  minsesh <- max(unique(sp.gens$session))-5
-  sp.gens <- subset(sp.gens,session>=minsesh,select=c("consonant","speaker","vowel","token","correct","gentype","step"))
+  #minsesh <- max(unique(sp.gens$session))-5 #Most recent n sessions
+  #sp.gens <- subset(sp.gens,session>=minsesh,select=c("consonant","speaker","vowel","token","correct","gentype","step"))
   #prevent overlapping gentypes
   sp.gens[sp.gens$speaker==1 & (sp.gens$vowel==1|sp.gens$vowel==2) & (sp.gens$token==1|sp.gens$token==2),]$gentype <- 1
   sp.gens[sp.gens$speaker==2 & (sp.gens$vowel==1|sp.gens$vowel==2) & sp.gens$token==1,]$gentype <- 1
