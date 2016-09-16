@@ -118,9 +118,10 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     rndn = rand;
     if rndn>pctExpt
         %For now, set base level as lvl 4 difficulty
+        %Changed to lvl 5 9/15/16 -JLS
         r1 = randi(2,1);
-        r2 = randi(2,1);
-        if r1 == 2 %one recording if second speaker this time
+        r2 = randi(3,1);
+        if r2 == 3 %one recording if second speaker this time
             r3 = 1;
         else
             r3 = randi(2,1);
@@ -130,7 +131,7 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     elseif rndn>pctNovel
         %Is Learned
         r1 = randi(5,1); %five speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
-        r2 = randi(2,1); %since base difficulty 4, only 2 vowel contexts atm
+        r2 = randi(3,1); 
         %Need to find how many tokens available for this speaker
         foldir = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(r1),'\CV\',map(r0,r2),'\*.wav'));
         recs = numel(dir(foldir));
@@ -138,7 +139,7 @@ if strcmp(stimulus.soundType, 'speechWavAll')
         r4 = 2; %tells us it's learned
     else
         %Is Novel
-        r1 = randi(5,1); %six speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
+        r1 = randi(5,1); %five speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
         if stimulus.stimMap == 1
             if r1 == 1
                 r2 = randi(3,1); %jonny only has 3 vowel contexts cut atm
