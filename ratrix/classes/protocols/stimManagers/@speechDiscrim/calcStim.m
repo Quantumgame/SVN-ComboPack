@@ -96,8 +96,8 @@ end
 if strcmp(stimulus.soundType, 'speechWavAll') 
     stimMap = stimulus.stimMap;
     [lefts, rights] = getBalance(responsePorts,targetPorts);
-    pctLearned = stimulus.pct1;
-    pctNovel   = stimulus.pct2;
+    pctLearned = .1;
+    pctNovel   = .1;
     
     if lefts >= rights %choose a left stim (/g/)
         r0 = 1;
@@ -121,7 +121,7 @@ if strcmp(stimulus.soundType, 'speechWavAll')
         %Changed to lvl 5 9/15/16 -JLS
         r1 = randi(2,1);
         r2 = randi(3,1);
-        if r2 == 3 %one recording if second speaker this time
+        if r2 == 3
             r3 = 1;
         else
             r3 = randi(2,1);
@@ -129,30 +129,35 @@ if strcmp(stimulus.soundType, 'speechWavAll')
         r4 = 1; %tells us it's not expt
 
     elseif rndn>pctNovel
-        %Is Learned
+        %Is Learned vowel, but novel token/speaker
         r1 = randi(5,1); %five speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
-        r2 = randi(3,1); 
-        %Need to find how many tokens available for this speaker
-        foldir = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(r1),'\CV\',map(r0,r2),'\*.wav'));
-        recs = numel(dir(foldir));
-        r3 = randi(recs,1);
-        r4 = 2; %tells us it's learned
-    else
-        %Is Novel
-        r1 = randi(5,1); %five speakers (Anna, Dani, Ira, Jonny, Theresa as of 5.21.16)
-        if stimulus.stimMap == 1
-            if r1 == 1
-                r2 = randi(3,1); %jonny only has 3 vowel contexts cut atm
-            else
-                r2 = randi(6,1); %all recorded vowel contexts
+        r2 = randi(3,1);
+
+        %Exclude base tokens
+        if (r1 == 1)|(r1 == 2) % If base speakers
+            if (r2 == 1)|(r2 == 2) % And lower level vowel
+                r3 = 3; %Only pick the third token
+            elseif (r2 == 3)
+                r3 = randi(2,1)+1; %Only pick the last two
             end
-        elseif stimulus.stimMap ==2
-            if r1 == 3
-                r2 = randi(3,1); %jonny only has 3 vowel contexts cut atm
-            else
-                r2 = randi(6,1); %all recorded vowel contexts
-            end
+        else % If novel speaker, we can pick any token.
+            % First how many tokens available for this speaker (all have 3 but Anna only has 2 gae -JLS09152016)
+            foldir = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(r1),'\CV\',map(r0,r2),'\*.wav'));
+            recs = numel(dir(foldir));
+            r3 = randi(recs,1);
         end
+        r4 = 2; %tells us it's learned
+
+    else
+        %Is Novel vowel
+        if stimulus.stimMap == 1
+            r1 = randi(4,1)+1; % Shouldn't use any of Jonny's recordings b/c only has 3 vowels 
+        elseif stimulus.stimMap == 2
+            r1 = randsample([1,2,4,5],1); % Again don't want Jonny's recordings
+        end
+
+        r2 = randi(3,1)+3; % All novel vowel contexts (Implicitly excludes base tokens)
+
         %Need to find how many tokens available for this speaker
         foldir = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(r1),'\CV\',map(r0,r2),'\*.wav'));
         recs = numel(dir(foldir));
