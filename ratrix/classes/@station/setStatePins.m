@@ -12,11 +12,12 @@ if strcmp(s.responseMethod,'parallelPort')
 		'frame',s.framePins; ...
 		'stim',s.stimPins; ...
 		'phase',s.phasePins; ...
-        'index',s.indexPins};
+        'index',s.indexPins; ...
+        'laser',s.laserPins};
 
     
 	for i=1:size(possibles,1)
-        if strcmp('all',pinClass) || strcmp(pinClass,possibles{i,1}) %pmm finds this faster
+       if strcmp('all',pinClass) || strcmp(pinClass,possibles{i,1}) %pmm finds this faster
 		%if ismember(pinClass,{'all',possibles{i,1}}) %edf worries this is slow
 			done=true;
 			pins=possibles{i,2}; %edf worries this is slow
@@ -27,6 +28,9 @@ if strcmp(s.responseMethod,'parallelPort')
 			%else
 			%	warning('station asked to set optional state pins it doesn''t have')
             %warning removed-not sure if it matters - CO 3-18-14
+            %sure does - having to print a warning every frame slows each
+            %frame down enough that ratrix treats them all as drops/lags
+            %the whole program significantly - JLS052216
 			end
 		end
 	end 

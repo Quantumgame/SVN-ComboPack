@@ -87,10 +87,12 @@ p=protocol('gap',{ts1,ts2,ts3});
 for i=1:length(subjIDs),
     subj=getSubjectFromID(r,subjIDs{i});
     [~,t] = getProtocolAndStep(subj);
-    if t>0
+    if t>0 && t<=3
         stepNum = uint8(t);
+    elseif t>3
+        stepNum = uint8(2); % If we don't know what's up, req rewards always a good call.
     else
-        stepNum=uint8(1);
+        stepNum = uint8(1);
     end
     [subj r]=setProtocolAndStep(subj,p,true,true,true,stepNum,r,'call to setProtocolGap','edf');
 end
