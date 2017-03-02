@@ -47,6 +47,7 @@ end
 
 
 if false
+    'using pci'
     method='pci';
 
     switch method

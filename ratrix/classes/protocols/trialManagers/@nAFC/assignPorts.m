@@ -25,34 +25,34 @@ if ~isempty(trialRecords) && length(trialRecords)>1
         end
     end
     
-    try % check for bias
-        numtrials = length(trialRecords);
-        lefts = [];
-        rights = [];
-        j = 1;
-        if numtrials>52
-            for i = numtrials-51:numtrials-1
-                lefts(j) = trialRecords(i).phaseRecords(2).responseDetails.tries{1}(1);
-                rights(j) = trialRecords(i).phaseRecords(2).responseDetails.tries{1}(3);
-                j = j+1;
-            end
-            leftpct = mean(lefts);
-            rightpct = mean(rights);
-            biaspct = leftpct-rightpct;
-            if biaspct < (-.3)
-                tooBiased = 1;
-                unBiasedPort = 1;
-                biasedPort = 3;
-            elseif biaspct > (.3)
-                tooBiased = 1;
-                unBiasedPort = 3;
-                biasedPort = 1;
-            else
-                tooBiased = 0;
-            end
-        end
-
-    end
+%     try % check for bias
+%         numtrials = length(trialRecords);
+%         lefts = [];
+%         rights = [];
+%         j = 1;
+%         if numtrials>52
+%             for i = numtrials-51:numtrials-1
+%                 lefts(j) = trialRecords(i).phaseRecords(2).responseDetails.tries{1}(1);
+%                 rights(j) = trialRecords(i).phaseRecords(2).responseDetails.tries{1}(3);
+%                 j = j+1;
+%             end
+%             leftpct = mean(lefts);
+%             rightpct = mean(rights);
+%             biaspct = leftpct-rightpct;
+%             if biaspct < (-.3)
+%                 tooBiased = 1;
+%                 unBiasedPort = 1;
+%                 biasedPort = 3;
+%             elseif biaspct > (.3)
+%                 tooBiased = 1;
+%                 unBiasedPort = 3;
+%                 biasedPort = 1;
+%             else
+%                 tooBiased = 0;
+%             end
+%         end
+% 
+%     end
             
         
     
@@ -76,19 +76,19 @@ if ~isempty(lastCorrect) && ...
 
     targetPorts = lastRec.targetPorts;
     text = 'Regular correction trial!';  
-elseif tooBiased
-    details.correctionTrial = 2;
-    if rand<(abs(biaspct)+.5)
-        targetPorts = unBiasedPort;
-        text = 'Bias correction trial!';
-    else
-        targetPorts = biasedPort;
-        text = 'Reverse Bias correction trial!';
-    end
-    try
-    details.startTone=lastRec.stimDetails.startTone;
-    details.endTone=lastRec.stimDetails.endTone;
-    end
+% elseif tooBiased
+%     details.correctionTrial = 2;
+%     if rand<(abs(biaspct)+.5)
+%         targetPorts = unBiasedPort;
+%         text = 'Bias correction trial!';
+%     else
+%         targetPorts = biasedPort;
+%         text = 'Reverse Bias correction trial!';
+%     end
+%     try
+%     details.startTone=lastRec.stimDetails.startTone;
+%     details.endTone=lastRec.stimDetails.endTone;
+%     end
 else
     details.correctionTrial = 0;
     targetPorts = responsePorts(ceil(rand*length(responsePorts)));

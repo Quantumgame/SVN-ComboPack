@@ -35,6 +35,9 @@ if ~exist('pportaddr','var') || isempty(pportaddr)
                 pportaddr='B888'; %the pci add on card
             case 'BCAEC555FC4B' %2p machine
                 pportaddr='C800'; %pci add on
+%             case 'C860005FBCBE' %wehr-ratrix-2 has a pci parallel port add-on card
+%                 pportaddr='E800'; %pci add on
+
             otherwise
                 %pass
         end
@@ -133,9 +136,16 @@ if a
     switch b
         case {'F46D04EFE0FF','5404A6EF6720','14DAE971D50E'}
             stationSpec.portSpec.valveSpec=int8(3); %mini-3-way-lickometer and ball only use center valve
-        case {'08002700D40D','C860005FBB51','C860005FBCBE'} % sue's vaio, aldis' station (wehr ratrix 1,2)
+        case {'08002700D40D','C860005FBB51'} % sue's vaio, aldis' station (wehr ratrix 1,2)
             stationSpec.portSpec.laserPins = uint8(9);
             stationSpec.portSpec.framePins = [];
+        case 'C860005FBCBE' %wehr-ratrix-2 has a bad pin 9, rewiring to new pin
+            stationSpec.portSpec.laserPins = uint8(7); %try pin 7 . pin 11 stays high
+          cd ('c:\lab')
+          fid=fopen('miketest.txt','a+t')
+           fprintf(fid, '\nusing pin %d', stationSpec.portSpec.laserPins)
+           fclose(fid)
+
     end
 end
 
@@ -177,3 +187,4 @@ if ismember(stationSpec.id,{'3A','3B','3C','3D','3E','3F'}) || strcmp(rewardMeth
 end
 
 st=station(stationSpec);
+

@@ -38,14 +38,18 @@ try
     [garbage ptbVer]=PsychtoolboxVersion;
     ptbVersion=sprintf('%d.%d.%d(%s %s)',ptbVer.major,ptbVer.minor,ptbVer.point,ptbVer.flavor,ptbVer.revstring);
     ptbSVNInfo=sprintf('%d.%d.%d%s at %d',ptbVer.major,ptbVer.minor,ptbVer.point,ptbVer.flavor,ptbVer.revision);
-    try
-        [runningSVNversion repositorySVNversion url]=getSVNRevisionFromXML(getRatrixPath);
-        ratrixVersion=sprintf('%s (%d of %d)',url,runningSVNversion,repositorySVNversion);
-        ratrixSVNInfo=sprintf('%s@%d',url,runningSVNversion);
-    catch ex
-        ratrixVersion='no network connection';
-        ratrixSVNInfo = ratrixVersion;
-    end
+    %try
+    %    [runningSVNversion repositorySVNversion url]=getSVNRevisionFromXML(getRatrixPath);
+    %    ratrixVersion=sprintf('%s (%d of %d)',url,runningSVNversion,repositorySVNversion);
+    %    ratrixSVNInfo=sprintf('%s@%d',url,runningSVNversion);
+    %catch ex
+    %    ratrixVersion='no network connection';
+    %    ratrixSVNInfo = ratrixVersion;
+    %end
+    
+    % How is this code so bad? -JLS022717
+    ratrixVersion = 1;
+    ratrixSVNInfo = 1;
     
     [frameDropCorner currentCLUT] = setCLUTandFrameDropCorner(tm, window, station, LUT, frameDropCorner);
     

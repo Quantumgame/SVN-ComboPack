@@ -38,7 +38,8 @@ if stepsInPhase <= 0 && ...
              
              
              if stimDetails.laser_start_window==0 %if the laser starts right away, start it!
-                  setLaser(station,true);
+                          setLaser(station, true)
+
              stimDetails.laser_start_time = GetSecs;
              
              
@@ -61,7 +62,7 @@ if stimDetails.laserON
     if stimDetails.laser_start_window~=0 %make sure we should be waiting
     if stimDetails.laser_start_time == Inf; %make sure the laser isn't on added 4-25   
     if GetSecs-stimDetails.laser_wait_start_time > stimDetails.laser_start_window %
-        setLaser(station, true) %turn on laser
+    setLaser(station, true)
         stimDetails.laser_start_time = GetSecs; %store starting time
     end
     end
@@ -74,7 +75,8 @@ end
 if stimDetails.laserON
    
  if GetSecs-stimDetails.laser_start_time > stimDetails.laser_duration
-     setLaser(station,false);
+
+ setLaser(station, false)
      if stimDetails.laser_off_time==Inf
          stimDetails.laser_off_time=GetSecs;
      end
@@ -83,5 +85,18 @@ end
 
 end
 
+
+if strcmp(phaseType,'reinforced') && stepsInPhase <=0 && any(strcmp(trialManagerClass,{'ball','nAFC','goNoGo','oddManOut','cuedGoNoGo'}))
+    if ~all(cellfun(@isempty,soundsToPlay))
+        soundsToPlay={{},{}};
+    end
+    if trialDetails.correct
+        soundsToPlay{2}{end+1} = {'correctSound' msRewardSound};
+    else
+        soundsToPlay{2}{end+1} = {'wrongSound', msPenaltySound};
+    end
+end
+
+    
 end
 
