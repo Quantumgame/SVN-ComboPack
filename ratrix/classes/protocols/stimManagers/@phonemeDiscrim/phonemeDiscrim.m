@@ -22,6 +22,7 @@ s.audioStimulus = true;
 s.soundType='';
 s.wav1='';
 s.wav2='';
+s.phonCorSound=[];
         
 switch nargin
     case 0
@@ -71,7 +72,9 @@ switch nargin
                 %no specific error checking here
             case 'tone'
             case 'tone615'
-                
+            case {'phoneToneConor'}   
+            case {'phonemeWavGlobal'}   
+            case {'toneThenPhoneme'}   
             case 'wmReadWav'
                 s.wav1 = soundParams.wav1;
                 s.wav2 = soundParams.wav2;
