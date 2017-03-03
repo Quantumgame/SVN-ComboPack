@@ -1,4 +1,4 @@
-function r = setProtocolTones(r,subjIDs)
+function r = setProtocolTonesLCycle10(r,subjIDs)
 
 if ~isa(r,'ratrix')
     error('need a ratrix')
@@ -10,7 +10,7 @@ end
 
 sm=makeWMSoundManager();
 
-rewardSizeULorMS          =60;
+rewardSizeULorMS          =80;
 requestRewardSizeULorMS   =80;
 requestMode               ='first';
 msPenalty                 =1000;
@@ -58,15 +58,15 @@ nafcTM=nAFC(sm,percentCorrectionTrials,constantRewards,eyeController,{'off'},dro
 % freeStim = orientedGabors(pixPerCycs,targetOrientations,distractorOrientations,mean,radius,contrast,thresh,yPosPct,maxWidth,maxHeight,scaleFactor,interTrialLuminance);
 
 %stim params for free drinks
-soundParams.soundType='tone';
-soundParams.freq = [];
+soundParams.soundType='toneLCycle10';
 soundParams.duration=500; %ms
 maxSPL=80; %measured max level attainable by speakers; in reality, seems to be 67.5dB at head, 74.6dB 1" from earbuds
 ampsdB=60; %requested amps in dB
 amplitude=10.^((ampsdB -maxSPL)/20); %amplitudes = line level, 0 to 1
 soundParams.amp = amplitude; %for intensityDisrim
 
-phonemeStim = phonemeDiscrim(interTrialLuminance,soundParams,maxWidth,maxHeight,scaleFactor,interTrialLuminance);
+
+tStim = toneDiscrimLCycle(interTrialLuminance,soundParams,maxWidth,maxHeight,scaleFactor,interTrialLuminance);
 
 
 requestRewardSizeULorMS = 0;
@@ -80,30 +80,30 @@ svnCheckMode='session';
 trialsPerMinute = 7;
 minutes = .5;
 numTriggers = 20;
-ts1 = trainingStep(fd,  phonemeStim, rateCriterion(trialsPerMinute,minutes), noTimeOff(), svnRev,svnCheckMode);  %stochastic free drinks
-ts2 = trainingStep(fd2, phonemeStim, numTrialsDoneCriterion(numTriggers)   , noTimeOff(), svnRev,svnCheckMode);  %free drinks
+ts1 = trainingStep(fd,  tStim, rateCriterion(trialsPerMinute,minutes), noTimeOff(), svnRev,svnCheckMode);  %stochastic free drinks
+ts2 = trainingStep(fd2, tStim, numTrialsDoneCriterion(numTriggers)   , noTimeOff(), svnRev,svnCheckMode);  %free drinks
 
 %nafc
 trialsPerMinute = 6;
 minutes = 1;
-ts3 = trainingStep(nafcTM, phonemeStim, rateCriterion(trialsPerMinute,minutes), noTimeOff(), svnRev,svnCheckMode);  %side discrim
+ts3 = trainingStep(nafcTM, tStim, rateCriterion(trialsPerMinute,minutes), noTimeOff(), svnRev,svnCheckMode);  %side discrim
 
 %no request reward
-ts4 = trainingStep(nrTM  , phonemeStim,  numTrialsDoneCriterion(400)          , noTimeOff(), svnRev,svnCheckMode);
+ts4 = trainingStep(nrTM  , tStim,  numTrialsDoneCriterion(400)          , noTimeOff(), svnRev,svnCheckMode);
 
 %long penalty
 msPenalty = 3000;
 longPenalty=constantReinforcement(rewardSizeULorMS,requestRewardSizeULorMS,requestMode,msPenalty,fractionOpenTimeSoundIsOn,fractionPenaltySoundIsOn,scalar,msAirpuff);
 percentCorrectionTrials=0;
 lpTM=nAFC(sm,percentCorrectionTrials,longPenalty,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
-ts5 = trainingStep(lpTM  , phonemeStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
+ts5 = trainingStep(lpTM  , tStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
 
 percentCorrectionTrials=.5;
 lpTM2=nAFC(sm,percentCorrectionTrials,longPenalty,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
 
-ts6 = trainingStep(lpTM2  , phonemeStim, performanceCriterion(.85, int8(200)), noTimeOff(), svnRev,svnCheckMode);
+ts6 = trainingStep(lpTM2  , tStim, performanceCriterion(.85, int8(200)), noTimeOff(), svnRev,svnCheckMode);
 
-ts7 = trainingStep(lpTM  , phonemeStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
+ts7 = trainingStep(lpTM  , tStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
 
 
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
@@ -116,8 +116,8 @@ for i=1:length(subjIDs),
         case 'test'
             stepNum=uint8(1);
         otherwise
-            stepNum=uint8(6);
+            stepNum=uint8(5);
     end
     
-    [subj r]=setProtocolAndStep(subj,p,true,false,true,stepNum,r,'call to setProtocolTones','edf');
+    [subj r]=setProtocolAndStep(subj,p,true,false,true,stepNum,r,'call to setProtocolTonesLCycle10','edf');
 end
