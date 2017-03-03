@@ -54,6 +54,10 @@ end
 
 framesDoneTime=GetSecs;
 
+if strcmp(phaseType,'discrim') && strcmp(class(stimManager), 'phonemeDiscrim') && framesInPhase==0
+    stimDetails.soundONTime=GetSecs;
+end
+
 
 % Check for transition by port selection
 for gcInd=1:2:length(transitionCriterion)-1
@@ -122,7 +126,7 @@ for gcInd=1:2:length(transitionCriterion)-1
 %             end
             
             if strcmp(phaseType,'discrim') && strcmp(class(stimManager), 'audWM')
-               stimDetails.responseTime=GetSecs; 
+               %stimDetails.responseTime=GetSecs; 
             end
             
             if strcmp(phaseType,'discrim') && strcmp(class(stimManager), 'phonemeDiscrim')
@@ -163,6 +167,7 @@ if done && isempty(result)
     % this means we were on 'autopilot', so the result should technically be nominal for this trial
     result='nominal';
 end
+
 
 portSelectionDoneTime=GetSecs;
 

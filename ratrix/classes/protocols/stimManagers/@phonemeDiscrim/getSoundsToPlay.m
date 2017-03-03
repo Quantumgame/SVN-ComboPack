@@ -23,7 +23,6 @@ end
 if stepsInPhase <= 0 && ...
         ((strcmp(phaseType,'discrim') && strcmp(trialManagerClass,'nAFC')))
     
-    stimDetails.soundONTime=GetSecs;
     
     
 %      if stimManager.freq(1)==2 && stimDetails.laserON
