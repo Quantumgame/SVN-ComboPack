@@ -37,6 +37,10 @@ if strcmp(stimulus.soundType, 'speechWav')
         names = {'Jonny','Ira','Anna','Dani','Theresa'};
     elseif stimMap == 2
         names = {'Theresa','Dani','Jonny','Ira','Anna'};
+    elseif stimMap == 3
+        names = {'Anna','Theresa','Dani','Jonny','Ira'};
+    elseif stimMap == 4
+        names = {'Dani','Anna','Theresa','Jonny','Ira'};
     end
     
     [lefts, rights] = getBalance(responsePorts,targetPorts);
@@ -106,10 +110,14 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     end
     
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
-    if stimulus.stimMap == 1
+    if stimMap == 1
         names = {'Jonny','Ira','Anna','Dani','Theresa'};
-    elseif stimulus.stimMap == 2
+    elseif stimMap == 2
         names = {'Theresa','Dani','Jonny','Ira','Anna'};
+    elseif stimMap == 3
+        names = {'Anna','Theresa','Dani','Jonny','Ira'};
+    elseif stimMap == 4
+        names = {'Dani','Anna','Theresa','Jonny','Ira'};
     end
         
 
@@ -204,10 +212,14 @@ end
 if strcmp(stimulus.soundType, 'phoneTone') 
     stimMap = stimulus.stimMap;
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
-    if stimulus.stimMap == 1
+    if stimMap == 1
         names = {'Jonny','Ira','Anna','Dani','Theresa'};
-    elseif stimulus.stimMap == 2
+    elseif stimMap == 2
         names = {'Theresa','Dani','Jonny','Ira','Anna'};
+    elseif stimMap == 3
+        names = {'Anna','Theresa','Dani','Jonny','Ira'};
+    elseif stimMap == 4
+        names = {'Dani','Anna','Theresa','Jonny','Ira'};
     end
     
     [lefts, rights] = getBalance(responsePorts,targetPorts);

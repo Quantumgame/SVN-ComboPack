@@ -45,14 +45,14 @@ switch nargin
             end
             
 
-            try
-            [t.svnRevURL t.svnRevNum]=checkTargetRevision(varargin{5});
-            catch ex
-                warning('svn isn''t working due to no network access -- this needs to be fixed, but for now we just bail')
-                ex
+%            try
+%            [t.svnRevURL t.svnRevNum]=checkTargetRevision(varargin{5});
+%            catch ex
+%                warning('svn isn''t working due to no network access -- this needs to be fixed, but for now we just bail')
+%                ex
                 t.svnRevURL='';
                 t.svnRevNum=0;
-            end
+%            end
             
             if nargin>=7
                 if ischar(varargin{7})

@@ -126,7 +126,12 @@ oldmice = {'6896','6897','6898','6899','6900',...
            '6924','6925','6926','6927','6928',...
            '6960','6961','6962','6963','6964',...
            '6965','6966','6967','6982','6983'};
-       
+% Experimenting with alternate training combinations
+%    Anna->Theresa
+alt1    = {'7265','7281','7285','7320'};
+%    Dani->Anna
+alt2    = {'7328','7330','7334','7428'};       
+
 %Set to new stim and change if we're just updating an old mouse
 soundParams.stimMap = 2;
 toneParams.stimMap = 2;
@@ -144,6 +149,22 @@ for i = 1:length(subjIDs)
         genParams.stimMap = 1;
         componentParams.stimMap = 1;
         break
+    elseif ~all(cellfun('isempty',strfind(alt1,subjIDs{i})))
+        soundParams.stimMap = 3;
+        toneParams.stimMap = 3;
+        phTParams.stimMap = 3;
+        morphParams.stimMap = 3;
+        genParams.stimMap = 3;
+        componentParams.stimMap = 3;
+        break     
+    elseif ~all(cellfun('isempty',strfind(alt2,subjIDs{i})))
+        soundParams.stimMap = 4;
+        toneParams.stimMap = 4;
+        phTParams.stimMap = 4;
+        morphParams.stimMap = 4;
+        genParams.stimMap = 4;
+        componentParams.stimMap = 4;
+        break  
     end
 end
            
@@ -257,15 +278,15 @@ nafc5 = nAFC(sm,pctCorrectTrials,smallRewardsLT,eyeController,{'off'},dropFrames
 ts1  = trainingStep(fd,    STStim1    , numTrialsDoneCriterion(100)        ,  noTimeOff(), svnRev,svnCheckMode); %Request Free Drinks
 ts2  = trainingStep(nafc2, STStim1    , numTrialsDoneCriterion(200)        ,  noTimeOff(), svnRev,svnCheckMode); %PhonTones Req Rwds
 ts3  = trainingStep(nafc3, STStim1    , performanceCriterion(.8, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %PhonTones w/o req
-ts4  = trainingStep(nafc4, STStim2    , performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %Phoneme after tone
+ts4  = trainingStep(nafc4, STStim2    , performanceCriterion(.75, int8(400)),  noTimeOff(), svnRev,svnCheckMode); %Phoneme after tone
 ts5  = trainingStep(nafc4, speechStim1, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode); %Long timeout
-ts6  = trainingStep(nafc5, speechStim1, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
+ts6  = trainingStep(nafc5, speechStim1, performanceCriterion(.75, int8(400)),  noTimeOff(), svnRev,svnCheckMode); %Long timeout
 ts7  = trainingStep(nafc4, speechStim2, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode); %Harder task
-ts8  = trainingStep(nafc5, speechStim2, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode); %etc...
+ts8  = trainingStep(nafc5, speechStim2, performanceCriterion(.75, int8(400)),  noTimeOff(), svnRev,svnCheckMode); %etc...
 ts9  = trainingStep(nafc4, speechStim3, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode); %etc...
-ts10 = trainingStep(nafc5, speechStim3, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode);
+ts10 = trainingStep(nafc5, speechStim3, performanceCriterion(.75, int8(400)),  noTimeOff(), svnRev,svnCheckMode);
 ts11 = trainingStep(nafc4, speechStim4, numTrialsDoneCriterion(400)        ,  noTimeOff(), svnRev,svnCheckMode);
-ts12 = trainingStep(nafc5, speechStim4, performanceCriterion(.75, int8(300)),  noTimeOff(), svnRev,svnCheckMode);
+ts12 = trainingStep(nafc5, speechStim4, performanceCriterion(.75, int8(400)),  noTimeOff(), svnRev,svnCheckMode);
 ts13 = trainingStep(nafc4, speechStim5, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 
 %Experimental Training Steps

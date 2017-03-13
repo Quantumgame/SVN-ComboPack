@@ -225,6 +225,10 @@ if isempty(s.clip)
                 names = {'Jonny','Ira','Anna','Dani','Theresa'};
             elseif stimMap == 2
                 names = {'Theresa','Dani','Jonny','Ira','Anna'};
+            elseif stimMap == 3
+                names = {'Anna','Theresa','Dani','Jonny','Ira'};
+            elseif stimMap == 4
+                names = {'Dani','Anna','Theresa','Jonny','Ira'};
             end
             
             %if ~s.freq
@@ -267,6 +271,10 @@ if isempty(s.clip)
                 names = {'Jonny','Ira','Anna','Dani','Theresa'};
             elseif stimMap == 2
                 names = {'Theresa','Dani','Jonny','Ira','Anna'};
+            elseif stimMap == 3
+                names = {'Anna','Theresa','Dani','Jonny','Ira'};
+            elseif stimMap == 4
+                names = {'Dani','Anna','Theresa','Jonny','Ira'};
             end
             
             %if ~s.freq
@@ -289,6 +297,10 @@ if isempty(s.clip)
                 names = {'Jonny','Ira','Anna','Dani','Theresa'};
             elseif stimMap == 2
                 names = {'Theresa','Dani','Jonny','Ira','Anna'};
+            elseif stimMap == 3
+                names = {'Anna','Theresa','Dani','Jonny','Ira'};
+            elseif stimMap == 4
+                names = {'Dani','Anna','Theresa','Jonny','Ira'};
             end
             map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
             
