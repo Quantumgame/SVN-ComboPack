@@ -32,7 +32,11 @@ if ispc
 else
     cd('~/Documents/speechData')
 end
-name='6924';
+name='6900';
+go(name,p)
+name='6924';p=p+3;
+go(name,p)
+name='6960';p=p+3;
 go(name,p)
 %Third batch o fresh meat
 name='6964';p=p+3;
@@ -55,8 +59,6 @@ name='7053';p=p+3;
 go(name,p)
 name='7058';p=p+3;
 go(name,p)
-name='7080';p=p+3;
-go(name,p)
 name='7082';p=p+3;
 go(name,p)
 name='7101';p=p+3;
@@ -71,6 +73,27 @@ name='7118';p=p+3;
 go(name,p)
 name='7120';p=p+3;
 go(name,p)
+name='7244';p=p+3;
+go(name,p)
+name='7251';p=p+3;
+go(name,p)
+name='7265';p=p+3;
+go(name,p)
+name='7281';p=p+3;
+go(name,p)
+name='7285';p=p+3;
+go(name,p)
+name='7320';p=p+3;
+go(name,p)
+name='7328';p=p+3;
+go(name,p)
+name='7330';p=p+3;
+go(name,p)
+name='7334';p=p+3;
+go(name,p)
+name='7428';p=p+3;
+go(name,p)
+
 if ispc
     save_fig = strcat('C:\Users\lab\Documents\speechPlots\speech_performance_',datestr(now,'mmddyy_hhMM'),'.fig');
 else
@@ -89,12 +112,17 @@ fprintf(1,'Processing Mouse %d \n',mousenum);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %How many days back you want?
 ndays = 10;
-wantDate = addtodate(datenum(now),-ndays,'day');
+% wantDate = addtodate(datenum(now),-ndays,'day');
 
 %Geddat dat data
 csvfile = [name,'.csv'];
 csvimport = csvread(csvfile,1);
+
+uqdates = unique(round(csvimport(:,2)));
+wantDate = uqdates(end-ndays+1);
 start = find(csvimport(:,2)>=wantDate,1);
+    
+    
 
 %Extract to variables
 freq = csvimport(start:end,5);
