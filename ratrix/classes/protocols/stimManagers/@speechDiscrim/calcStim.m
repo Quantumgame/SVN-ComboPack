@@ -29,10 +29,10 @@ end
 
 details.toneFreq = [];
 
-if strcmp(stimulus.soundType, 'speechWav') 
+if strcmp(stimulus.soundType, 'speechWav')
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
     stimMap = stimulus.stimMap;
-    
+
     if stimMap == 1
         names = {'Jonny','Ira','Anna','Dani','Theresa'};
     elseif stimMap == 2
@@ -41,8 +41,12 @@ if strcmp(stimulus.soundType, 'speechWav')
         names = {'Anna','Theresa','Dani','Jonny','Ira'};
     elseif stimMap == 4
         names = {'Dani','Anna','Theresa','Jonny','Ira'};
+    elseif stimMap == 5
+        names = {'Ira', 'Dani', 'Jonny', 'Anna', 'Theresa'};
+    elseif stimMap == 6
+        names = {'Theresa', 'Jonny', 'Ira', 'Anna', 'Dani'};
     end
-    
+
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     switch stimulus.stimLevel %Choose stim, mapped in getClip
         case 1 %base
@@ -56,7 +60,7 @@ if strcmp(stimulus.soundType, 'speechWav')
         case 3 %2 vowels/2 recordings of /I/, one of /o/
             r1 = 1;
             r2 = randi(2,1);
-            if r2 == 2 
+            if r2 == 2
                 r3 = 1; %one recording of /o/
             else
                 r3 = randi(2,1);
@@ -78,9 +82,9 @@ if strcmp(stimulus.soundType, 'speechWav')
                 r3 = randi(2,1);
             end
         case 6 %Experimental phase - get a shit ton of sound files
-            
+
     end
-    
+
     if lefts >= rights %choose a left stim (/g/)
         details.toneFreq = [1, r1, r2, r3];
         freqDurable = [1, r1, r2, r3];
@@ -90,25 +94,25 @@ if strcmp(stimulus.soundType, 'speechWav')
         freqDurable = [2, r1, r2, r3];
         r0 = 2;
     end
-    
+
 
     %Print current stim
 
     text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
 end
 
-if strcmp(stimulus.soundType, 'speechWavAll') 
+if strcmp(stimulus.soundType, 'speechWavAll')
     stimMap = stimulus.stimMap;
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     pctLearned = .1;
     pctNovel   = .1;
-    
+
     if lefts >= rights %choose a left stim (/g/)
         r0 = 1;
     elseif rights>lefts %choose a right stim (/b/)
         r0 = 2;
     end
-    
+
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
     if stimMap == 1
         names = {'Jonny','Ira','Anna','Dani','Theresa'};
@@ -119,7 +123,7 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     elseif stimMap == 4
         names = {'Dani','Anna','Theresa','Jonny','Ira'};
     end
-        
+
 
     %Check if we're going to give an expt. stimulus, then check which type
     pctExpt = pctLearned+pctNovel;
@@ -159,7 +163,7 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     else
         %Is Novel vowel
         if stimulus.stimMap == 1
-            r1 = randi(4,1)+1; % Shouldn't use any of Jonny's recordings b/c only has 3 vowels 
+            r1 = randi(4,1)+1; % Shouldn't use any of Jonny's recordings b/c only has 3 vowels
         elseif stimulus.stimMap == 2
             r1 = randsample([1,2,4,5],1); % Again don't want Jonny's recordings
         end
@@ -172,13 +176,13 @@ if strcmp(stimulus.soundType, 'speechWavAll')
         r3 = randi(recs,1);
         r4 = 3; %tells us it's novel
     end
-    
+
     details.toneFreq = [r0, r1, r2, r3, r4];
     freqDurable = [r0, r1, r2, r3, r4];
-    
+
 
     text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
-    
+
 end
 
 
@@ -191,14 +195,14 @@ if strcmp(stimulus.soundType, 'toneThenSpeech')
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     updateSM=1;
     %default case (e.g. rights==lefts )
-    
+
     tones = [2000 7000];
-    
+
     %Always have lvl.1 speech difficulty settings in this type
     r1 = 1; %One speaker (Jonny)
     r2 = 1; %One Vowel Context (/I/)
     r3 = 1; %One Recording (best of Jonny's /bI/)
-    
+
     if lefts>=rights %choose a left stim (wav1)
         details.toneFreq = tones(1);
         freqDurable = [1, r1, r2, r3];
@@ -209,7 +213,7 @@ if strcmp(stimulus.soundType, 'toneThenSpeech')
 end
 
 
-if strcmp(stimulus.soundType, 'phoneTone') 
+if strcmp(stimulus.soundType, 'phoneTone')
     stimMap = stimulus.stimMap;
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
     if stimMap == 1
@@ -221,7 +225,7 @@ if strcmp(stimulus.soundType, 'phoneTone')
     elseif stimMap == 4
         names = {'Dani','Anna','Theresa','Jonny','Ira'};
     end
-    
+
     [lefts, rights] = getBalance(responsePorts,targetPorts);
     %Calculate percent correct
     correx = [];
@@ -244,25 +248,25 @@ if strcmp(stimulus.soundType, 'phoneTone')
     end
     correx(isnan(correx)) = []; %take out nans so the mean works
     pctcorrex = mean(correx);
-    
+
     %Calc length of tone.
     duration = [];
-    if pctcorrex <= .5  
+    if pctcorrex <= .5
         duration = 500;
         text = [text, sprintf('Duration: %d',duration)];
     elseif pctcorrex>.5 & pctcorrex<.7
-        duration = 500-((pctcorrex-.5)*2500); %linear decrease from 500ms to 0ms as they improve 
+        duration = 500-((pctcorrex-.5)*2500); %linear decrease from 500ms to 0ms as they improve
         text = [text, sprintf('Duration: %d',duration)];
     elseif pctcorrex>=.7
         duration = 0;
         text = [text, sprintf('Duration: %d',duration)];
-    else     
+    else
         duration = 0;
         text = [text 'couldnt get corrects!'];
     end
-    
+
     stimulus.duration = duration+500; %Total clip will be dur+500 ms long b/c adding phoneme
-    
+
     if lefts>=rights %choose a left stim (wav1)
         details.toneFreq = [1, duration];
         freqDurable = [1,duration];
@@ -272,20 +276,20 @@ if strcmp(stimulus.soundType, 'phoneTone')
         freqDurable = [2, duration];
         r0 = 2;
     end
-    
-    
+
+
      %Print current stim
     text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,1},names{1},1)];
 end
 
 if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to indicate sad/dad
-    
+
     [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
+
     %default case (e.g. rights==lefts )
-    
+
     tones = [4000 13000];
-    
+
     if lefts>rights %choose a left stim (wav1)
         details.toneFreq = tones(1);
     elseif rights>lefts %choose a right stim (wav2)
@@ -296,13 +300,13 @@ if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to i
     end
 
 end
-   
-    
-if strcmp(stimulus.soundType, 'morPhone')    
+
+
+if strcmp(stimulus.soundType, 'morPhone')
     %Not implemented yet...
 end
 
-if strcmp(stimulus.soundType, 'speechComponent')    
+if strcmp(stimulus.soundType, 'speechComponent')
     %Not implemented yet...
 end
 

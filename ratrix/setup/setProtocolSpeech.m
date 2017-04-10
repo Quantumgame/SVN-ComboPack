@@ -14,7 +14,7 @@ function r = setProtocolSpeech(r,subjIDs)
 % 3: One Speaker, Two CV combos, Two recordings of first one of second
 % 4: Two Speakers, Two CV combos, Two recordings of prev one of new
 % 5: Two Speakers, Three CV combos, Two recordings of prev, one of new
-% 
+%
 % Experimental Stimuli Levels:
 % To test generalization of learning in ephys/imaging
 % Always include the stims. from Training levels, just additions described
@@ -54,7 +54,7 @@ function r = setProtocolSpeech(r,subjIDs)
 % CVs (incl. untrained speakers, etc.), 10% of trials are tokens from
 % untrained CVs. Spaced such that repetition is not close together
 % 16) Component Tests - 10% of trials are CV pairs w/ formant/frequency
-% band removed, 10% of trials are singular formant/frequency band. 
+% band removed, 10% of trials are singular formant/frequency band.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -104,7 +104,7 @@ morphParams.pctMorph  = .1; %Percent of trials that are whole-sound morphs
 morphParams.stimLevel = 6;
 
 % Generalization Parameters (for step 15)
-genParams.soundType   = 'speechWavAll'; 
+genParams.soundType   = 'speechWavAll';
 genParams.freq        = [];
 genParams.duration    = 500;
 genParams.amp         = amplitude;
@@ -130,7 +130,11 @@ oldmice = {'6896','6897','6898','6899','6900',...
 %    Anna->Theresa
 alt1    = {'7265','7281','7285','7320'};
 %    Dani->Anna
-alt2    = {'7328','7330','7334','7428'};       
+alt2    = {'7328','7330','7334','7428'};
+%    Ira -> Dani
+alt3    = {'7473','7475','7324','7610','7570'};
+%    Theresa -> Jonny
+alt4    = {'7477','7568','7639','7321','7268'};
 
 %Set to new stim and change if we're just updating an old mouse
 soundParams.stimMap = 2;
@@ -156,7 +160,7 @@ for i = 1:length(subjIDs)
         morphParams.stimMap = 3;
         genParams.stimMap = 3;
         componentParams.stimMap = 3;
-        break     
+        break
     elseif ~all(cellfun('isempty',strfind(alt2,subjIDs{i})))
         soundParams.stimMap = 4;
         toneParams.stimMap = 4;
@@ -164,10 +168,26 @@ for i = 1:length(subjIDs)
         morphParams.stimMap = 4;
         genParams.stimMap = 4;
         componentParams.stimMap = 4;
-        break  
+        break
+    elseif ~all(cellfun('isempty',strfind(alt3,subjIDs{i})))
+        soundParams.stimMap = 5;
+        toneParams.stimMap = 5;
+        phTParams.stimMap = 5;
+        morphParams.stimMap = 5;
+        genParams.stimMap = 5;
+        componentParams.stimMap = 5;
+        break
+    elseif ~all(cellfun('isempty',strfind(alt4,subjIDs{i})))
+        soundParams.stimMap = 6;
+        toneParams.stimMap = 6;
+        phTParams.stimMap = 6;
+        morphParams.stimMap = 6;
+        genParams.stimMap = 6;
+        componentParams.stimMap = 6;
+        break
     end
 end
-           
+
 % Reinforcement Parameters
 largeReward        = 80;
 medReward          = 55;
@@ -224,7 +244,7 @@ end
 sm=makeSpeechSoundManager(noiseParams);
 sm2=makeSpeechSM_PhonCorrect(soundParams,noiseParams);
 
-%Make Reinforcement Managers 
+%Make Reinforcement Managers
 %w/o request rewards
 largeReqRewards = constantReinforcement(largeReward,largeReward,...
     requestMode,msShortPenalty,fractionSoundOn,fractionPenaltyOn,scalar,msAirpuff);
@@ -260,7 +280,7 @@ freeDrinkLikelihood=0;
 fd = freeDrinks(sm,freeDrinkLikelihood,allowRepeats,medReqRewards);
 
 %Step 2 - Tone&Phoneme task w/ request reward
-nafc2 = nAFC(sm2,pctCorrectTrials,medReqRewards,eyeController,{'off'},dropFrames,'ptb','center');  
+nafc2 = nAFC(sm2,pctCorrectTrials,medReqRewards,eyeController,{'off'},dropFrames,'ptb','center');
 
 %Step 3 - Tone&Phoneme task w/o req reward
 nafc3 = nAFC(sm2,pctCorrectTrials,medRewardsPT,eyeController,{'off'},dropFrames,'ptb','center');
