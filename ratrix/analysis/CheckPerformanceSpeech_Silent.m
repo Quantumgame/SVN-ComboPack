@@ -32,22 +32,22 @@ if ispc
 else
     cd('~/Documents/speechData')
 end
-name='6900';
-go(name,p)
-name='6924';p=p+3;
-go(name,p)
-name='6960';p=p+3;
-go(name,p)
-%Third batch o fresh meat
-name='6964';p=p+3;
-go(name,p)
-name='6965';p=p+3;
-go(name,p) 
-name='6966';p=p+3;
-go(name,p)
-name='6967';p=p+3;
-go(name,p)
-name='7007';p=p+3;
+% name='6900';
+% go(name,p)
+% name='6924';p=p+3;
+% go(name,p)
+% name='6960';p=p+3;
+% go(name,p)
+% %Third batch o fresh meat
+% name='6964';p=p+3;
+% go(name,p)
+% name='6965';p=p+3;
+% go(name,p) 
+% name='6966';p=p+3;
+% go(name,p)
+% name='6967';p=p+3;
+% go(name,p)
+name='7007';
 go(name,p)
 name='7012';p=p+3;
 go(name,p)
@@ -119,7 +119,11 @@ csvfile = [name,'.csv'];
 csvimport = csvread(csvfile,1);
 
 uqdates = unique(round(csvimport(:,2)));
-wantDate = uqdates(end-ndays+1);
+try
+    wantDate = uqdates(end-ndays+1);
+catch
+    wantDate = uqdates(1);
+end
 start = find(csvimport(:,2)>=wantDate,1);
     
     
