@@ -27,6 +27,10 @@ else
         [out.TrialInCyc newLUT] = extractFieldAndEnsure(stimDetails,{'TrialInCyc'},'scalar',newLUT);
         [out.TrialInSes newLUT] = extractFieldAndEnsure(stimDetails,{'TrialInSes'},'scalar',newLUT);
         [out.TrialNumSStart newLUT] = extractFieldAndEnsure(stimDetails,{'TrialNumSStart'},'scalar',newLUT);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 473f8e2873f60b6894995898615cdcd8a79b3327
         % 12/16/08 - this stuff might be common to many stims
         % should correctionTrial be here in compiledDetails (whereas it was originally in compiledTrialRecords)
         % or should extractBasicRecs be allowed to access stimDetails to get correctionTrial?

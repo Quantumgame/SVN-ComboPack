@@ -1,13 +1,14 @@
 function MakeASRProtocol(prepulsedurs, prepulseamps, pulsedur, pulseamp, soa, soaflag, ...
      ramp, isi, isi_var, nrepeats)
-% usage MakeASRProtocol(prepulsedurs, prepulseamps, pulsedur, pulseamp, soa, ...
+
+% usage MakeASRProtocol(prepulsedur, prepulseamps, pulsedur, pulseamp, soa, ...
 %      ramp, isi, isi_var, nrepeats)
 %
 % creates an exper2 stimulus protocol file for ASR (acoustic startle
 % response). Now using multiple prepulseamps and variable ISI.
 % mw 070507
 %
-%recent edits: 
+%recent edits:
 %  -added soaflag to specify whether soa is 'soa' or 'isi'
 
 % inputs:
@@ -24,13 +25,13 @@ function MakeASRProtocol(prepulsedurs, prepulseamps, pulsedur, pulseamp, soa, so
 % onset. If anything other than 'isi' it will default to 'soa'.
 % ramp: on-off ramp duration in ms
 % isi: inter stimulus interval (onset-to-onset) in ms
-% isi_var: fractional variability of isi. Use 0 for fixed isi, or e.g. 0.1 to have isi vary by up to +-10%  
+% isi_var: fractional variability of isi. Use 0 for fixed isi, or e.g. 0.1 to have isi vary by up to +-10%
 % nrepeats: number of repetitions (different pseudorandom orders)
 %
 % outputs:
 % creates a suitably named stimulus protocol in D:\lab\exper2.2\protocols\ASR Protocols
 %
-%example calls: 
+%example calls:
 %single prepulse amplitude, fixed isi of 10 seconds:
 %MakeASRProtocol(25, 50, 25, 80, 100, 2, 10e3, 0, 5)
 %
@@ -44,10 +45,12 @@ function MakeASRProtocol(prepulsedurs, prepulseamps, pulsedur, pulseamp, soa, so
 %MakeASRProtocol(25, [-1000 80], 10, 100, 60, 2, 15e3, .33, 10); ideally we
 %could have vector input for prepulse duration. This would also require
 %addition of ISI versus SOA.
+
 %
 %      prepulsedurs=[0 1 2 4 8 16 32 64 128]; prepulseamps=40; pulsedur=25; pulseamp=100; soa=50; soaflag='isi';
 %      ramp=0; iti=1000; iti_var=.33; nrepeats=10;
 %      MakeASRProtocol(prepulsedurs, prepulseamps, pulsedur, pulseamp, soa, soaflag, ramp, iti, iti_var, nrepeats)
+
 
 global pref
 
@@ -120,7 +123,7 @@ for nn=1:length(rand_prepulseamps)
     stimuli(nn+1).param.soa=soa;
     stimuli(nn+1).param.soaflag=soaflag;
     stimuli(nn+1).param.duration=rand_prepulsedurs(nn)+soa+pulsedur;
-    
+
 end
 
 
@@ -134,7 +137,7 @@ warning off MATLAB:MKDIR:DirectoryExists
 mkdir('ASR Protocols')
 cd('ASR Protocols')
 save(filename, 'stimuli')
-fprintf('\n wrote %s \nin %s',filename, pwd) 
+fprintf('\n wrote %s \nin %s',filename, pwd)
 catch
     fprintf('\nfailed to write file')
 end

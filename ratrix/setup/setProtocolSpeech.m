@@ -136,6 +136,7 @@ alt3    = {'7473','7475','7324','7610','7570'};
 %    Theresa -> Jonny
 alt4    = {'7477','7568','7639','7321','7268'};
 
+
 %Set to new stim and change if we're just updating an old mouse
 soundParams.stimMap = 2;
 toneParams.stimMap = 2;
@@ -243,6 +244,7 @@ end
 % Make Trial Sound Manager
 sm=makeSpeechSoundManager(noiseParams);
 sm2=makeSpeechSM_PhonCorrect(soundParams,noiseParams);
+
 
 %Make Reinforcement Managers
 %w/o request rewards

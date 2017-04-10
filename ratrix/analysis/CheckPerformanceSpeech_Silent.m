@@ -32,22 +32,23 @@ if ispc
 else
     cd('~/Documents/speechData')
 end
-name='6900';
-go(name,p)
-name='6924';p=p+3;
-go(name,p)
-name='6960';p=p+3;
-go(name,p)
-%Third batch o fresh meat
-name='6964';p=p+3;
-go(name,p)
-name='6965';p=p+3;
-go(name,p) 
-name='6966';p=p+3;
-go(name,p)
-name='6967';p=p+3;
-go(name,p)
-name='7007';p=p+3;
+
+% name='6900';
+% go(name,p)
+% name='6924';p=p+3;
+% go(name,p)
+% name='6960';p=p+3;
+% go(name,p)
+% %Third batch o fresh meat
+% name='6964';p=p+3;
+% go(name,p)
+% name='6965';p=p+3;
+% go(name,p)
+% name='6966';p=p+3;
+% go(name,p)
+% name='6967';p=p+3;
+% go(name,p)
+name='7007';
 go(name,p)
 name='7012';p=p+3;
 go(name,p)
@@ -119,10 +120,16 @@ csvfile = [name,'.csv'];
 csvimport = csvread(csvfile,1);
 
 uqdates = unique(round(csvimport(:,2)));
-wantDate = uqdates(end-ndays+1);
+
+try
+    wantDate = uqdates(end-ndays+1);
+catch
+    wantDate = uqdates(1);
+end
+
 start = find(csvimport(:,2)>=wantDate,1);
-    
-    
+
+
 
 %Extract to variables
 freq = csvimport(start:end,5);
@@ -156,8 +163,8 @@ if length(correct) > 150
 else
     winSize = length(correct);
 end
-    
-    
+
+
 if p==1 title(['winSize=', int2str(winSize)]);end
 
 %Get sliding window average of correct trials
@@ -198,11 +205,11 @@ while i ~= 0 %but lol really we just need to call break
     text(nextstep,.9,num2str(step(nextstep)));
     set(h, 'color', [1 0 0]);
     nextstep = nextstep+find((step(nextstep+1:end) ~= step(nextstep)),1);
-    
+
     if isempty(nextstep) % will be empty if there aren't any more step changes
         break
     end
-end 
+end
 
 
 %Make date divider
@@ -286,7 +293,7 @@ else
 end
 
 
-    
+
 
 %Plot windowed averages
 bp = plot(allb,bwin50);
@@ -321,12 +328,12 @@ else
     end
 end
 %}
-    
+
 
 %Make date lines again
 sessionNum=[];
 sss=unique(session);
-for  i=sss(1):sss(end) 
+for  i=sss(1):sss(end)
     try
         sessionNum(i)=find(session==i, 1);
     catch
@@ -374,8 +381,8 @@ for  i=1:length(sss)
 end
 
 
-%Because session changes are triggered during code troubleshooting, take out 0 means. 
-%The mice aren't /that/ dumb. 
+%Because session changes are triggered during code troubleshooting, take out 0 means.
+%The mice aren't /that/ dumb.
 sessionNegs = find(sessionMeans == 0 | sessionNumTrials<50); %grab this for date plot later on
 sessionMeans(sessionNegs) = [];
 sessionSums(sessionNegs) = [];

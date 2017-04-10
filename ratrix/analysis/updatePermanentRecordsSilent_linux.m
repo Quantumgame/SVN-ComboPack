@@ -3,19 +3,19 @@ function updatePermanentRecordsSilent_linux()
 % Update cleaned permanent records for the mouselist, and if they haven't
 % been gathered yet build them.
 
-mouseList = {'6900','6924','6925','6926','6927','6928','6960',...
-             '6964','6965','6966','6967','7007','7012','7048','7052',...
+
+mouseList = {'7007','7012','7048','7052',...
              '7053','7058','7082','7101','7105','7108',...
              '7116','7118','7120','7244','7251',...
              '7265','7281','7285','7320','7328','7330','7334','7428'};
-         
-rigNums = [5,3,4,5,3,4,5,...
-           3,4,5,5,3,3,3,3,...
+
+
+rigNums = [3,3,3,3,...
            4,5,4,4,4,5,...
            4,1,1,4,5,...
            3,5,5,3,3,4,5,5];
 
-         
+
 datadir = '~/Documents/speechData';
 recordsdir = '1';
 
@@ -81,7 +81,7 @@ datamat = [];
 trialNumber = csvimport(end,1);
 indint = 0;
 for j = 1:length(subfileList)
-    
+
     sessiondate = datenum(str2num(subfileList{j}(end-18:end-15)),str2num(subfileList{j}(end-14:end-13)),str2num(subfileList{j}(end-12:end-11)),str2num(subfileList{j}(end-9:end-8)),str2num(subfileList{j}(end-7:end-6)),str2num(subfileList{j}(end-5:end-4)));
     if sessiondate > lastdate
         load(subfileList{j})
@@ -179,7 +179,7 @@ for j = 1:length(subfileList)
     fileattrib(csvfile,'+w');
     datamat = [trialNumber',double(dates'),session,double(step'),freq',duration',consonant',speaker',vowel',token',response',target',correct',double(gentype')];
     dlmwrite(csvfile,datamat,'-append','precision','%.6f');
-end    
+end
 
 
 
@@ -188,8 +188,8 @@ end
 
 end
 
-    
-     
-        
-    
-    
+
+
+
+
+
