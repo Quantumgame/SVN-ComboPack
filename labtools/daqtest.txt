@@ -1,0 +1,428 @@
+
+----------General Information ----------
+
+Current Time & Date: 
+28-Mar-2006 15:13:17
+
+Operating System: 
+Microsoft Windows XP [Version 5.1.2600] 
+
+
+MATLAB version: 
+7.2.0.232 (R2006a)
+
+Data Acquisition Toolbox version: 
+       Name: 'Data Acquisition Toolbox'
+    Version: '2.8.1'
+    Release: '(R2006a)'
+       Date: '03-Feb-2006'
+
+
+----------Memory Information: ----------
+       MemoryLoad: 25
+        TotalPhys: 2.1458e+009
+        AvailPhys: 1.5985e+009
+    TotalPageFile: 4.1301e+009
+    AvailPageFile: 3.7415e+009
+     TotalVirtual: 2.1474e+009
+     AvailVirtual: 1.7359e+009
+          UsedDaq: 2048
+
+
+----------MATLAB root directory: ----------
+C:\Program Files\MATLAB\R2006a
+
+----------MATLAB path: ----------
+
+		MATLABPATH
+
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\general
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\ops
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\lang
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\elmat
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\elfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\specfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\matfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\datafun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\polyfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\funfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\sparfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\scribe
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\graph2d
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\graph3d
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\specgraph
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\graphics
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\uitools
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\strfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\imagesci
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\iofun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\audiovideo
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\timefun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\datatypes
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\verctrl
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\codetools
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\helptools
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\winfun
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\demos
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\timeseries
+	C:\Program Files\MATLAB\R2006a\toolbox\matlab\hds
+	C:\Program Files\MATLAB\R2006a\toolbox\local
+	C:\Program Files\MATLAB\R2006a\toolbox\shared\controllib
+	C:\Program Files\MATLAB\R2006a\toolbox\daq\daq
+	C:\Program Files\MATLAB\R2006a\toolbox\daq\daqguis
+	C:\Program Files\MATLAB\R2006a\toolbox\daq\daqdemos
+	C:\Program Files\MATLAB\R2006a\toolbox\signal\signal
+	C:\Program Files\MATLAB\R2006a\toolbox\signal\sigtools
+	C:\Program Files\MATLAB\R2006a\toolbox\signal\sptoolgui
+	C:\Program Files\MATLAB\R2006a\toolbox\signal\sigdemos
+	C:\Program Files\MATLAB\R2006a\toolbox\stats
+	C:\Program Files\MATLAB\R2006a\toolbox\shared\optimlib
+	C:\Program Files\MATLAB\R2006a\work
+
+----------Available hardware: ----------
+
+          ToolboxName: 'Data Acquisition Toolbox'
+       ToolboxVersion: '2.8.1 (R2006a)'
+        MATLABVersion: '7.2 (R2006a)'
+    InstalledAdaptors: {3x1 cell}
+
+
+----------Adaptor List----------
+
+    'nidaq'
+    'parallel'
+    'winsound'
+
+
+----------nidaq adaptor:----------
+
+----------Registering adaptor: nidaq----------
+
+Successfully registered nidaq adaptor
+
+----------Adaptor Information for adaptor nidaq----------
+
+
+adaptorInfo = 
+
+           AdaptorDllName: [1x68 char]
+        AdaptorDllVersion: '2.8.1 (R2006b)'
+              AdaptorName: 'nidaq'
+               BoardNames: {'PCI-6289'}
+        InstalledBoardIds: {'Dev1'}
+    ObjectConstructorName: {1x3 cell}
+
+
+----------Adaptor DLL Name----------
+
+C:\Program Files\MATLAB\R2006a\toolbox\daq\daq\private\mwnidaqmx.dll
+
+----------Adaptor Name----------
+
+nidaq
+
+----------Object Constructor Names ----------
+
+analoginput('nidaq','Dev1')
+analogoutput('nidaq','Dev1')
+digitalio('nidaq','Dev1')
+
+----------Additional Adaptor Information for adaptor nidaq----------
+
+
+xtraInfo = 
+
+           AdaptorDllName: [1x66 char]
+        AdaptorDllVersion: '2.8.1 (R2006a)'
+              AdaptorName: 'nidaq'
+               BoardNames: {1x0 cell}
+        InstalledBoardIds: {1x0 cell}
+    ObjectConstructorName: {0x3 cell}
+
+
+----------Adaptor DLL Name----------
+
+C:\Program Files\MATLAB\R2006a\toolbox\daq\daq\private\mwnidaq.dll
+
+----------Adaptor Name----------
+
+nidaq
+
+----------Creating analoginput('nidaq','Dev1') object for adaptor nidaq----------
+
+Display Summary of Analog Input (AI) Object Using 'PCI-6289'.
+
+  Acquisition Parameters:  1000 samples per second on each channel.
+                           1000 samples per trigger on each channel.
+                           1 sec. of data to be logged upon START.
+                           Log data to 'Memory' on trigger.
+
+      Trigger Parameters:  1 'Immediate' trigger(s) on START.
+
+           Engine status:  Waiting for START.
+                           0 samples acquired since starting.
+                           0 samples available for GETDATA.
+
+AI object contains no channels.
+
+
+
+ans = 
+
+                AdaptorName: 'nidaqmx'
+                       Bits: 18
+                   Coupling: {'DC'}
+                 DeviceName: 'PCI-6289'
+            DifferentialIDs: [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
+                      Gains: [1 2 5 10 20 50 100]
+                         ID: 'Dev1'
+                InputRanges: [7x2 double]
+              MaxSampleRate: 6.6667e+005
+              MinSampleRate: 0.6000
+             NativeDataType: 'double'
+                   Polarity: {'Bipolar'}
+                 SampleType: 'Scanning'
+             SingleEndedIDs: [1x32 double]
+              SubsystemType: 'AnalogInput'
+              TotalChannels: 32
+    VendorDriverDescription: 'National Instruments NIDAQmx driver'
+        VendorDriverVersion: '7.4'
+
+
+----------Creating analogoutput('nidaq','Dev1') object for adaptor nidaq----------
+
+Display Summary of Analog Output (AO) Object Using 'PCI-6289'.
+
+       Output Parameters:  1000 samples per second on each channel.
+
+      Trigger Parameters:  1 'Immediate' trigger on START.
+
+           Engine status:  Waiting for START.
+                           0 total sec. of data currently queued for START.
+                           0 samples currently queued by PUTDATA.
+                           0 samples sent to output device since START.
+
+AO object contains no channels.
+
+
+
+ans = 
+
+                AdaptorName: 'nidaqmx'
+                       Bits: 16
+                 ChannelIDs: [0 1 2 3]
+                   Coupling: {'DC'}
+                 DeviceName: 'PCI-6289'
+                         ID: 'Dev1'
+              MaxSampleRate: 2860000
+              MinSampleRate: 0.6000
+             NativeDataType: 'double'
+               OutputRanges: [4x2 double]
+                   Polarity: {'Bipolar'}
+                 SampleType: 'SimultaneousSample'
+              SubsystemType: 'AnalogOutput'
+              TotalChannels: 4
+    VendorDriverDescription: 'National Instruments NIDAQmx driver'
+        VendorDriverVersion: '7.4'
+
+
+----------Creating digitalio('nidaq','Dev1') object for adaptor nidaq----------
+
+Display Summary of DigitalIO (DIO) Object Using 'PCI-6289'.
+
+         Port Parameters:  Port 0 is port configurable for reading and writing.
+                           Port 1 is port configurable for reading and writing.
+                           Port 2 is port configurable for reading and writing.
+                           
+           Engine status:  Engine not required.
+
+DIO object contains no lines.
+
+
+
+ans = 
+
+                AdaptorName: 'nidaqmx'
+                 DeviceName: 'PCI-6289'
+                         ID: 'Dev1'
+                       Port: [1x3 struct]
+              SubsystemType: 'DigitalIO'
+                 TotalLines: 24
+    VendorDriverDescription: 'National Instruments NIDAQmx driver'
+        VendorDriverVersion: '7.4'
+
+
+----------parallel adaptor:----------
+
+----------Registering adaptor: parallel----------
+
+Successfully registered parallel adaptor
+
+----------Adaptor Information for adaptor parallel----------
+
+
+adaptorInfo = 
+
+           AdaptorDllName: [1x69 char]
+        AdaptorDllVersion: '2.8.1 (R2006a)'
+              AdaptorName: 'parallel'
+               BoardNames: {'PC Parallel Port Hardware'}
+        InstalledBoardIds: {'LPT1'}
+    ObjectConstructorName: {''  ''  'digitalio('parallel','LPT1')'}
+
+
+----------Adaptor DLL Name----------
+
+C:\Program Files\MATLAB\R2006a\toolbox\daq\daq\private\mwparallel.dll
+
+----------Adaptor Name----------
+
+parallel
+
+----------Object Constructor Names ----------
+
+digitalio('parallel','LPT1')
+
+----------Creating digitalio('parallel','LPT1') object for adaptor parallel----------
+
+Display Summary of DigitalIO (DIO) Object Using 'PC Parallel Port Hardware'.
+
+         Port Parameters:  Port 0 is port configurable for reading and writing.
+                           Port 1 is port configurable for reading.
+                           Port 2 is port configurable for reading and writing.
+                           
+           Engine status:  Engine not required.
+
+DIO object contains no lines.
+
+
+
+ans = 
+
+                AdaptorName: 'parallel'
+                 DeviceName: 'PC Parallel Port Hardware'
+                         ID: 'LPT1'
+                       Port: [1x3 struct]
+              SubsystemType: 'DigitalIO'
+                 TotalLines: 17
+    VendorDriverDescription: 'Win I/O'
+        VendorDriverVersion: '1.3'
+
+
+----------winsound adaptor:----------
+
+----------Registering adaptor: winsound----------
+
+Successfully registered winsound adaptor
+
+----------Adaptor Information for adaptor winsound----------
+
+
+adaptorInfo = 
+
+           AdaptorDllName: [1x69 char]
+        AdaptorDllVersion: '2.8.1 (R2006a)'
+              AdaptorName: 'winsound'
+               BoardNames: {'Realtek AC97 Audio'}
+        InstalledBoardIds: {'0'}
+    ObjectConstructorName: {'analoginput('winsound',0)'  [1x26 char]  ''}
+
+
+----------Adaptor DLL Name----------
+
+C:\Program Files\MATLAB\R2006a\toolbox\daq\daq\private\mwwinsound.dll
+
+----------Adaptor Name----------
+
+winsound
+
+----------Object Constructor Names ----------
+
+analoginput('winsound',0)
+analogoutput('winsound',0)
+
+----------Creating analoginput('winsound',0) object for adaptor winsound----------
+
+Display Summary of Analog Input (AI) Object Using 'Realtek AC97 Audio'.
+
+  Acquisition Parameters:  8000 samples per second on each channel.
+                           8000 samples per trigger on each channel.
+                           1 sec. of data to be logged upon START.
+                           Log data to 'Memory' on trigger.
+
+      Trigger Parameters:  1 'Immediate' trigger(s) on START.
+
+           Engine status:  Waiting for START.
+                           0 samples acquired since starting.
+                           0 samples available for GETDATA.
+
+AI object contains no channels.
+
+
+
+ans = 
+
+                AdaptorName: 'winsound'
+                       Bits: 16
+                   Coupling: {'AC Coupled'}
+                 DeviceName: 'Realtek AC97 Audio'
+            DifferentialIDs: []
+                      Gains: []
+                         ID: '0'
+                InputRanges: [-1 1]
+              MaxSampleRate: 44100
+              MinSampleRate: 8000
+             NativeDataType: 'int16'
+                   Polarity: {'Bipolar'}
+                 SampleType: 'SimultaneousSample'
+             SingleEndedIDs: [1 2]
+              SubsystemType: 'AnalogInput'
+              TotalChannels: 2
+    VendorDriverDescription: 'Windows Multimedia Driver'
+        VendorDriverVersion: '5.10'
+
+
+----------Creating analogoutput('winsound',0) object for adaptor winsound----------
+
+Display Summary of Analog Output (AO) Object Using 'Realtek AC97 Audio'.
+
+       Output Parameters:  8000 samples per second on each channel.
+
+      Trigger Parameters:  1 'Immediate' trigger on START.
+
+           Engine status:  Waiting for START.
+                           0 total sec. of data currently queued for START.
+                           0 samples currently queued by PUTDATA.
+                           0 samples sent to output device since START.
+
+AO object contains no channels.
+
+
+
+ans = 
+
+                AdaptorName: 'winsound'
+                       Bits: 16
+                 ChannelIDs: [1 2]
+                   Coupling: {'AC Coupled'}
+                 DeviceName: 'Realtek AC97 Audio'
+                         ID: '0'
+              MaxSampleRate: 44100
+              MinSampleRate: 8000
+             NativeDataType: 'int16'
+               OutputRanges: [-1 1]
+                   Polarity: {'Bipolar'}
+                 SampleType: 'SimultaneousSample'
+              SubsystemType: 'AnalogOutput'
+              TotalChannels: 2
+    VendorDriverDescription: 'Windows Multimedia Driver'
+        VendorDriverVersion: '5.10'
+
+
+--------------------End test--------------------
+
+This information has been saved in the text file:
+daqtest.txt
+
+If any errors occurred, please e-mail this information to:
+support@mathworks.com

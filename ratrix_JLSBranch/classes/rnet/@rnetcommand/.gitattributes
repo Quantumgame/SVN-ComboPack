@@ -1,0 +1,11 @@
+/getClientIdent.m -text
+/toString.m -text
+/rnetcommand.m -text
+/getUID.m -text
+/getObject.m -text
+/getId.m -text
+/getCommand.m -text
+/getArguments.m -text
+/getPriority.m -text
+/getReceivingNode.m -text
+/getSendingNode.m -text

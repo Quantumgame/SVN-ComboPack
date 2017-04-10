@@ -1,0 +1,12 @@
+/bootstrap.vbs -text
+/server.vbs -text
+/getRatrixPath.m -text
+/ratrixServer.m -text
+/checkForUpdate.m -text
+/bootstrap.m -text
+/setupEnvironment.m -text
+/standAloneRun.m -text
+/miniServer.m -text
+/startDataListener.m -text
+/physiologyServer.m -text
+/getDataFromEventLog.m -text

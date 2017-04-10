@@ -1,0 +1,209 @@
+function [fileNameNew,folderPathNew]=MakePpaLaserProtocol(pre, width, isi, varargin)
+
+% MakePpaLaserProtocol(pre, width, isi)
+% Usage: [ppalaserFileName,ppalaserFolderPath]=
+% MakePpaLaserProtocol(pre, width, isi, ['tcFileName'], ['tcFolderPath], [include_silentSound])
+%
+% Creates a new interleaved laser protocol from a sound-only protocol:
+% Creates a 2nd copy of all sound stimuli from the loaded protocol,
+% adds .param 'AOPulseON' (1/0) to tell ppalaser module to deliver
+% a pulse for every other sound, and respaces stimuli accordingly.
+%
+% New default: Adds in a 'silent' sound (25 ms -1000 dB WN, one with a pulse and one
+% without) per repetition of a standard sound protocol. Always comes at the end of a rep 
+% -- it's not pseudorandomly interleaved. AKH 01/16/14
+%
+% The ISI you pass will override whatever's specified in the 
+% existing sound protocol. This ISI is the *delay (in ms) between the end 
+% of one stimulus (a laser pulse or sound) and the start of the next
+% (again -- either a laser pulse or sound)*.
+%
+%   *INPUTS*
+%   pre - delay (ms) from the start of the flash to first sound onset. Pass
+%       the absolute value ('50' for a 50 ms pre, not '-50').
+%   width - total duration of flash (ms)
+%   isi - delay (ms) between the end of one stimulus (a laser pulse or sound)
+%       and the start of the next (laser pulse or sound).
+%   Optional:
+%   tcFileName - (string) name of the sound tuning curve .mat you wish to
+%       turn into an interleaved protocol.
+%   tcFolderPath - (string) full path to the location of the above .mat file.
+%       ...If you don't provide these two, you'll be asked to select a protocol manually 
+%       from a pop-up window.
+%   include_silentSound - Add in silent sounds (1), or don't (0). 1 is
+%       default.
+% 
+% *OUTPUTS*
+%   Creates a suitably named stimulus protocol ('ppalaser-IL-...') in
+%   exper2.2\protocols\ArchProtocols.
+%   ppalaserFileName - string, name of the .mat, just created.
+%   ppalaserFolderPath - string, full path to the location of that .mat.
+%
+% Example call: MakePpaLaserProtocol(50, 150, 500)
+%
+% NOTES:
+% - You'd be wise to use the same pulse paramaters passed here, with the ppalaser 
+% module (pre, width, isi). You won't get any warnings or reminders if you
+% don't.
+% - This has no AOPulse stimuli; can't be used to command the laser
+% with AO from the IO board.
+% AKH 9/17/13
+% -----------------------------------------------------
+
+if nargin==0; fprintf('\nNo input.');return;end
+global pref
+Prefs
+
+include_silentSound=0;
+
+if ~isempty(varargin) % If args have been passed...
+    
+    try
+        tcFileName=varargin{1};
+        tcPathName=varargin{2};
+        cd(tcPathName);
+        tc=load(tcFileName); % Success.
+    catch
+        fprintf('\n\nCannot load the requested TC protocol -- check file name & path.\n\n');
+        return
+    end
+    
+    if length(varargin)==3; include_silentSound=varargin{3}; end
+    
+else % Otherwise, have the user pick a tuning curve.
+    cd(pref.stimuli)
+    [tcFileName, tcPathName] = uigetfile('*.mat', 'Choose Tuning Curve to incorporate into Arch protocol:');
+    if isequal(tcFileName,0) || isequal(tcPathName,0)
+        disp('User pressed cancel.')
+        return
+    else
+        disp(['User selected: ', fullfile(tcPathName, tcFileName)])
+    end
+    tc=load(fullfile(tcPathName, tcFileName));
+end
+
+stimOK=1;
+numtones=1; % We'll only ever want one tone per pulse.
+
+tc_n=1; %TC tone index
+st_n=1; %output stimuli index
+
+rev_tc_n=length(tc.stimuli)+1; 
+% 'reverse tc' index -- to get rid of order effects with numtones==1, since in this
+% the laser and non-laser trials are back-to-back.
+
+if include_silentSound==1
+    % Count up the # of repeats.
+    % (Assumes description is formatted a certain way.)
+    location=strfind(tc.stimuli(1).param.description,'rep');
+    repstr=tc.stimuli(1).param.description( (location(1)-4) : (location(1)-2) );
+    reps=str2num(repstr);
+    % Make a silent stim.
+    silentSound.type='whitenoise';
+    silentSound.param.amplitude=-1000;
+    silentSound.param.duration=25;
+    silentSound.param.ramp=3;
+    silentSound.param.next=500;
+end
+
+repcount=0;
+
+while tc_n+numtones<=length(tc.stimuli) % Work your way through the stim set...
+    
+    
+    %% Insert embedded tone
+    
+    tc_n=tc_n+1;
+    st_n=st_n+1;
+    
+    tone=tc.stimuli(tc_n);
+    stimuli(st_n)=tone;
+    stimuli(st_n).param.AOPulseOn=1; % Set flag.
+    
+    % .nextNE = delay to next tone, which is not embedded in a pulse --
+    % I expect that the light pulse will always be longer than the 
+    % sound itself, in which case 'next' comes:
+    % 'post' (width-pre) + isi
+        if width-pre>tone.param.duration
+         nextNE=(width-pre)+isi;
+    else
+    %...but that may not always be the case. If the sound is longer than
+    % the pulse, then we'd want the ISI (between 'events' -- offset of laser
+    % or offset of sound, and the beginning of the next) to be:
+    % sound duration + isi
+        nextNE=tone.param.duration+isi;
+    end
+    
+    stimuli(st_n).param.next=nextNE;
+    
+    %% Insert non-embedded tone
+    
+    % Reverse the order of the original TC, so we're not playing the same
+    % tones back-to-back (embedded & not)
+    
+    rev_tc_n=rev_tc_n-1; % take a tone from the back
+    st_n=st_n+1; % +1 to the new stim protocol
+    
+    tone=tc.stimuli(rev_tc_n);
+    stimuli(st_n)=tone;
+    stimuli(st_n).param.AOPulseOn=0; % Set flag.    
+    
+    % .nextE (delay to next tone, which is embedded in a pulse)
+    % will be duration + isi + pre
+    nextE=tone.param.duration+isi+pre;
+    stimuli(st_n).param.next=nextE;
+    
+    
+    
+    
+    
+    repcount=repcount+1;
+    
+    %% Add silent sounds, if you've just completed a rep. 
+%     if ( repcount==((length(tc.stimuli)-1)/reps) )  && ( include_silentSound==1 )
+%         
+%         % Insert embedded silence:
+%         st_n=st_n+1; % +1 to new protocol, not the old
+%         stimuli(st_n)=silentSound;
+%         stimuli(st_n).param.AOPulseOn=1; % Set flag.
+%         if width-pre>silentSound.param.duration
+%             nextNE=(width-pre)+isi;
+%         else
+%             nextNE=silentSound.param.duration+isi;
+%         end
+%         stimuli(st_n).param.next=nextNE;
+%         
+%         %% Insert non-embedded silence:
+%         st_n=st_n+1;
+%         stimuli(st_n)=silentSound;
+%         stimuli(st_n).param.AOPulseOn=0; % Set flag.
+%         nextE=silentSound.param.duration+isi+pre;
+%         stimuli(st_n).param.next=nextE;
+%         
+%         repcount=0; % reset
+%         
+%     end
+    
+    
+    
+end
+
+%% Put into stimuli structure
+if include_silentSound
+    stimuli(1).type='exper2 stimulus protocol';
+    stimuli(1).param.name= sprintf('ppalaser, interleaved, w/-1000dB, pre%dms/width%dms/isi%dms/%dtones/%s', pre, width, isi, numtones, tc.stimuli(1).param.name);
+    stimuli(1).param.description=sprintf('ppalaser, interleaved, w/-1000dB, pre: %dms, width: %d, isi: %dms, %d tones/pulse, %s',pre, width, isi, numtones, tc.stimuli(1).param.description);
+else
+    stimuli(1).type='exper2 stimulus protocol';
+    stimuli(1).param.name= sprintf('ppalaser, interleaved, pre%dms/width%dms/isi%dms/%dtones/%s', pre, width, isi, numtones, tc.stimuli(1).param.name);
+    stimuli(1).param.description=sprintf('ppalaser, interleaved, pre: %dms, width: %d, isi: %dms, %d tones/pulse, %s',pre, width, isi, numtones, tc.stimuli(1).param.description);
+    
+end
+
+fileNameNew=sprintf('ppalaser-IL-%d-%d-%d-%d-%s', pre, width, isi, numtones, tcFileName);
+folderPathNew='d:\lab\exper2.2\protocols\Arch Protocols\';
+% Outputs. ^^
+cd(folderPathNew);
+save(fileNameNew,'stimuli');
+fprintf('\n\nDone!\nSaved new ppalaser protocol:\n%s\nTo location:\n%s\n\n',fileNameNew,folderPathNew)
+end
