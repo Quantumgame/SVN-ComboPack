@@ -29,7 +29,6 @@ if isempty(s.clip)
             freqs=unique(outFreqs);
             raw=repmat(2*pi*[0:s.numSamples]/s.numSamples,length(freqs),1);
             s.clip = sum(sin(diag(freqs)*raw));
-
         case 'tone'
             toneDuration=500;
             s.numSamples = s.sampleRate*toneDuration/1000;
@@ -51,8 +50,6 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
-
-
         case 'toneThenSpeech'
             toneDuration=500;
             s.numSamples = s.sampleRate*toneDuration/1000;
@@ -60,7 +57,6 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
-
         case 'toneLaser'
             toneDuration=500;
             s.numSamples = s.sampleRate*toneDuration/1000;
@@ -68,8 +64,6 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
-
-
         case 'CNMToneTrain'
             %train of pure tones, all at start freq, except last one is at
             %end freq. duration and isi specified in setProtocolCNM
@@ -209,7 +203,6 @@ if isempty(s.clip)
             else
                 s.clip = sad.';
             end
-
        case 'pulseAndNoise'
            s.numSamples = s.sampleRate*5;
            pulse = randn(1,s.sampleRate*.025);
@@ -243,7 +236,6 @@ if isempty(s.clip)
             s.numSamples = s.sampleRate*duration/1000;
             t=1:s.numSamples;
             t=t/s.sampleRate;
-
             if s.freq(1) == 1
                 tone=sin(2*pi*t*2000);
             elseif s.freq(1) == 2
@@ -271,6 +263,7 @@ if isempty(s.clip)
 
             map = {'gI', 'go', 'ga'; 'bI', 'bo', 'ba'};
 
+
             if stimMap == 1
                 names = {'Jonny','Ira','Anna','Dani','Theresa'};
             elseif stimMap == 2
@@ -291,6 +284,7 @@ if isempty(s.clip)
 
             filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\phonemes\',names(s.freq(2)),'\CV\',map(s.freq(1),s.freq(3)),'\',map(s.freq(1),s.freq(3)),num2str(s.freq(4)),'.wav'));
             [aud, fs] = wavread(filen);
+
 
             %pad end w/ silence if not fully 500ms so doesn't loop
             expectLength = s.sampleRate *.5;
@@ -334,6 +328,7 @@ if isempty(s.clip)
         case 'speechComponent'
             %not implemented yet...
 
+
         case 'toneThenPhoneme'
             toneDuration=500;
             s.numSamples = s.sampleRate*toneDuration/1000;
@@ -347,14 +342,17 @@ if isempty(s.clip)
            %Receive stim target from s.freq as described in calcStim
             %freq is [consonant, speaker, vowel, recording
 
+
             %if ~s.freq
                 s.freq = freqCon;
             %end
+
 
             duration = s.freq(2);
             s.numSamples = s.sampleRate*duration/1000;
             t=1:s.numSamples;
             t=t/s.sampleRate;
+
 
              [sad, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\sadshifted-allie.wav'); %left
             %[dad, fs] =wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\dadshifted-allie.wav'); %right
@@ -362,13 +360,13 @@ if isempty(s.clip)
             %50ms silence added to beginning of dad
             [dad, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\dadshifted-allie-aligned.wav'); %right
 
-
             if s.freq(1) == 1
                 tone=sin(2*pi*t*2000);
                 clip = horzcat(tone,sad.');
             elseif s.freq(1) == 0
                 tone=sin(2*pi*t*7000);
                 clip = horzcat(tone,dad.');
+
             end
             s.clip = clip;
             s.numSamples = s.sampleRate*(duration+500)/1000;
@@ -379,6 +377,7 @@ if isempty(s.clip)
         case 'phonemeWavGlobal'
             [sad, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\sadshifted-allie.wav'); %left
             %[dad, fs] =wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\dadshifted-allie.wav'); %right
+
             %old stimulus - not ideally aligned - changed to new file with
             %50ms silence added to beginning of dad
             [dad, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\dadshifted-allie-aligned.wav'); %right
@@ -393,6 +392,7 @@ if isempty(s.clip)
         case 'warblestackWav'
             startsound=s.freq(1); %if 0, warble first, if 1, WN first
             endsound=s.freq(2); %if 0, tone 2nd, if 1, WN 2nd
+
             isi=s.freq(4);
             [warble, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\WMsounds\warble_stack.wav');
             [harmonic, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\WMsounds\harmonic_stack.wav');
@@ -423,7 +423,6 @@ if isempty(s.clip)
         otherwise
             s.type
             error('unknown soundClip type')
-
     end
 
     %For all channels, normalize
@@ -444,3 +443,4 @@ sampleRate=s.sampleRate;
 
 function t=tritones(freqs)
 t=freqs*2.^(6/12); % to get i halfsteps over freq, use freq*2.^[i/12]
+

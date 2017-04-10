@@ -95,11 +95,11 @@ if strcmp(stimulus.soundType, 'speechWav')
         r0 = 2;
     end
 
-
     %Print current stim
 
     text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
 end
+
 
 if strcmp(stimulus.soundType, 'speechWavAll')
     stimMap = stimulus.stimMap;
@@ -123,7 +123,6 @@ if strcmp(stimulus.soundType, 'speechWavAll')
     elseif stimMap == 4
         names = {'Dani','Anna','Theresa','Jonny','Ira'};
     end
-
 
     %Check if we're going to give an expt. stimulus, then check which type
     pctExpt = pctLearned+pctNovel;
@@ -213,7 +212,9 @@ if strcmp(stimulus.soundType, 'toneThenSpeech')
 end
 
 
+
 if strcmp(stimulus.soundType, 'phoneTone')
+
     stimMap = stimulus.stimMap;
     map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
     if stimMap == 1
@@ -249,6 +250,7 @@ if strcmp(stimulus.soundType, 'phoneTone')
     correx(isnan(correx)) = []; %take out nans so the mean works
     pctcorrex = mean(correx);
 
+
     %Calc length of tone.
     duration = [];
     if pctcorrex <= .5
@@ -277,18 +279,19 @@ if strcmp(stimulus.soundType, 'phoneTone')
         r0 = 2;
     end
 
-
      %Print current stim
     text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,1},names{1},1)];
 end
 
 if strcmp(stimulus.soundType, 'tone') %files specified in getClip-just need to indicate sad/dad
 
+
     [lefts, rights] = getBalance(responsePorts,targetPorts);
 
     %default case (e.g. rights==lefts )
 
     tones = [4000 13000];
+
 
     if lefts>rights %choose a left stim (wav1)
         details.toneFreq = tones(1);
@@ -307,6 +310,7 @@ if strcmp(stimulus.soundType, 'morPhone')
 end
 
 if strcmp(stimulus.soundType, 'speechComponent')
+
     %Not implemented yet...
 end
 
