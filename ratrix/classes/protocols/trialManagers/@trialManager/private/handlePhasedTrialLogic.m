@@ -58,6 +58,9 @@ if strcmp(phaseType,'discrim') && strcmp(class(stimManager), 'phonemeDiscrim') &
     stimDetails.soundONTime=GetSecs;
 end
 
+if strcmp(phaseType,'discrim') && strcmp(class(stimManager), 'toneDiscrimLCycle') && framesInPhase==0
+    stimDetails.soundONTime=GetSecs;
+end
 
 % Check for transition by port selection
 for gcInd=1:2:length(transitionCriterion)-1
@@ -130,6 +133,10 @@ for gcInd=1:2:length(transitionCriterion)-1
             end
             
             if strcmp(phaseType,'discrim') && strcmp(class(stimManager), 'phonemeDiscrim')
+               stimDetails.responseTime=GetSecs; 
+            end
+            
+            if strcmp(phaseType,'discrim') && strcmp(class(stimManager), 'toneDiscrimLCycle')
                stimDetails.responseTime=GetSecs; 
             end
             
