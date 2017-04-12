@@ -52,21 +52,9 @@ name='7007';
 go(name,p)
 name='7012';p=p+3;
 go(name,p)
-name='7048';p=p+3;
-go(name,p)
-name='7052';p=p+3;
-go(name,p)
-name='7053';p=p+3;
-go(name,p)
 name='7058';p=p+3;
 go(name,p)
-name='7082';p=p+3;
-go(name,p)
-name='7101';p=p+3;
-go(name,p)
 name='7105';p=p+3;
-go(name,p)
-name='7108';p=p+3;
 go(name,p)
 name='7116';p=p+3;
 go(name,p)
@@ -94,6 +82,27 @@ name='7334';p=p+3;
 go(name,p)
 name='7428';p=p+3;
 go(name,p)
+name='7473';p=p+3;
+go(name,p)
+name='7475';p=p+3;
+go(name,p)
+name='7324';p=p+3;
+go(name,p)
+name='7610';p=p+3;
+go(name,p)
+name='7570';p=p+3;
+go(name,p)
+name='7477';p=p+3;
+go(name,p)
+name='7568';p=p+3;
+go(name,p)
+name='7639';p=p+3;
+go(name,p)
+name='7321';p=p+3;
+go(name,p)
+name='7268';p=p+3;
+go(name,p)
+
 
 if ispc
     save_fig = strcat('C:\Users\lab\Documents\speechPlots\speech_performance_',datestr(now,'mmddyy_hhMM'),'.fig');
@@ -158,7 +167,9 @@ targets(nansI)=[];
 z = scrollsubplot(7,3,p);
 hold on
 
-if length(correct) > 150
+if length(correct) == 0
+    return
+elseif length(correct) > 75
     winSize = 75; %%%size of window for %correct averaging
 else
     winSize = length(correct);
