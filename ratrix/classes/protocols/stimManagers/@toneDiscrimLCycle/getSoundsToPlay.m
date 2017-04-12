@@ -23,54 +23,30 @@ end
 if stepsInPhase <= 0 && ...
         ((strcmp(phaseType,'discrim') && strcmp(trialManagerClass,'nAFC')))
 
-    %setLaser(station,false)
-    
-    
-    
-    
+
+
+
     soundsToPlay{2}{end+1} = {'stimSound' stimManager.duration};
-    
-    
-    if stimDetails.LaserTurnON
-        
+
+
+    if stimDetails.laserTurnON
+
         setLaser(station, true)
-% real short pulse:
- setLaser(station, false)
 
-        
+
     end
-    
-%     if stimDetails.LaserTurnOFF %the pulses are the same, just mean diff things
-%         
-%         
-%         setLaser(station, true);
-%         % real short pulse:
-% % setLaser(station, false)
-% 
-%         
-%     end
-    
+
+    if stimDetails.laserTurnOFF
+
+
+        setLaser(station,false);
+
+
+    end
+
 end
 
 
-
-
-
- if stepsInPhase == 0 && ...
-         ((strcmp(phaseType,'itl') && strcmp(trialManagerClass,'nAFC')))
-% 
-% 
-if stimDetails.LaserTurnOFF
-     setLaser(station, true);
-% real short pulse:
- setLaser(station, false)
-else
-    setLaser(station, false);
-end
-
-
-%     
-% end
 
 
 end

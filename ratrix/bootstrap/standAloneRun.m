@@ -26,7 +26,7 @@ function standAloneRun(ratrixPath,setupFile,subjectID,recordInOracle,backupToSer
 %
 % justDoSetup (optional, logical, default false)
 % if true, will just create subject, protocol, add to ratrix, and make .bat file
-
+dbstop if error
 setupEnvironment;
 
 if ~exist('justDoSetup','var') || isempty(justDoSetup)

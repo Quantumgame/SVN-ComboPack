@@ -10,7 +10,7 @@ end
 
 sm=makeWMSoundManager();
 
-rewardSizeULorMS          =60;
+rewardSizeULorMS          =40;
 requestRewardSizeULorMS   =80;
 requestMode               ='first';
 msPenalty                 =1000;
@@ -41,6 +41,7 @@ eyeController=[];
 
 dropFrames=false;
 nafcTM=nAFC(sm,percentCorrectionTrials,constantRewards,eyeController,{'off'},dropFrames,'ptb','center');
+nafc2TM=nAFC(sm,percentCorrectionTrials,constantRewards,eyeController,{'off'},dropFrames,'ptb','center');
 % 
 % textureSize=10*[w,h];
 % zoom=[maxWidth maxHeight]./textureSize;
@@ -92,7 +93,8 @@ ts3 = trainingStep(nafcTM, phonemeStim, rateCriterion(trialsPerMinute,minutes), 
 ts4 = trainingStep(nrTM  , phonemeStim,  numTrialsDoneCriterion(400)          , noTimeOff(), svnRev,svnCheckMode);
 
 %long penalty
-msPenalty = 3000;
+msPenalty = 5000;
+rewardSizeULorMS=40;
 longPenalty=constantReinforcement(rewardSizeULorMS,requestRewardSizeULorMS,requestMode,msPenalty,fractionOpenTimeSoundIsOn,fractionPenaltySoundIsOn,scalar,msAirpuff);
 percentCorrectionTrials=0;
 lpTM=nAFC(sm,percentCorrectionTrials,longPenalty,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
