@@ -31,13 +31,13 @@ details.responseTime=0;
 details.soundONTime=0;
 
 switch stimulus.soundType
-    
+
     case {'toneLCycle10'}
         details.cycPeriod = 10;
-        
+
     case {'toneLCycle20'}
         details.cycPeriod = 20;
-        
+
 end
 
 details.TrialInCyc=1; %set in case it doesn't exist
@@ -45,9 +45,10 @@ details.TrialInCyc=1; %set in case it doesn't exist
 sessionNum = trialRecords(end).sessionNumber; %find the current session
 details.TrialNum = trialRecords(end).trialNumber; %find the current trial
 
+
 % for i = 1:size(trialRecords,2)
 %     sesh(i) = trialRecords(i).sessionNumber
-%     
+%
 % end
 
 %details.sizeoftrialrecords=length(trialRecords);
@@ -63,18 +64,20 @@ if length(trialRecords)==1
     details.TrialNumSStart=1;
     details.LaserTurnOFF=0;
 elseif trialRecords(end-1).sessionNumber ~= sessionNum %first trial of session
-    
+
     details.TrialNumSStart=details.TrialNum;
     details.LaserTurnOFF=0;
-    
-else 
+
+else
     details.TrialNumSStart=trialRecords(end-1).stimDetails.TrialNumSStart;
+
 end
 
 details.TrialInSes = details.TrialNum-details.TrialNumSStart+1; %1 is first trial
 
 
-warmUpPeriod=5; %trials to wait before starting laser cycling. 
+
+warmUpPeriod=5; %trials to wait before starting laser cycling.
 %(first 10 trials after warmup will be the first OFF cycle)
 %e.g. if warmup=30, laser turns on on trial 41, and off at the end of trial 50
 if details.TrialInSes > warmUpPeriod
@@ -84,7 +87,7 @@ if details.TrialInSes > warmUpPeriod
     elseif details.TrialInCyc == 0
          details.LaserTurnOFF = 1;
     end
-    
+
 end
 
 
@@ -103,13 +106,13 @@ details.toneFreq = [];
 
 
 if strcmp(stimulus.soundType, 'toneLCycle10') %files specified in getClip-just need to indicate sad/dad
-    
+
     [lefts, rights] = getBalance(responsePorts,targetPorts);
-    
+
     %default case (e.g. rights==lefts )
-    
+
     tones = [4000 13000];
-    
+
     if lefts>rights %choose a left stim (wav1)
         details.toneFreq = tones(1);
     elseif rights>lefts %choose a right stim (wav2)
@@ -118,9 +121,9 @@ if strcmp(stimulus.soundType, 'toneLCycle10') %files specified in getClip-just n
     if lefts == rights %left
         details.toneFreq = tones(1);
     end
-    
-    
-    
+
+
+
 end
 
 
