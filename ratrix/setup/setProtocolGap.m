@@ -36,7 +36,7 @@ stimParams.gapDurs   = [1,2,4,8,16,32,64,128];
 % Task Parameters
 freeDrinkLikelihood  = 0;
 allowRepeats         = false;
-reward               = 55; %in ms
+reward               = 30; %in ms
 requestMode          = 'first';
 msPenalty            = 2000;
 
