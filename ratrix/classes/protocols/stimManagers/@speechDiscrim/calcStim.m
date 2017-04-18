@@ -122,6 +122,10 @@ if strcmp(stimulus.soundType, 'speechWavAll')
         names = {'Anna','Theresa','Dani','Jonny','Ira'};
     elseif stimMap == 4
         names = {'Dani','Anna','Theresa','Jonny','Ira'};
+    elseif stimMap == 5
+        names = {'Ira', 'Dani', 'Jonny', 'Anna', 'Theresa'};
+    elseif stimMap == 6
+        names = {'Theresa', 'Jonny', 'Ira', 'Anna', 'Dani'};
     end
 
     %Check if we're going to give an expt. stimulus, then check which type
@@ -225,6 +229,10 @@ if strcmp(stimulus.soundType, 'phoneTone')
         names = {'Anna','Theresa','Dani','Jonny','Ira'};
     elseif stimMap == 4
         names = {'Dani','Anna','Theresa','Jonny','Ira'};
+    elseif stimMap == 5
+        names = {'Ira', 'Dani', 'Jonny', 'Anna', 'Theresa'};
+    elseif stimMap == 6
+        names = {'Theresa', 'Jonny', 'Ira', 'Anna', 'Dani'};
     end
 
     [lefts, rights] = getBalance(responsePorts,targetPorts);
