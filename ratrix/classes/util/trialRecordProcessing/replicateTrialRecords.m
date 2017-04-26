@@ -63,6 +63,10 @@ for f=1:length(subDirs)
 
         % collection process
         trialRecords = collectTrialRecords(tr);
+        
+        if isempty(trialRecords)
+            trialRecords = tr.trialRecords;
+        end
 
         trialNums=[trialRecords.trialNumber];
         if ~all(diff(trialNums)==1)
