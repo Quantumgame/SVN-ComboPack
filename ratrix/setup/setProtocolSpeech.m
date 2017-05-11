@@ -112,14 +112,13 @@ genParams.pctLearned  = .1; %Percent of trials that have a novel token from a le
 genParams.pctNovel    = .1; %Percent of trials that have a novel token from a novel CV pair
 genParams.stimLevel   = 6;
 
-% Component Test Parameters (for step 16)
-componentParams.soundType = 'speechComponent';
-componentParams.freq      = [];
-componentParams.duration  = 500;
-componentParams.amp       = amplitude;
-componentParams.pctMask   = .1; %pct of trials that mask one formant/frequency band
-componentParams.pctSingle = .1; %pct of trials that have only one formant/frequency band
-componentParams.stimLevel = 6;
+% Uniform stimulus sampling (for step 16)
+unifParams.soundType = 'speechWavAllUniform';
+unifParams.freq      = [];
+unifParams.duration  = 500;
+unifParams.amp       = amplitude;
+%unifParams.pctSingle = .1; %pct of trials that have only one formant/frequency band
+unifParams.stimLevel = 6;
 
 % Mapping parameter - New mice are training w/ a different set of phonemes
 oldmice = {'6896','6897','6898','6899','6900',...
@@ -143,7 +142,7 @@ toneParams.stimMap = 2;
 phTParams.stimMap = 2;
 morphParams.stimMap = 2;
 genParams.stimMap = 2;
-componentParams.stimMap = 2;
+unifParams.stimMap = 2;
 
 for i = 1:length(subjIDs)
     if ~all(cellfun('isempty',strfind(oldmice,subjIDs{i})))
@@ -152,7 +151,7 @@ for i = 1:length(subjIDs)
         phTParams.stimMap = 1;
         morphParams.stimMap = 1;
         genParams.stimMap = 1;
-        componentParams.stimMap = 1;
+        unifParams.stimMap = 1;
         break
     elseif ~all(cellfun('isempty',strfind(alt1,subjIDs{i})))
         soundParams.stimMap = 3;
@@ -160,7 +159,7 @@ for i = 1:length(subjIDs)
         phTParams.stimMap = 3;
         morphParams.stimMap = 3;
         genParams.stimMap = 3;
-        componentParams.stimMap = 3;
+        unifParams.stimMap = 3;
         break
     elseif ~all(cellfun('isempty',strfind(alt2,subjIDs{i})))
         soundParams.stimMap = 4;
@@ -168,7 +167,7 @@ for i = 1:length(subjIDs)
         phTParams.stimMap = 4;
         morphParams.stimMap = 4;
         genParams.stimMap = 4;
-        componentParams.stimMap = 4;
+        unifParams.stimMap = 4;
         break
     elseif ~all(cellfun('isempty',strfind(alt3,subjIDs{i})))
         soundParams.stimMap = 5;
@@ -176,7 +175,7 @@ for i = 1:length(subjIDs)
         phTParams.stimMap = 5;
         morphParams.stimMap = 5;
         genParams.stimMap = 5;
-        componentParams.stimMap = 5;
+        unifParams.stimMap = 5;
         break
     elseif ~all(cellfun('isempty',strfind(alt4,subjIDs{i})))
         soundParams.stimMap = 6;
@@ -184,7 +183,7 @@ for i = 1:length(subjIDs)
         phTParams.stimMap = 6;
         morphParams.stimMap = 6;
         genParams.stimMap = 6;
-        componentParams.stimMap = 6;
+        unifParams.stimMap = 6;
         break
     end
 end
@@ -218,7 +217,7 @@ STStim1 = speechDiscrim(interTrialLum,toneParams,maxWidth,maxHeight,scaleFactor,
 STStim2 = speechDiscrim(interTrialLum,phTParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 ExpStim1 = speechDiscrim(interTrialLum,morphParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 ExpStim2 = speechDiscrim(interTrialLum,genParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
-ExpStim3 = speechDiscrim(interTrialLum,componentParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
+ExpStim3 = speechDiscrim(interTrialLum,unifParams,maxWidth,maxHeight,scaleFactor,interTrialLum);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make Stimuli and Reinforcement Managers
@@ -313,11 +312,11 @@ ts13 = trainingStep(nafc4, speechStim5, performanceCriterion(.99, int8(210)),  n
 
 %Experimental Training Steps
 %Perceptual Boundary - VOT and whole-sound morphs
-ts14 = trainingStep(nafc4, ExpStim1, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
+ts14 = trainingStep(nafc5, ExpStim1, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 %Generalization Validation
-ts15 = trainingStep(nafc4, ExpStim2, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
+ts15 = trainingStep(nafc5, ExpStim2, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 %Parameter Testing
-ts16 = trainingStep(nafc4, ExpStim3, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
+ts16 = trainingStep(nafc5, ExpStim3, performanceCriterion(.99, int8(210)),  noTimeOff(), svnRev,svnCheckMode);
 
 
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
