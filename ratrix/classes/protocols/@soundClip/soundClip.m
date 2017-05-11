@@ -35,19 +35,19 @@ switch nargin
         if ismember(varargin{2},{'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'})
             t.fundamentalFreqs = [];
             t.maxFreq = 0;
-            
+
             if ischar(varargin{1})
                 t.name=varargin{1};
             else
                 error('name wasn''t a string')
             end
-            
+
             t.clip = [];
             t.description = varargin{2};
-            
+
             t.type = varargin{2};
-            
-            
+
+
             t = class(t,'soundClip');
         else
             error('type for 2 args must be binaryWhiteNoise gaussianWhiteNoise uniformWhiteNoise empty')
@@ -61,17 +61,17 @@ switch nargin
         t.clip = [];
         % create object using specified values
 
-        if ismember(varargin{2},{'tone','tone615','gap','toneLCycle10','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'noise','phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavAll','speechComponent','morPhone','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward','phoneToneConor', 'toneThenPhoneme', 'phonemeWavGlobal'} ) 
+        if ismember(varargin{2},{'tone','tone615','gap','toneLCycle10','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'noise','phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavAll','speechComponent','morPhone','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward','phoneToneConor', 'toneThenPhoneme', 'phonemeWavGlobal'} )
 
             t.freq = varargin{3};
             switch(varargin{2})
-                case {'phoneToneConor'}   
+                case {'phoneToneConor'}
                     t.description = [' ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
                 case {'toneThenPhoneme'}
                     t.description = [' ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
-                case {'phonemeWavGlobal'}  
+                case {'phonemeWavGlobal'}
                    % t.description = [' ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
                 case 'tone'
@@ -79,17 +79,17 @@ switch nargin
                     t.type = varargin{2};
                 case 'toneLCycle10'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
-                    t.type = varargin{2};    
-                    
+                    t.type = varargin{2};
+
                 case 'tone615'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
-                    t.type = varargin{2};    
+                    t.type = varargin{2};
                 case 'toneThenSpeech'
                     t.description = ['pure tone w phone after correct ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
                 case 'toneLaser'
                     t.description = ['pure tone ' num2str(t.freq) ' Hz'];
-                    t.type = varargin{2};      
+                    t.type = varargin{2};
                 case 'CNMToneTrain'
                     t.description = ['CNMToneTrain, start: ' num2str(t.freq(1)) ' end: ' num2str(t.freq(2)) ' Hz, n=',num2str(t.freq(3)) ,' tones'];
                     t.type = varargin{2};
@@ -98,28 +98,28 @@ switch nargin
                     t.type = varargin{2};
                 case 'freeCNMToneTrain'
                     t.description = ['freeCNMToneTrain, start: ' num2str(t.freq(1)) 'Hz, n=',num2str(t.freq(3)) ,' tones'];
-                    t.type = varargin{2};  
+                    t.type = varargin{2};
                 case 'gap'
                     t.description = ['gap'];
-                    t.type = varargin{2};                      
+                    t.type = varargin{2};
                 case 'noise'
                     t.description = ['noise'];
-                    t.type = varargin{2}  
+                    t.type = varargin{2}
                 case 'wmReadWav'
                     t.description = ['wmReadWav'];
-                    t.type = varargin{2};  
+                    t.type = varargin{2};
                 case 'phonemeWav'
                     t.description = ['phonemeWav'];
-                    t.type = varargin{2}; 
+                    t.type = varargin{2};
                 case 'phonemeWavLaser'
                     t.description = ['phonemeWavLaser'];
-                    t.type = varargin{2}; 
+                    t.type = varargin{2};
                 case 'phonemeWavLaserMulti'
                     t.description = ['phonemeWavLaserMulti'];
-                    t.type = varargin{2};     
+                    t.type = varargin{2};
                 case 'phonemeWavReversedReward'
                     t.description = ['phonemeWavReversedReward'];
-                    t.type = varargin{2}; 
+                    t.type = varargin{2};
                 case 'phoneTone'
                     t.description = ['phoneTone'];
                     t.type = varargin{2};
@@ -133,31 +133,34 @@ switch nargin
                     t.type = varargin{2};
                 case 'speechWav'
                     t.description = ['speechWav'];
-                    t.type = varargin{2}; 
+                    t.type = varargin{2};
                 case 'speechWavAll'
                     t.description = ['speechWavAll'];
                     t.type = varargin{2};
+                case 'speechWavAllUniform'
+                    t.description = ['speechWavAllUniform'];
+                    t.type = varargin{2};
                 case 'speechWavLaser'
                     t.description = ['speechWavLaser'];
-                    t.type = varargin{2}; 
+                    t.type = varargin{2};
                 case 'speechWavLaserMulti'
                     t.description = ['speechWavLaserMulti'];
-                    t.type = varargin{2};     
+                    t.type = varargin{2};
                 case 'speechWavReversedReward'
                     t.description = ['speechWavReversedReward'];
-                    t.type = varargin{2}; 
+                    t.type = varargin{2};
                 case 'warblestackWav'
                     t.description = ['warblestackWav'];
-                    t.type = varargin{2}; 
+                    t.type = varargin{2};
                 otherwise
                     error('Should never happen!!: soundClip type already validated as tone')
             end
         else
             error('type for 3 args must be tone')
         end
-        
+
         t = class(t,'soundClip');
-        
+
     case 4
         if ischar(varargin{1})
             t.name=varargin{1};
@@ -208,13 +211,13 @@ switch nargin
         else
             error('type for 4 args must be allOctaves, tritones, or dualChannel')
         end
-        
+
         t = class(t,'soundClip');
 
-                    
-                    
-                    
-                    
+
+
+
+
     otherwise
         error('Wrong number of input arguments')
 end

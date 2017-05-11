@@ -188,6 +188,61 @@ if strcmp(stimulus.soundType, 'speechWavAll')
 
 end
 
+if strcmp(stimulus.soundType, 'speechWavAllUniform')
+    % Sample all generalization tookens with equal probability
+    stimMap = stimulus.stimMap;
+    [lefts, rights] = getBalance(responsePorts,targetPorts);
+
+    if lefts >= rights %choose a left stim (/g/)
+        r0 = 1;
+    elseif rights>lefts %choose a right stim (/b/)
+        r0 = 2;
+    end
+
+    map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
+    % stimMap doesn't matter for uniform sampling, use default for simplicity
+    names = {'Jonny','Ira','Anna','Dani','Theresa'};
+
+    % Get list of all cvs
+    if r0 == 1
+        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrisSounds\cv_consonant_split\g');
+    elseif r0 == 2
+        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrisSounds\cv_consonant_split\b');
+    end
+
+    % Pick one
+    this_cv = datasample(all_cvs,1);
+
+    % Backfill toneFreq parameters
+    % Split path
+    cv_file_parts = strsplit(this_cv{1}, filesep);
+
+    % Get name
+    name_ind = strfind(names, cv_file_parts{end-2});
+    r1 = find(not(cellfun('isempty', name_ind)));
+
+    % Get vowel
+    vow_ind = strfind(map, cv_file_parts{end-1});
+    vow_ind = find(not(cellfun('isempty', vow_ind)));
+    if vow_ind > 6
+        r2 = vow_ind/2;
+    else
+        r2 = vow_ind;
+    end
+
+    % Get token
+    tok_name = cv_file_parts{end};
+    r3 = tok_name(end-4);
+
+
+    details.toneFreq = [r0, r1, r2, r3];
+    freqDurable = [r0, r1, r2, r3];
+
+
+    text = [text, sprintf('   Current Stim: %s, Speaker: %s, Token: %d   ',map{r0,r2},names{r1},r3)];
+
+end
+
 
 if strcmp(stimulus.soundType, 'toneThenSpeech')
     stimMap = stimulus.stimMap;

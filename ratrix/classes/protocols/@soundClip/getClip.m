@@ -321,6 +321,23 @@ if isempty(s.clip)
 
             s.clip = aud.';
 
+        case {'speechWavAllUniform'}
+            % stimMap doesn't matter for uniform sampling, use the default for simplicity
+            names = {'Jonny','Ira','Anna','Dani','Theresa'};
+            cons = {'g','b'};
+            map = {'gI', 'go', 'ga', 'gae', 'ge', 'gu'; 'bI', 'bo', 'ba', 'bae', 'be', 'bu'};
+
+            s.freq = freqDurable;
+
+            filen = char(strcat('C:\Users\nlab\Desktop\ratrixSounds\cv_consonant_split\',cons(s.freq(1)),filesep,names(s.freq(2)),filesep,map(s.freq(1),s.freq(3)),filesep,map(s.freq(1),s.freq(3)),num2str(s.freq(4)),'.wav'));
+            [aud, fs] = wavread(filen);
+            expectLength = s.sampleRate *.5; %Pad end with silence
+            if length(aud) < expectLength
+                aud(end:expectLength) = 0;
+            end
+
+            s.clip = aud.';
+
 
         case 'morPhone'
             %not implemented yet...

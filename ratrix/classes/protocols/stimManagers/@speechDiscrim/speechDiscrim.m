@@ -26,7 +26,7 @@ s.stimLevel = [];
 s.pct1 = []; %Generalized Variables to hold percentages from setProtocolSpeech
 s.pct2 = [];
 s.stimMap = [];
-        
+
 switch nargin
     case 0
         % if no input arguments, create a default object
@@ -45,10 +45,10 @@ switch nargin
         else
             error('0 <= mean <= 1')
         end
-        
+
         soundParams=varargin{2};
         s.soundType=soundParams.soundType;
-        
+
         %error checking on soundParams and assign to s:
         if all(soundParams.amp>=0) & all(soundParams.amp<=1)
             s.amplitude=soundParams.amp;
@@ -60,10 +60,10 @@ switch nargin
         else
             error(' duration  must be >0')
         end
-        
+
         s.freq=soundParams.freq;
         s.stimMap = soundParams.stimMap;
-        
+
         switch s.soundType
             case {'allOctaves','tritones'}
                 if soundParams.freq > 0
@@ -71,7 +71,7 @@ switch nargin
                 else
                     error('freq must be > 0')
                 end
-                
+
             case {'binaryWhiteNoise','gaussianWhiteNoise','uniformWhiteNoise','empty'}
                 %no specific error checking here
             case 'tone'
@@ -83,20 +83,18 @@ switch nargin
                 end
             case 'speechWavAll'
                 s.pct1 = soundParams.pctLearned;
-                s.pct2 = soundParams.pctNovel;                
+                s.pct2 = soundParams.pctNovel;
             case 'phoneTone'
             case 'toneThenSpeech'
             case 'morPhone'
                 s.pct1 = soundParams.pctVOT;
                 s.pct2 = soundParams.pctMorph;
-            case 'speechComponent'
-                s.pct1 = soundParams.pctMask;
-                s.pct2 = soundParams.pctSingle;
+            case 'speechWavAllUniform'
             otherwise
                 error('speechDiscrim: soundType not recognized')
         end
         s = class(s,'speechDiscrim',stimManager(varargin{3},varargin{4},varargin{5},varargin{6}));
-        
+
     otherwise
         error('Wrong number of input arguments')
 end
