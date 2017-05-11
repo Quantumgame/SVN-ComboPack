@@ -217,6 +217,7 @@ if strcmp(stimulus.soundType, 'speechWavAllUniform')
     % Split path
     cv_file_parts = regexp(this_cv{1}, filesep, 'split');
 
+
     % Get name
     name_ind = strfind(names, cv_file_parts{end-2});
     r1 = find(not(cellfun('isempty', name_ind)));
