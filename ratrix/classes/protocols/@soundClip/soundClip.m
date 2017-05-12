@@ -61,6 +61,7 @@ switch nargin
         t.clip = [];
         % create object using specified values
 
+
         if ismember(varargin{2},{'tone','tone615','gap','toneLCycle10','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'noise','phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavAll','speechWavAllUniform','speechComponent','morPhone','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward','phoneToneConor', 'toneThenPhoneme', 'phonemeWavGlobal'} )
 
             t.freq = varargin{3};
