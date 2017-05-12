@@ -64,6 +64,7 @@ switch nargin
 
         if ismember(varargin{2},{'tone','tone615','gap','toneLCycle10','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'noise','phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavAll','speechWavAllUniform','speechComponent','morPhone','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward','phoneToneConor', 'toneThenPhoneme', 'phonemeWavGlobal'} )
 
+
             t.freq = varargin{3};
             switch(varargin{2})
                 case {'phoneToneConor'}

@@ -205,9 +205,9 @@ if strcmp(stimulus.soundType, 'speechWavAllUniform')
 
     % Get list of all cvs
     if r0 == 1
-        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrixSounds\cv_consonant_split\g');
+        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrisSounds\cv_consonant_split\g');
     elseif r0 == 2
-        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrixSounds\cv_consonant_split\b');
+        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrisSounds\cv_consonant_split\b');
     end
 
     % Pick one
@@ -217,12 +217,12 @@ if strcmp(stimulus.soundType, 'speechWavAllUniform')
     % Split path
     cv_file_parts = regexp(this_cv{1}, filesep, 'split');
 
-
     % Get name
     name_ind = strfind(names, cv_file_parts{end-2});
     r1 = find(not(cellfun('isempty', name_ind)));
 
     % Get vowel
+<<<<<<< a16e0a142f2c2665cdce89964b358e3842a1e9b0
     vow_ind = find(strcmp(map, cv_file_parts{end-1}));
     %vow_ind = find(not(cellfun('isempty', vow_ind)));
     if mod(vow_ind,2)==0
