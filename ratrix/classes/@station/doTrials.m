@@ -52,7 +52,7 @@ if isa(r,'ratrix') && (isempty(rn) || isa(rn,'rnet'))
                 pnet(getAckCon(s.datanet),'write',constants.stimToDataResponses.S_TRIALS_STARTED);
             end
             
-            try
+            %try
                 if strcmp(s.rewardMethod,'localPump')
                     if ~ s.localPumpInited
                         s.localPump=initLocalPump(s.localPump,s,dec2hex(s.decPPortAddr));
@@ -139,14 +139,14 @@ if isa(r,'ratrix') && (isempty(rn) || isa(rn,'rnet'))
 
 
                 s=stopPTB(s);
-            catch ex
-                disp(['CAUGHT ER (at doTrials): ' getReport(ex)]);
+            %catch ex
+                %disp(['CAUGHT ER (at doTrials): ' getReport(ex)]);
 %                 if ~isempty(s.datanet) && isa(s.datanet,'datanet')
 %                     pnet('closeall');
 %                     s.datanet=cleanup(s.datanet);
 %                 end
-                rethrow(ex);
-            end
+                %rethrow(ex);
+            %end
 
             if ~isempty(s.eyeTracker)
                 s.eyeTracker=stop(s.eyeTracker);

@@ -205,9 +205,9 @@ if strcmp(stimulus.soundType, 'speechWavAllUniform')
 
     % Get list of all cvs
     if r0 == 1
-        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrisSounds\cv_consonant_split\g');
+        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrixSounds\cv_consonant_split\g');
     elseif r0 == 2
-        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrisSounds\cv_consonant_split\b');
+        all_cvs = getFilenames('C:\Users\nlab\Desktop\ratrixSounds\cv_consonant_split\b');
     end
 
     % Pick one
@@ -215,24 +215,36 @@ if strcmp(stimulus.soundType, 'speechWavAllUniform')
 
     % Backfill toneFreq parameters
     % Split path
-    cv_file_parts = strsplit(this_cv{1}, filesep);
+    cv_file_parts = regexp(this_cv{1}, filesep, 'split');
 
     % Get name
     name_ind = strfind(names, cv_file_parts{end-2});
     r1 = find(not(cellfun('isempty', name_ind)));
 
     % Get vowel
-    vow_ind = strfind(map, cv_file_parts{end-1});
-    vow_ind = find(not(cellfun('isempty', vow_ind)));
-    if vow_ind > 6
+    vow_ind = find(strcmp(map, cv_file_parts{end-1}));
+    %vow_ind = find(not(cellfun('isempty', vow_ind)));
+    if mod(vow_ind,2)==0
         r2 = vow_ind/2;
     else
-        r2 = vow_ind;
+        if vow_ind==1
+            r2=1;
+        elseif vow_ind==3
+            r2=2;
+        elseif vow_ind==5
+            r2=3;
+        elseif vow_ind==7
+            r2=4;
+        elseif vow_ind==9
+            r2=5;
+        elseif vow_ind==11
+            r2 = 6;
+        end
     end
 
     % Get token
     tok_name = cv_file_parts{end};
-    r3 = tok_name(end-4);
+    r3 = str2num(tok_name(end-4));
 
 
     details.toneFreq = [r0, r1, r2, r3];
@@ -389,6 +401,8 @@ switch stimulus.soundType
         sSound = soundClip('stimSoundBase','speechWav', [details.toneFreq]);
     case {'speechWavAll'}
         sSound = soundClip('stimSoundBase','speechWavAll', [details.toneFreq]);
+    case {'speechWavAllUniform'}
+        sSound = soundClip('stimSoundBase','speechWavAllUniform', [details.toneFreq]);
     case {'phoneTone'}
         sSound = soundClip('stimSoundBase','phoneTone', [details.toneFreq]);
     case {'toneThenSpeech'}

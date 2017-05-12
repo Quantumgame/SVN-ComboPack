@@ -153,7 +153,7 @@ if justDoSetup
 end
 
 if ~justDoSetup
-    try
+    %try
         deleteOnSuccess = true;
         
         if backupToServer
@@ -182,11 +182,11 @@ if ~justDoSetup
         compileDetailedRecords([],{subjectID},[],getStandAlonePath(rx),compilePath);
         subjectAnalysis(compilePath);
         cleanup;
-    catch ex
-        disp(['CAUGHT ERROR: ' getReport(ex,'extended')])
-        cleanup;
-        rethrow(ex)
-    end
+    %catch ex
+        %disp(['CAUGHT ERROR: ' getReport(ex,'extended')])
+        %cleanup;
+        %rethrow(ex)
+    %end
 end
 end
 

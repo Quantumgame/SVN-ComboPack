@@ -17,7 +17,7 @@ if ~isempty(rn) && strcmp(getSVNCheckMode(ts),'trial') %need to be in bootstrap 
     end
 end
 
-try
+%try
 
 
     if isa(station,'station') && isa(r,'ratrix') && isa(subject,'subject') && (isempty(rn) || isa(rn,'rnet'))
@@ -133,9 +133,9 @@ try
         error('need station and ratrix and subject and rnet objects')
     end
 
-catch ex
-    display(ts)
+%catch ex
+    %display(ts)
     %disp(['CAUGHT ERROR: ' getReport(ex,'extended')])
-    Screen('CloseAll');
-    rethrow(ex)
-end
+    %Screen('CloseAll');
+    %rethrow(ex)
+%end
