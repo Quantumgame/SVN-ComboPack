@@ -98,6 +98,9 @@ rewardSizeULorMS=40;
 longPenalty=constantReinforcement(rewardSizeULorMS,requestRewardSizeULorMS,requestMode,msPenalty,fractionOpenTimeSoundIsOn,fractionPenaltySoundIsOn,scalar,msAirpuff);
 percentCorrectionTrials=0;
 lpTM=nAFC(sm,percentCorrectionTrials,longPenalty,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
+msPenalty = 10000;
+longerPenalty=constantReinforcement(rewardSizeULorMS,requestRewardSizeULorMS,requestMode,msPenalty,fractionOpenTimeSoundIsOn,fractionPenaltySoundIsOn,scalar,msAirpuff);
+longerpTM=nAFC(sm,percentCorrectionTrials,longerPenalty,eyeController,{'off'},dropFrames,'ptb','center',[],[],[]);
 ts5 = trainingStep(lpTM  , phonemeStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
 
 percentCorrectionTrials=.5;
@@ -107,9 +110,9 @@ ts6 = trainingStep(lpTM2  , phonemeStim, performanceCriterion(.85, int8(200)), n
 
 ts7 = trainingStep(lpTM  , phonemeStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
 
-
+ts8 = trainingStep(longerpTM, phonemeStim, repeatIndefinitely(), noTimeOff(), svnRev,svnCheckMode);
 %p=protocol('mouse intensity discrimation',{ ts3, ts4, ts5});
-p=protocol('mouse phoneme discrimination pure tones',{ts1, ts2, ts3, ts4, ts5 ts6 ts7});
+p=protocol('mouse phoneme discrimination pure tones',{ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8});
 
 for i=1:length(subjIDs),
     subj=getSubjectFromID(r,subjIDs{i});

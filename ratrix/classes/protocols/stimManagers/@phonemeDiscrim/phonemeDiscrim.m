@@ -73,15 +73,18 @@ switch nargin
             case 'tone'
             case 'tone615'
             case {'phoneToneConor'}   
+  
+                    case {'phoneToneConorRR'} 
             case {'phonemeWavGlobal'}   
             case {'toneThenPhoneme'}   
+                case {'toneThenPhonemeRR'} 
             case 'wmReadWav'
                 s.wav1 = soundParams.wav1;
                 s.wav2 = soundParams.wav2;
                 
             case 'phonemeWav'
             
-            case 'phonemeWavReversedReward'
+            case 'phonemeWavRR'
                 
             case 'phonemeWavLaser'
             case 'toneLaser'

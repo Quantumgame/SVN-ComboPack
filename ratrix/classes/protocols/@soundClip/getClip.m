@@ -190,7 +190,7 @@ if isempty(s.clip)
                 s.clip = dad.';
             end
 
-        case 'phonemeWavReversedReward'
+        case 'phonemeWavRR'
             [sad, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\sadshifted-allie.wav'); %left
             %[dad, fs] =wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\dadshifted-allie.wav'); %right
             %old stimulus - not ideally aligned - changed to new file with
@@ -353,6 +353,14 @@ if isempty(s.clip)
             t=t/s.sampleRate;
             tone=sin(2*pi*t*s.freq);
             s.clip = tone;
+            
+        case 'toneThenPhonemeRR'
+            toneDuration=500;
+            s.numSamples = s.sampleRate*toneDuration/1000;
+            t=1:s.numSamples;
+            t=t/s.sampleRate;
+            tone=sin(2*pi*t*s.freq);
+            s.clip = tone;    
 
 
         case 'phoneToneConor'
@@ -387,7 +395,39 @@ if isempty(s.clip)
             end
             s.clip = clip;
             s.numSamples = s.sampleRate*(duration+500)/1000;
+            
+        case 'phoneToneConorRR'
+           %Receive stim target from s.freq as described in calcStim
+            %freq is [consonant, speaker, vowel, recording
 
+
+            %if ~s.freq
+                s.freq = freqCon;
+            %end
+
+
+            duration = s.freq(2);
+            s.numSamples = s.sampleRate*duration/1000;
+            t=1:s.numSamples;
+            t=t/s.sampleRate;
+
+
+             [sad, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\sadshifted-allie.wav'); %left
+            %[dad, fs] =wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\dadshifted-allie.wav'); %right
+            %old stimulus - not ideally aligned - changed to new file with
+            %50ms silence added to beginning of dad
+            [dad, fs] = wavread('C:\Users\nlab\Desktop\ratrixSounds\phonemes\dadshifted-allie-aligned.wav'); %right
+
+            if s.freq(1) == 1
+                tone=sin(2*pi*t*2000);
+                clip = horzcat(tone,dad.');
+            elseif s.freq(1) == 0
+                tone=sin(2*pi*t*7000);
+                clip = horzcat(tone,sad.');
+
+            end
+            s.clip = clip;
+            s.numSamples = s.sampleRate*(duration+500)/1000;
 
 
 

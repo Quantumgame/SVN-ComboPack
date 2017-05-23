@@ -62,7 +62,7 @@ switch nargin
         % create object using specified values
 
 
-        if ismember(varargin{2},{'tone','tone615','gap','toneLCycle10','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'noise','phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavAll','speechWavAllUniform','speechComponent','morPhone','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward','phoneToneConor', 'toneThenPhoneme', 'phonemeWavGlobal'} )
+        if ismember(varargin{2},{'tone','tone615','gap','toneLCycle10','toneLaser', 'CNMToneTrain', 'freeCNMToneTrain','wmToneWN', 'wmReadWav', 'noise','phonemeWav','phonemeWavLaser', 'phonemeWavLaserMulti','warblestackWav','phonemeWavReversedReward','pulseAndNoise','pulse','phoneTone','toneThenSpeech','speechWav','speechWavAll','speechWavAllUniform','speechComponent','morPhone','speechWavLaser', 'speechWavLaserMulti','speechWavReversedReward','phoneToneConor', 'toneThenPhoneme','phoneToneConorRR', 'toneThenPhonemeRR', 'phonemeWavGlobal'} )
 
 
             t.freq = varargin{3};
@@ -73,6 +73,13 @@ switch nargin
                 case {'toneThenPhoneme'}
                     t.description = [' ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
+                case {'phoneToneConorRR'}
+                    t.description = [' ' num2str(t.freq) ' Hz'];
+                    t.type = varargin{2};
+                case {'toneThenPhonemeRR'}
+                    t.description = [' ' num2str(t.freq) ' Hz'];
+                    t.type = varargin{2};    
+                    
                 case {'phonemeWavGlobal'}
                    % t.description = [' ' num2str(t.freq) ' Hz'];
                     t.type = varargin{2};
