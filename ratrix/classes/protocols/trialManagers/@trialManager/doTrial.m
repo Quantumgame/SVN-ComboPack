@@ -34,21 +34,21 @@ stopEarly=0;
 
 if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') && isa(subject,'subject') && ((isempty(rn) && strcmp(getRewardMethod(station),'localTimed')) || isa(rn,'rnet'))
     if stationOKForTrialManager(trialManager,station)
-        
+
         if ~isempty(rn)
             constants = getConstants(rn);
         end
-        
+
         trialInd=length(trialRecords)+1;
         [p t]=getProtocolAndStep(subject);
         ts = getTrainingStep(p,t);
-        
+
         if trialInd>1
             trialRecords(trialInd).trialNumber=trialRecords(trialInd-1).trialNumber+1;
         else
             trialRecords(trialInd).trialNumber=1;
         end
-        
+
         if isa(stimManager,'stimManager')
             trialRecords(trialInd).sessionNumber = sessionNumber;
             trialRecords(trialInd).date = datevec(now);
@@ -58,27 +58,27 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
             trialRecords(trialInd).trainingStepNum = t;
             trialRecords(trialInd).numStepsInProtocol = getNumTrainingSteps(p);
             trialRecords(trialInd).protocolVersion = getProtocolVersion(subject);
-            
+
             trialRecords(trialInd).reinforcementManager = [];
             trialRecords(trialInd).reinforcementManagerClass = [];
-            
+
             stns=getStationsForBoxID(r,getBoxIDForSubjectID(r,getID(subject)));
             for stNum=1:length(stns)
                 trialRecords(trialInd).stationIDsInBox{stNum} = getID(stns(stNum));
             end
-            
+
             trialRecords(trialInd).subjectsInBox = getSubjectIDsForBoxID(r,getBoxIDForSubjectID(r,getID(subject)));
             trialRecords(trialInd).trialManager = structize(decache(trialManager));
-            trialRecords(trialInd).stimManagerClass = class(stimManager);            
+            trialRecords(trialInd).stimManagerClass = class(stimManager);
             trialRecords(trialInd).stepName = getStepName(ts);
             trialRecords(trialInd).trialManagerClass = class(trialManager);
             trialRecords(trialInd).scheduler = structize(getScheduler(ts));
             trialRecords(trialInd).criterion = structize(getCriterion(ts));
             trialRecords(trialInd).schedulerClass = class(getScheduler(ts));
             trialRecords(trialInd).criterionClass = class(getCriterion(ts));
-            
+
             trialRecords(trialInd).neuralEvents = [];
-            
+
             switch trialManager.displayMethod
                 case 'ptb'
                     resolutions=getResolutions(station);
@@ -87,7 +87,7 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 otherwise
                     error('shouldn''t happen')
             end
-            
+
 			% calcStim should return the following:
 			%	newSM - a (possibly) modified stimManager object
 			%	updateSM - a flag whether or not to copy newSM to ratrix
@@ -104,29 +104,35 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
 			%	trialRecords(trialInd).interTrialLuminance - itl DO NOT CHANGE
 			%	text - DO NOT CHANGE
 			%	indexPulses - DO NOT CHANGE
-			
+
 			% now, we should ALWAYS call createStimSpecsFromParams, which should do the following:
 			%	INPUTS: preRequestStim, preResponseStim, discrimStim, targetPorts, distractorPorts, requestPorts,interTrialLuminance,hz,indexPulses
             %	OUTPUTS: stimSpecs, startingStimSpecInd
             %		- should handle creation of default phase setup for nAFC/freeDrinks, and also handle additional phases depending on delayManager and responseWindow
-            %		- how then does calcStim return a set of custom phases? - it no longer can, because we are forcing calcstim to return 3 structs...to discuss later?            
-            
-            [trialRecords(trialInd).targetPorts, trialRecords(trialInd).distractorPorts, stimulusDetails, text] = ...
-                assignPorts(trialManager,trialRecords,getResponsePorts(trialManager,getNumPorts(station)));
+            %		- how then does calcStim return a set of custom phases? - it no longer can, because we are forcing calcstim to return 3 structs...to discuss later?
+
+            if strcmp(class(trialManager), 'nAFC')
+                [trialRecords(trialInd).targetPorts, trialRecords(trialInd).distractorPorts, stimulusDetails, text] = ...
+                    assignPorts(trialManager,trialRecords,getResponsePorts(trialManager,getNumPorts(station)), class(stimManager));
+            else
+                [trialRecords(trialInd).targetPorts, trialRecords(trialInd).distractorPorts, stimulusDetails, text] = ...
+                    assignPorts(trialManager,trialRecords,getResponsePorts(trialManager,getNumPorts(station)));
+            end
+
              if strcmp(class(trialManager), 'goNoGo')
              trialRecords(trialInd).targetPorts = [2];
              end
-             
-            
-             if strcmp(class(trialManager), 'freeGoNoGo') 
+
+
+             if strcmp(class(trialManager), 'freeGoNoGo')
                  if getEarlyP(trialManager)
              trialRecords(trialInd).targetPorts = [2];
-                 else 
+                 else
                      trialRecords(trialInd).targetPorts = [];
                  end
              end
-             
-             
+
+
             [newSM, ...
                 updateSM, ...
                 resInd, ...
@@ -155,8 +161,8 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 trialRecords(trialInd).distractorPorts, ...
                 stimulusDetails, ...
                 text);
-            
-            
+
+
             if strcmp(class(newSM), 'CNM')
             durations = getDurations(newSM); %[duration toneDuration isi]
             %rWMs = [(durations(1) - durations(2)) durations(1)]; %from beginning of last tone to its end
@@ -165,7 +171,7 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
              trialManager = setResponseWindow(trialManager, rWMs);
            %trialManager = setResponseWindow(trialManager,[0 2000] );
             end
-            
+
             if strcmp(class(newSM), 'freeCNM')
             durations = getDurations(newSM); %[duration toneDuration isi]
             %rWMs = [(durations(1) - durations(2)) durations(1)]; %from beginning of last tone to its end
@@ -174,7 +180,7 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
              trialManager = setResponseWindow(trialManager, rWMs);
            %trialManager = setResponseWindow(trialManager,[0 2000] );
             end
-            
+
 %              if strcmp(class(newSM), 'CNMafc')
 %             durations = getDurations(newSM); %[duration toneDuration isi]
 %             %rWMs = [(durations(1) - durations(2)) durations(1)]; %from beginning of last tone to its end
@@ -183,13 +189,13 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
 %              trialManager = setResponseWindow(trialManager, rWMs);
 %            %trialManager = setResponseWindow(trialManager,[0 2000] );
 %             end
-            
-            
+
+
             % test must a single string now - dont bother w/ complicated stuff here
 			if ~ischar(text)
 				error('text must be a string');
-            end            
-            
+            end
+
             switch trialManager.displayMethod
                 case 'ptb'
                     if ~isnan(resInd)
@@ -206,21 +212,21 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 otherwise
                     error('shouldn''t happen')
             end
-            
+
             [newSM, updateSM, stimulusDetails]=postScreenResetCheckAndOrCache(newSM,updateSM,stimulusDetails); %enables SM to check or cache their tex's if they control that
-            
+
             trialRecords(trialInd).station = structize(station); %wait til now to record, so we get an updated ifi measurement in the station object
-            
+
             refreshRate=1/getIFI(station); %resolution.hz is 0 on OSX
-            
+
             % check port logic (depends on trialManager class)
             if (isempty(trialRecords(trialInd).targetPorts) || isvector(trialRecords(trialInd).targetPorts))...
                     && (isempty(trialRecords(trialInd).distractorPorts) || isvector(trialRecords(trialInd).distractorPorts))
-                
+
                 portUnion=[trialRecords(trialInd).targetPorts trialRecords(trialInd).distractorPorts];
                 if length(unique(portUnion))~=length(portUnion) ||...
                         any(~ismember(portUnion, getResponsePorts(trialManager,getNumPorts(station))))
-                    
+
                     trialRecords(trialInd).targetPorts
                     trialRecords(trialInd).distractorPorts
                     getResponsePorts(trialManager,getNumPorts(station))
@@ -234,9 +240,9 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 trialRecords(trialInd).distractorPorts
                 error('targetPorts and distractorPorts must be row vectors')
             end
-            
+
             checkPorts(trialManager,trialRecords(trialInd).targetPorts,trialRecords(trialInd).distractorPorts);
-            
+
             [stimSpecs startingStimSpecInd sm] = createStimSpecsFromParams(trialManager,preRequestStim,preResponseStim,discrimStim,...
 				trialRecords(trialInd).targetPorts,trialRecords(trialInd).distractorPorts,getRequestPorts(trialManager,getNumPorts(station)),...
 				trialRecords(trialInd).interTrialLuminance,refreshRate,indexPulses, newSM);
@@ -246,10 +252,10 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
             [tempSoundMgr updateSndM] = cacheSounds(getSoundManager(trialManager),station,sounds);
             trialManager = setSoundManager(trialManager, tempSoundMgr);
             updateTM = updateTM || updateSndM;
-            
+
             trialRecords(trialInd).stimManager = structize(decache(newSM)); %many rouge stimManagers have a LUT cached in them and aren't decaching it -- hopefully will be fixed by the LUT fixing... (http://132.239.158.177/trac/rlab_hardware/ticket/224)
             stimulusDetails=structize(stimulusDetails);
-            
+
             manualOn=0;
             if length(trialRecords)>1
                 if ~(trialRecords(trialInd-1).leftWithManualPokingOn)
@@ -260,20 +266,20 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                     error('should never happen')
                 end
             end
-            
+
             %             [rm updateRM] =cache(getReinforcementManager(trialManager),trialRecords, subject);
             %             updateTM = updateTM || updateRM;
-            
+
             drawnow;
             currentValveStates=verifyValvesClosed(station);
-            
+
             pStr=[trialRecords(trialInd).protocolName '(' num2str(trialRecords(trialInd).protocolVersion.manualVersion) 'm:' num2str(trialRecords(trialInd).protocolVersion.autoVersion) 'a)' ' step:' num2str(trialRecords(trialInd).trainingStepNum) '/' num2str(trialRecords(trialInd).numStepsInProtocol) ];
-            
+
             thisSession=trialRecords(trialInd).sessionNumber == [trialRecords.sessionNumber];
             nPerf=uint8(50);
             [~, ~, pct] = checkCriterion(performanceCriterion(1,nPerf),subject,ts,trialRecords,false);
             trialLabel=sprintf('%d%%(%d) trial:%d(%d)(%d) session:%d',round(100*pct),nPerf,sum([trialRecords(thisSession).trainingStepNum]==trialRecords(trialInd).trainingStepNum),sum(thisSession),trialRecords(trialInd).trialNumber,sessionNumber);
-            
+
             if ~isempty(getDatanet(station))
 				% 4/11/09 - also save the stimRecord here, before trial starts (but just the stimManagerClass)
 				% also send over the filename of the neuralRecords file (so we can create it on the phys side, and then append every 30 secs)
@@ -311,16 +317,16 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                     end
                 end
             end
-            
+
             if isfield(stimulusDetails, 'big') % edf: why did this used to also test for isstruct(stimulusDetails) ?
                 stimulusDetails = rmfield(stimulusDetails, 'big');
 
                 %also, maybe one day these exist and need removing:
                 % phaseRecords{i}.responseDetails.expertDetails.big
             end
-            
+
             trialRecords(trialInd).stimDetails = stimulusDetails;
-            
+
             % stopEarly could potentially be set by the datanet's handleCommands (if server tells this client to shutdown
             % while we are in doTrial)
             if ~stopEarly
@@ -352,15 +358,15 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 %[junk junk eyeDataVarNames]=getSample(getEyeTracker(station)); %throws out a sample in order to get variable names... dirty
                 saveEyeData(getEyeTracker(station),eyeData,eyeDataFrameInds,getEyeDataVarNames(getEyeTracker(station)),gaze,trialRecords(trialInd).trialNumber,trialRecords(trialInd).date)
             end
-            
+
             trialRecords(trialInd).trainingStepName = generateStepName(ts,ratrixSVNInfo,ptbSVNInfo);
-            
+
             if stopEarly
                 'got stopEarly 1'
             end
-            
+
             currentValveStates=verifyValvesClosed(station);
-            
+
             if ~ischar(trialRecords(trialInd).result)
 %                 resp=find(trialRecords(trialInd).result);
 %                 if length(resp)==1
@@ -373,7 +379,7 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 % edf: how would stimOGL exit while leaving response as 'none'?  passive viewing?  (empty responseOptions)
                 % if so, why do you say 'temporarily'?  also, should verify that this really was a passive viewing.
                 %
-                % i think response is also 'none' if there is a bad error in stimOGL, 
+                % i think response is also 'none' if there is a bad error in stimOGL,
                 % like an rnet error, in which case we should not continue trials
                 % we need to flag any error with a special response so we know what's going on and don't continue
             elseif ischar(trialRecords(trialInd).result) && strcmp(trialRecords(trialInd).result, 'manual flushPorts')
@@ -404,7 +410,7 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 fprintf('setting stopEarly\n')
                 stopEarly = 1;
             end
-            
+
             if ~isempty(getDatanet(station)) %&& ~stopEarly
                 [garbage garbage] = handleCommands(getDatanet(station),[]);
                 datanet_constants = getConstants(getDatanet(station));
@@ -415,12 +421,12 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                 commands.arg=cparams;
                 [gotAck] = sendCommandAndWaitForAck(getDatanet(station), commands);
             end
-            
+
             trialRecords(trialInd).reinforcementManager = structize(trialManager.reinforcementManager);
             trialRecords(trialInd).reinforcementManagerClass = class(trialManager.reinforcementManager);
-            
+
             currentValveStates=verifyValvesClosed(station);
-            
+
             while ~isempty(rn) && commandsAvailable(rn,constants.priorities.AFTER_TRIAL_PRIORITY) && ~stopEarly
                 if ~isConnected(r)
                     stopEarly=true;
@@ -434,9 +440,9 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                                 requestedValveState=args{1};
                                 isPrime=args{2};
                                 if isPrime
-                                    
+
                                     timeout=-5;
-                                    
+
                                     [stopEarly trialRecords(trialInd).primingValveErrorDetails(end+1),...
                                         trialRecords(trialInd).latencyToOpenPrimingValves(end+1),...
                                         trialRecords(trialInd).latencyToClosePrimingValveRecd(end+1),...
@@ -453,18 +459,18 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                                         requestedValveState,...
                                         [],...
                                         isPrime);
-                                    
+
                                     if stopEarly
                                         'got stopEarly 7'
                                     end
-                                    
+
                                     currentValveStates=verifyValvesClosed(station);
                                 else
                                     sendError(rn,com,constants.errors.BAD_STATE_FOR_COMMAND,'client received non-priming S_SET_VALVES_CMD outside of a trial');
                                 end
                             otherwise
                                 stopEarly=clientHandleVerifiedCommand(rn,com,cmd,args,constants.statuses.IN_SESSION_BETWEEN_TRIALS);
-                                
+
                                 if stopEarly
                                     'got stopEarly 8'
                                 end
@@ -472,17 +478,17 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
                     end
                 end
             end
-            
+
             currentValveStates=verifyValvesClosed(station);
-            
+
             if stopEarly
                 trialManager.soundMgr=uninit(trialManager.soundMgr,station);
             end
-            
+
             if stopEarly
                 trialManager.soundMgr=uninit(trialManager.soundMgr,station);
             end
-            
+
         else
             error('need a stimManager')
         end
@@ -490,9 +496,9 @@ if isa(station,'station') && isa(stimManager,'stimManager') && isa(r,'ratrix') &
         error('station not ok for trialManager')
     end
 else
-    
+
     sca
-    
+
     if ~isa(station,'station')
         error('no station')
     end
@@ -511,7 +517,7 @@ else
     if ~isa(rn, 'rnet')
         error('non-empty rnet %s', getRewardMethod(station))
     end
-    
+
     error('need station, stimManager, subject, ratrix, and rnet objects')
 end
 
@@ -523,7 +529,7 @@ for i=1:length(stimSpecs)
     cr = getTransitions(spec);
     fr = getFramesUntilTransition(spec);
     stimType = getStimType(spec);
-    
+
     % if expert mode, check that the stim is a struct with the following fields:
     %   floatprecision
     %   height
@@ -536,7 +542,7 @@ for i=1:length(stimSpecs)
             error('in ''expert'' mode, stim must be a struct with fields ''height'' and ''width''');
         end
     end
-    
+
     if strcmp(cr{1}, 'none') && (isempty(fr) || (isscalar(fr) && fr<=0))
         error('must have a transition port set or a transition by timeout');
     end
